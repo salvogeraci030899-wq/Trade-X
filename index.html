@@ -406,7 +406,8 @@
         let userChoice = null;
         let chartColor = "#fff";
         let currentTradeWin = null;
-        let chartDirection = 0; // 0 = neutrale, 1 = su, -1 = giù
+        let postDecisionTrend = 0;
+        let postDecisionData = [];
         
         let betPercentage = 10;
         let leverageIndex = 0; // Indice nell'array LEVERAGE_SETTINGS
@@ -613,55 +614,14 @@
         }
 
         // ==================== GRAFICO ====================
-        function generateChartData() {
-            const dataLength = 180;
+        function generateChartData(length, startValue = 50, baseTrend = 0) {
             const data = [];
-            
-            let value = 50;
-            const trend = (Math.random() - 0.5) * 0.1;
-            
-            for (let i = 0; i < dataLength; i++) {
-                value += (Math.random() - 0.5) * 1.5 + trend;
-                
-                if (value < 5) value = 5 + Math.random() * 5;
-                if (value > 95) value = 95 - Math.random() * 5;
-                
-                data.push(value);
-            }
-            
-            return data;
-        }
-
-        function generatePostDecisionData(startValue, win, choice) {
-            const dataLength = 60; // Numero di punti dopo la decisione
-            const data = [];
-            
             let value = startValue;
             
-            // Determina la direzione basata sulla scelta e sul risultato
-            let trendDirection = 0;
-            if (choice === 'long' && win) {
-                trendDirection = 1; // Su se long vince
-                chartDirection = 1;
-            } else if (choice === 'long' && !win) {
-                trendDirection = -1; // Giù se long perde
-                chartDirection = -1;
-            } else if (choice === 'short' && win) {
-                trendDirection = -1; // Giù se short vince
-                chartDirection = -1;
-            } else if (choice === 'short' && !win) {
-                trendDirection = 1; // Su se short perde
-                chartDirection = 1;
-            }
-            
-            // Forza il trend più forte per rendere chiaro il risultato
-            const strongTrend = trendDirection * (0.5 + Math.random() * 0.3);
-            
-            for (let i = 0; i < dataLength; i++) {
-                // Aggiunge un trend forte più un po' di rumore
-                value += strongTrend + (Math.random() - 0.5) * 0.5;
+            for (let i = 0; i < length; i++) {
+                // La stessa formula della prima animazione: rumore + trend
+                value += (Math.random() - 0.5) * 1.5 + baseTrend;
                 
-                // Mantiene nei limiti
                 if (value < 5) value = 5 + Math.random() * 5;
                 if (value > 95) value = 95 - Math.random() * 5;
                 
@@ -742,16 +702,19 @@
                 chartStep++;
                 drawChart();
                 
+                // Prima della decisione: animazione veloce
                 if (isAnimating && chartStep <= decisionPoint) {
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
                     }, 8 + Math.random() * 4);
                 } 
+                // Dopo la scelta dell'utente: stessa animazione fluida
                 else if (userChoice && chartStep > decisionPoint) {
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
-                    }, 20);
+                    }, 8 + Math.random() * 4);
                 } 
+                // Punto di decisione raggiunto, attende scelta
                 else if (chartStep > decisionPoint && !userChoice) {
                     isAnimating = false;
                     enableTradeButtons();
@@ -835,13 +798,14 @@
             chartStep = 0;
             userChoice = null;
             currentTradeWin = null;
+            postDecisionTrend = 0;
+            postDecisionData = [];
             chartColor = "#fff";
-            chartDirection = 0;
             isAnimating = true;
             
-            // Genera dati fino al punto di decisione
-            chartData = generateChartData();
-            decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
+            // Genera dati iniziali (120 punti)
+            chartData = generateChartData(120);
+            decisionPoint = 60 + Math.floor(Math.random() * 30); // Punto decisionale tra 60-90
             
             const settings = getCurrentLeverageSettings();
             statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${Math.round(settings.winChance * 100)}% win)`;
@@ -858,16 +822,24 @@
                 userChoice = 'long';
                 currentTradeWin = isTradeSuccessful();
                 
-                // Estende i dati dopo la decisione in base al risultato
-                const startValue = chartData[decisionPoint];
-                const postDecisionData = generatePostDecisionData(startValue, currentTradeWin, 'long');
+                // Determina la direzione del trend post-decisione
+                // Se LONG vince: trend positivo (su)
+                // Se LONG perde: trend negativo (giù)
+                postDecisionTrend = currentTradeWin ? 0.3 : -0.3;
                 
-                // Sostituisce i dati dopo il punto di decisione
+                // Genera i dati post-decisione con lo stesso stile organico
+                const startValue = chartData[decisionPoint];
+                const remainingLength = 60; // Altri 60 punti dopo la decisione
+                
+                // Genera dati con lo stesso stile organico ma con il trend corretto
+                postDecisionData = generateChartData(remainingLength, startValue, postDecisionTrend);
+                
+                // Combina i dati
                 chartData = chartData.slice(0, decisionPoint + 1).concat(postDecisionData);
                 
                 disableTradeButtons();
                 statusMessage.textContent = "LONG selezionato";
-                chartColor = "#0c0";
+                chartColor = "#fff"; // Colore neutro durante l'animazione
                 isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
             }
@@ -878,16 +850,24 @@
                 userChoice = 'short';
                 currentTradeWin = isTradeSuccessful();
                 
-                // Estende i dati dopo la decisione in base al risultato
-                const startValue = chartData[decisionPoint];
-                const postDecisionData = generatePostDecisionData(startValue, currentTradeWin, 'short');
+                // Determina la direzione del trend post-decisione
+                // Se SHORT vince: trend negativo (giù)
+                // Se SHORT perde: trend positivo (su)
+                postDecisionTrend = currentTradeWin ? -0.3 : 0.3;
                 
-                // Sostituisce i dati dopo il punto di decisione
+                // Genera i dati post-decisione con lo stesso stile organico
+                const startValue = chartData[decisionPoint];
+                const remainingLength = 60; // Altri 60 punti dopo la decisione
+                
+                // Genera dati con lo stesso stile organico ma con il trend corretto
+                postDecisionData = generateChartData(remainingLength, startValue, postDecisionTrend);
+                
+                // Combina i dati
                 chartData = chartData.slice(0, decisionPoint + 1).concat(postDecisionData);
                 
                 disableTradeButtons();
                 statusMessage.textContent = "SHORT selezionato";
-                chartColor = "#f00";
+                chartColor = "#fff"; // Colore neutro durante l'animazione
                 isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
             }
@@ -901,7 +881,7 @@
             betPercentage = 10;
             totalTrades = 0;
             currentTradeWin = null;
-            chartDirection = 0;
+            postDecisionTrend = 0;
             
             percentageSlider.value = betPercentage;
             percentageValue.textContent = `${betPercentage}%`;
