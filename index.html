@@ -46,8 +46,9 @@
         /* Menu Button */
         .menu-button {
             position: absolute;
-            top: 20px;
+            top: 50%;
             right: 20px;
+            transform: translateY(-50%);
             width: 30px;
             height: 30px;
             display: flex;
@@ -131,11 +132,6 @@
             opacity: 1;
             transform: scale(1.05);
         }
-        
-        .menu-item:nth-child(1) { color: #4CAF50; }
-        .menu-item:nth-child(2) { color: #2196F3; }
-        .menu-item:nth-child(3) { color: #FF9800; }
-        .menu-item:nth-child(4) { color: #9C27B0; }
         
         .page-title {
             text-align: center;
@@ -415,10 +411,11 @@
         /* Media query per schermi piccoli */
         @media (max-width: 380px) {
             .menu-button {
-                top: 15px;
+                top: 50%;
                 right: 15px;
                 width: 25px;
                 height: 25px;
+                transform: translateY(-50%);
             }
             
             .menu-dot {
@@ -475,8 +472,9 @@
         
         @media (max-width: 320px) {
             .menu-button {
-                top: 12px;
+                top: 50%;
                 right: 12px;
+                transform: translateY(-50%);
             }
             
             .menu-item {
