@@ -69,14 +69,14 @@
             background: #fff;
         }
         
-        /* Menu Overlay */
+        /* Menu Overlay - MODIFICATO: sfondo completamente nero senza trasparenza */
         .menu-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: #000; /* MODIFICATO: da rgba(0,0,0,0.95) a #000 */
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -158,7 +158,7 @@
             margin-bottom: 30px;
             border-bottom: 1px solid #222;
             padding-bottom: 15px;
-            flex-shrink: 0; /* Impedisce che il titolo scorra */
+            flex-shrink: 0;
         }
         
         .page-title {
@@ -173,26 +173,19 @@
             line-height: 1.6;
             font-size: 16px;
             color: #ccc;
-            overflow-y: auto; /* Abilita scroll verticale */
-            -webkit-overflow-scrolling: touch; /* Scroll fluido su iOS */
-            padding-right: 10px; /* Spazio per la scrollbar */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 10px;
         }
         
-        /* MODIFICA: Lista livelli in Settings scorrevole */
+        /* MODIFICA: Contenuto Settings scorrevole */
         #settingsOverlay .page-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Nasconde lo scroll della pagina intera */
-        }
-        
-        /* MODIFICA: Container per la lista dei livelli */
-        .levels-container {
-            flex: 1;
-            overflow-y: auto; /* Abilita scroll solo per la lista */
-            -webkit-overflow-scrolling: touch; /* Scroll fluido su iOS */
-            padding-right: 10px; /* Spazio per la scrollbar */
-            margin-bottom: 30px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 10px;
         }
         
         .page-content h2 {
@@ -283,12 +276,14 @@
             border-radius: 50%;
         }
         
+        /* MODIFICATO: toggle audio in bianco e nero */
         input:checked + .toggle-slider {
-            background-color: #4CAF50;
+            background-color: #fff; /* Bianco invece di verde */
         }
         
         input:checked + .toggle-slider:before {
             transform: translateX(26px);
+            background-color: #000; /* Nero invece di bianco */
         }
         
         .level-item {
@@ -317,6 +312,7 @@
             display: inline-block;
         }
         
+        /* MODIFICATO: titolo cambiato da XTRADE a XTrade */
         .game-title {
             text-align: center;
             font-size: 24px;
@@ -564,25 +560,21 @@
         }
 
         /* Stili per la scrollbar */
-        .page-content::-webkit-scrollbar,
-        .levels-container::-webkit-scrollbar {
+        .page-content::-webkit-scrollbar {
             width: 8px;
         }
         
-        .page-content::-webkit-scrollbar-track,
-        .levels-container::-webkit-scrollbar-track {
+        .page-content::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 4px;
         }
         
-        .page-content::-webkit-scrollbar-thumb,
-        .levels-container::-webkit-scrollbar-thumb {
+        .page-content::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
             border-radius: 4px;
         }
         
-        .page-content::-webkit-scrollbar-thumb:hover,
-        .levels-container::-webkit-scrollbar-thumb:hover {
+        .page-content::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
 
@@ -752,7 +744,7 @@
         </div>
     </div>
     
-    <!-- Settings Page Overlay -->
+    <!-- Settings Page Overlay - MODIFICATO: rimossa sezione "Sistema dei livelli" -->
     <div class="page-overlay" id="settingsOverlay">
         <div class="page-header">
             <h1 class="page-title">Impostazioni</h1>
@@ -770,75 +762,7 @@
                 </label>
             </div>
             
-            <h2 style="margin-top: 30px;">Sistema dei Livelli</h2>
-            <p style="margin-bottom: 20px;">I livelli vengono sbloccati automaticamente raggiungendo determinati saldi. Ogni livello offre leve e rischi diversi.</p>
-            
-            <!-- MODIFICA: Container per la lista dei livelli -->
-            <div class="levels-container">
-                <div class="level-item">
-                    <div class="level-name">
-                        <span class="level-color" style="background: #44ff44;"></span>
-                        Basso
-                    </div>
-                    <div class="level-description">Leva 1x - Probabilità 80% - Sbloccato all'inizio</div>
-                </div>
-                
-                <div class="level-item">
-                    <div class="level-name">
-                        <span class="level-color" style="background: #66ff66;"></span>
-                        Medio (2x)
-                    </div>
-                    <div class="level-description">Leva 2x - Probabilità 70% - Sblocco a $200</div>
-                </div>
-                
-                <div class="level-item">
-                    <div class="level-name">
-                        <span class="level-color" style="background: #88ff88;"></span>
-                        Medio (3x)
-                    </div>
-                    <div class="level-description">Leva 3x - Probabilità 60% - Sblocco a $300</div>
-                </div>
-                
-                <div class="level-item">
-                    <div class="level-name">
-                        <span class="level-color" style="background: #ffff44;"></span>
-                        Medio (5x)
-                    </div>
-                    <div class="level-description">Leva 5x - Probabilità 50% - Sblocco a $500</div>
-                </div>
-                
-                <div class="level-item">
-                    <div class="level-name">
-                        <span class="level-color" style="background: #ffaa44;"></span>
-                        Alto (10x)
-                    </div>
-                    <div class="level-description">Leva 10x - Probabilità 40% - Sblocco a $1000</div>
-                </div>
-                
-                <div class="level-item">
-                    <div class="level-name">
-                        <span class="level-color" style="background: #ff7744;"></span>
-                        Alto (20x)
-                    </div>
-                    <div class="level-description">Leva 20x - Probabilità 30% - Sblocco a $2000</div>
-                </div>
-                
-                <div class="level-item">
-                    <div class="level-name">
-                        <span class="level-color" style="background: #ff4444;"></span>
-                        Estremo (50x)
-                    </div>
-                    <div class="level-description">Leva 50x - Probabilità 20% - Sblocco a $5000</div>
-                </div>
-                
-                <div class="level-item">
-                    <div class="level-name">
-                        <span class="level-color" style="background: #ff2244;"></span>
-                        Insano (100x)
-                    </div>
-                    <div class="level-description">Leva 100x - Probabilità 10% - Sblocco a $10000</div>
-                </div>
-            </div>
+            <!-- SEZIONE "Sistema dei Livelli" RIMOSSA -->
             
             <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 5px;">
                 <div class="settings-label">Reset Dati</div>
@@ -848,8 +772,8 @@
         </div>
     </div>
     
-    <!-- Main Game Interface -->
-    <div class="game-title">XTRADE</div>
+    <!-- Main Game Interface - MODIFICATO: titolo cambiato da XTRADE a XTrade -->
+    <div class="game-title">XTrade</div>
     
     <div class="header">
         <div class="balance-container">
