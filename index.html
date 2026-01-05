@@ -1005,6 +1005,40 @@
             { threshold: 25000, maxLeverageIndex: 7 }   // 100x
         ];
 
+        // ==================== FUNZIONI HELPER PER LIMITI INTUITIVI ====================
+        function getRoundedMaxPercentage(leverage) {
+            // Tabella di arrotondamenti intuitivi (multipli di 5)
+            const roundingTable = {
+                1: 100,   // 1x → 100%
+                2: 50,    // 2x → 50%
+                3: 35,    // 3x → 35% (intuitivo, non 33%)
+                5: 20,    // 5x → 20%
+                10: 10,   // 10x → 10%
+                20: 5,    // 20x → 5%
+                50: 2,    // 50x → 2%
+                100: 1    // 100x → 1%
+            };
+            
+            return roundingTable[leverage] || Math.floor(100 / leverage);
+        }
+
+        // ==================== FUNZIONI HELPER PER NUMERI INTERI ====================
+        function int(val) {
+            return Math.floor(Number(val));
+        }
+        
+        function intMultiply(a, b) {
+            return int(a * b);
+        }
+        
+        function intDivide(a, b) {
+            return int(a / b);
+        }
+        
+        function intPercentage(value, percentage) {
+            return int(value * percentage / 100);
+        }
+
         // ==================== VARIABILI GLOBALI ====================
         let balance = 100;
         let bestBalance = 100;
@@ -1080,23 +1114,6 @@
         const highestWinStreakElement = document.getElementById('highestWinStreak');
         const recordWinStreakElement = document.getElementById('recordWinStreak');
         const gameOverStats = document.getElementById('gameOverStats');
-
-        // ==================== FUNZIONI HELPER PER NUMERI INTERI ====================
-        function int(val) {
-            return Math.floor(Number(val));
-        }
-        
-        function intMultiply(a, b) {
-            return int(a * b);
-        }
-        
-        function intDivide(a, b) {
-            return int(a / b);
-        }
-        
-        function intPercentage(value, percentage) {
-            return int(value * percentage / 100);
-        }
 
         // ==================== FUNZIONI MENU ====================
         function openMenu() {
@@ -1198,26 +1215,24 @@
         // ==================== FUNZIONI PER GESTIONE PUNTATE ====================
         function validateBet() {
             const rawBet = int(balance * betPercentage / 100);
-            const maxSafeBet = intDivide(balance, leverage);
+            const maxSafePercentage = getRoundedMaxPercentage(leverage);
+            const maxSafeBet = int(balance * maxSafePercentage / 100);
             
             if (rawBet > maxSafeBet) {
-                const safePercentage = Math.max(1, int(maxSafeBet * 100 / balance));
+                // Arrotonda la percentuale al massimo sicuro
+                betPercentage = maxSafePercentage;
+                percentageSlider.value = betPercentage;
+                percentageValue.textContent = `${betPercentage}%`;
                 
-                if (safePercentage < betPercentage) {
-                    betPercentage = safePercentage;
-                    percentageSlider.value = betPercentage;
-                    percentageValue.textContent = `${betPercentage}%`;
-                    
-                    statusMessage.textContent = `Puntata ridotta a ${betPercentage}% per sicurezza`;
-                    setTimeout(() => {
-                        if (!userChoice && gameActive) {
-                            statusMessage.textContent = "Analisi del mercato...";
-                        }
-                    }, 2000);
-                    
-                    playSound('error');
-                    return int(balance * betPercentage / 100);
-                }
+                statusMessage.textContent = `Puntata ridotta a ${betPercentage}% (massimo sicuro per leva ${leverage}x)`;
+                setTimeout(() => {
+                    if (!userChoice && gameActive) {
+                        statusMessage.textContent = "Analisi del mercato...";
+                    }
+                }, 2000);
+                
+                playSound('error');
+                return int(balance * betPercentage / 100);
             }
             
             return rawBet;
@@ -1443,11 +1458,13 @@
             const winChance = int(settings.winChance * 100);
             const potentialWin = intMultiply(bet, leverage);
             const potentialLoss = intMultiply(bet, leverage);
+            const maxSafePercentage = getRoundedMaxPercentage(leverage);
             
             let info = `Puntata: $${bet} (${betPercentage}%) | Leva: ${leverage}x`;
-            info += `<br>Probabilità: ${winChance}% | Se vinci: +$${potentialWin} | Se perdi: -$${potentialLoss}`;
+            info += `<br>Probabilità: ${winChance}% | Max sicuro: ${maxSafePercentage}%`;
+            info += `<br>Se vinci: +$${potentialWin} | Se perdi: -$${potentialLoss}`;
             
-            const maxSafeBet = intDivide(balance, leverage);
+            const maxSafeBet = int(balance * maxSafePercentage / 100);
             if (bet > maxSafeBet) {
                 info += `<br><span style="color:#ff4444">ATTENZIONE: Rischi di perdere tutto il saldo!</span>`;
             } else if (intMultiply(bet, leverage) > int(balance * 0.5)) {
@@ -1512,21 +1529,97 @@
             highestWinStreakElement.textContent = highestWinStreak;
         }
 
-        // ==================== GRAFICO ====================
+        // ==================== GRAFICO MIGLIORATO (PIÙ TRIANGOLARE) ====================
         function generateChartData(length, startValue, trendStrength = 0) {
             const data = [];
             let value = startValue || 50;
+            let direction = 0; // -1 = giù, 0 = neutro, 1 = su
             
             for (let i = 0; i < length; i++) {
-                value += (Math.random() - 0.5) * 1.5 + trendStrength;
+                // Cambia direzione meno frequentemente per triangoli più ampi
+                if (Math.random() < 0.15) { // Era 0.3
+                    direction = Math.sign((Math.random() - 0.5) * 2);
+                }
                 
-                if (value < 5) value = 5 + Math.random() * 5;
-                if (value > 95) value = 95 - Math.random() * 5;
+                // Movimento più ampio nella direzione corrente
+                let movement = direction * (2 + Math.random() * 2);
+                
+                // Aggiungi un po' di rumore ma meno dell'originale
+                movement += (Math.random() - 0.5) * 1.2; // Era 1.5
+                
+                // Applica il trend
+                value += movement + trendStrength * 0.8;
+                
+                // Rileva e accentua i picchi
+                if (i > 1 && i < length - 1) {
+                    const prev = data[i-1];
+                    const nextGuess = value + movement; // Stima del prossimo valore
+                    
+                    // Se è un picco (massimo o minimo locale), accentualo
+                    if ((prev > data[i-2] && prev > value) || 
+                        (prev < data[i-2] && prev < value)) {
+                        // Calcola quanto accentuare (10-30% in più)
+                        const accent = 1 + (Math.random() * 0.2 + 0.1);
+                        const diffFromAvg = (prev - (data[i-2] + value) / 2);
+                        data[i-1] = int((data[i-2] + value) / 2 + diffFromAvg * accent);
+                    }
+                }
+                
+                // Limiti con rimbalzo netto (angoli acuti)
+                if (value < 10) {
+                    value = 10 + Math.random() * 8;
+                    direction = 1; // Cambia direzione verso l'alto
+                }
+                if (value > 90) {
+                    value = 90 - Math.random() * 8;
+                    direction = -1; // Cambia direzione verso il basso
+                }
                 
                 data.push(int(value));
             }
             
-            return data;
+            // Post-processing per triangoli più definiti
+            return accentuateTriangles(data);
+        }
+
+        function accentuateTriangles(data) {
+            const processed = [...data];
+            
+            // Passa attraverso i dati per enfatizzare i triangoli
+            for (let i = 2; i < data.length - 2; i++) {
+                const window = data.slice(i-2, i+3);
+                const avg = window.reduce((a, b) => a + b, 0) / 5;
+                const current = data[i];
+                
+                // Se il punto corrente è significativamente diverso dalla media locale
+                // e forma un triangolo, accentualo
+                if (Math.abs(current - avg) > 3) {
+                    // Calcola se è un picco
+                    const isPeak = (current > data[i-1] && current > data[i+1]) ||
+                                  (current < data[i-1] && current < data[i+1]);
+                    
+                    if (isPeak) {
+                        // Accentua il picco del 20%
+                        const diff = current - avg;
+                        processed[i] = int(avg + diff * 1.2);
+                    }
+                }
+                
+                // Raddrizza le linee tra i picchi
+                if (i > 0 && i < data.length - 1) {
+                    const prev = processed[i-1];
+                    const next = data[i+1];
+                    const slope1 = current - prev;
+                    const slope2 = next - current;
+                    
+                    // Se le pendenze sono simili, rendi la transizione più lineare
+                    if (Math.abs(slope1 - slope2) < 2) {
+                        processed[i] = int((prev + next) / 2);
+                    }
+                }
+            }
+            
+            return processed;
         }
 
         function drawChart() {
@@ -1549,10 +1642,13 @@
             const scaleY = height / valueRange;
             const stepX = width / (chartData.length - 1);
             
+            // LINEE PRINCIPALI più sottili per evidenziare la geometria triangolare
             ctx.strokeStyle = chartColor;
-            ctx.lineWidth = 1.5;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
+            ctx.lineWidth = 1.2; // Ridotto da 1.5 a 1.2
+            ctx.lineCap = 'butt'; // Fine linea netta
+            ctx.lineJoin = 'miter'; // Giunzioni appuntite (per triangoli acuti)
+            ctx.miterLimit = 2; // Mantieni angoli acuti
+            
             ctx.beginPath();
             
             for (let i = 0; i < Math.min(chartStep, chartData.length); i++) {
@@ -1562,20 +1658,50 @@
                 if (i === 0) {
                     ctx.moveTo(x, y);
                 } else {
+                    // Linea retta netta tra i punti
                     ctx.lineTo(x, y);
                 }
             }
             
             ctx.stroke();
             
+            // Punto di decisione con forma triangolare
             if (userChoice && decisionPoint > 0 && chartStep > decisionPoint) {
                 const decisionX = decisionPoint * stepX;
                 const decisionY = height - ((chartData[decisionPoint] - minValue) * scaleY);
                 
+                // Disegna un triangolo invece di un cerchio
                 ctx.fillStyle = chartColor;
                 ctx.beginPath();
-                ctx.arc(decisionX, decisionY, 4, 0, Math.PI * 2);
+                ctx.moveTo(decisionX, decisionY - 8); // Punta in alto
+                ctx.lineTo(decisionX - 6, decisionY + 4); // Angolo sinistro
+                ctx.lineTo(decisionX + 6, decisionY + 4); // Angolo destro
+                ctx.closePath();
                 ctx.fill();
+                
+                // Contorno bianco per il triangolo
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            
+            // Griglia diagonale leggera per enfatizzare l'effetto triangolare
+            if (chartStep > 50) {
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.02)";
+                ctx.lineWidth = 0.3;
+                
+                // Linee diagonali a 45 gradi
+                for (let i = -width; i < width * 2; i += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i + height, height);
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(i, height);
+                    ctx.lineTo(i + height, 0);
+                    ctx.stroke();
+                }
             }
         }
 
@@ -1585,9 +1711,16 @@
                 drawChart();
                 
                 if (isAnimating && chartStep <= decisionPoint) {
+                    // Velocità variabile: più lento sui picchi, più veloce sui lati
+                    const currentValue = chartData[Math.min(chartStep, chartData.length - 1)];
+                    const prevValue = chartData[Math.min(chartStep - 1, chartData.length - 1)];
+                    const isPeak = chartStep > 1 && chartStep < chartData.length - 1 &&
+                                  ((currentValue > prevValue && currentValue > chartData[chartStep + 1]) ||
+                                   (currentValue < prevValue && currentValue < chartData[chartStep + 1]));
+                    
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
-                    }, 8 + Math.random() * 4);
+                    }, isPeak ? 15 : 8); // Più lento sui picchi
                 } 
                 else if (userChoice && chartStep > decisionPoint) {
                     setTimeout(() => {
@@ -1749,10 +1882,11 @@
         function chooseLong() {
             if (!isAnimating && gameActive && !userChoice) {
                 const bet = calculateBet();
-                const maxSafeBet = intDivide(balance, leverage);
+                const maxSafePercentage = getRoundedMaxPercentage(leverage);
+                const maxSafeBet = int(balance * maxSafePercentage / 100);
                 
                 if (bet > maxSafeBet) {
-                    statusMessage.textContent = "Puntata troppo rischiosa! Riduci la percentuale.";
+                    statusMessage.textContent = `Puntata troppo rischiosa! Max: ${maxSafePercentage}% ($${maxSafeBet})`;
                     playSound('error');
                     setTimeout(() => {
                         if (!userChoice) statusMessage.textContent = "Analisi del mercato...";
@@ -1785,10 +1919,11 @@
         function chooseShort() {
             if (!isAnimating && gameActive && !userChoice) {
                 const bet = calculateBet();
-                const maxSafeBet = intDivide(balance, leverage);
+                const maxSafePercentage = getRoundedMaxPercentage(leverage);
+                const maxSafeBet = int(balance * maxSafePercentage / 100);
                 
                 if (bet > maxSafeBet) {
-                    statusMessage.textContent = "Puntata troppo rischiosa! Riduci la percentuale.";
+                    statusMessage.textContent = `Puntata troppo rischiosa! Max: ${maxSafePercentage}% ($${maxSafeBet})`;
                     playSound('error');
                     setTimeout(() => {
                         if (!userChoice) statusMessage.textContent = "Analisi del mercato...";
