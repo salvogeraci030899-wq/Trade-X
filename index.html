@@ -1102,11 +1102,47 @@
             return Math.random() < settings.winChance;
         }
 
+        // ==================== FUNZIONI CORRETTE PER GESTIONE PUNTATE E PERDITE ====================
+        function validateBet() {
+            const rawBet = Math.floor(balance * (betPercentage / 100));
+            const maxSafeBet = Math.floor(balance / leverage);
+            
+            if (rawBet > maxSafeBet) {
+                // Calcola la percentuale massima sicura
+                const safePercentage = Math.max(1, Math.floor((maxSafeBet / balance) * 100));
+                
+                // Aggiorna solo se necessario
+                if (safePercentage < betPercentage) {
+                    betPercentage = safePercentage;
+                    percentageSlider.value = betPercentage;
+                    percentageValue.textContent = `${betPercentage}%`;
+                    
+                    // Mostra avviso
+                    statusMessage.textContent = `Puntata ridotta a ${betPercentage}% per sicurezza`;
+                    setTimeout(() => {
+                        if (!userChoice && gameActive) {
+                            statusMessage.textContent = "Analisi del mercato...";
+                        }
+                    }, 2000);
+                    
+                    playSound('error');
+                    return Math.floor(balance * (betPercentage / 100));
+                }
+            }
+            
+            return rawBet;
+        }
+
+        function calculateBet() {
+            return validateBet();
+        }
+
         function calculateTradeResult(isWin, betAmount) {
+            // MODIFICATO: ora la leva si applica sia alle vincite che alle perdite
             if (isWin) {
                 return betAmount * leverage;
             } else {
-                return -betAmount;
+                return -betAmount * leverage; // Perdita moltiplicata per la leva
             }
         }
 
@@ -1214,10 +1250,6 @@
             bestBalanceElement.textContent = "$" + bestBalance;
         }
 
-        function calculateBet() {
-            return Math.floor(balance * (betPercentage / 100));
-        }
-
         function updateLeverageControls() {
             const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             
@@ -1233,6 +1265,9 @@
             
             const settings = getCurrentLeverageSettings();
             leverageValue.style.color = settings.color;
+            
+            // Valida la puntata dopo aver aggiornato la leva
+            validateBet();
         }
 
         function updateBetInfo() {
@@ -1240,10 +1275,18 @@
             const bet = calculateBet();
             const winChance = Math.round(settings.winChance * 100);
             const potentialWin = bet * leverage;
-            const potentialLoss = bet;
+            const potentialLoss = bet * leverage; // MODIFICATO: ora la perdita è moltiplicata per la leva
             
             let info = `Puntata: $${bet} (${betPercentage}%) | Leva: ${leverage}x`;
             info += `<br>Probabilità: ${winChance}% | Se vinci: +$${potentialWin} | Se perdi: -$${potentialLoss}`;
+            
+            // Aggiungi avviso se la puntata è rischiosa
+            const maxSafeBet = Math.floor(balance / leverage);
+            if (bet > maxSafeBet) {
+                info += `<br><span style="color:#ff4444">ATTENZIONE: Rischi di perdere tutto il saldo!</span>`;
+            } else if (bet * leverage > balance * 0.5) {
+                info += `<br><span style="color:#ffaa44">Attenzione: Puntata ad alto rischio</span>`;
+            }
             
             betInfo.innerHTML = info;
             betInfo.style.color = settings.color;
@@ -1404,12 +1447,13 @@
             
             balance += result;
             
+            // MODIFICATO: ora mostra la perdita moltiplicata per la leva
             if (win) {
                 statusMessage.textContent = `VITTORIA! +$${bet * leverage} (${leverage}x)`;
                 chartColor = "#0c0";
                 playSound('win');
             } else {
-                statusMessage.textContent = `PERDITA! -$${bet}`;
+                statusMessage.textContent = `PERDITA! -$${bet * leverage} (${leverage}x)`;
                 chartColor = "#f00";
                 playSound('lose');
             }
@@ -1462,6 +1506,9 @@
             statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${Math.round(settings.winChance * 100)}% win)`;
             disableTradeButtons();
             
+            // Valida la puntata all'inizio di ogni round
+            validateBet();
+            
             if (animationId) {
                 cancelAnimationFrame(animationId);
             }
@@ -1470,6 +1517,19 @@
 
         function chooseLong() {
             if (!isAnimating && gameActive && !userChoice) {
+                // Controllo di sicurezza finale prima del trade
+                const bet = calculateBet();
+                const maxSafeBet = Math.floor(balance / leverage);
+                
+                if (bet > maxSafeBet) {
+                    statusMessage.textContent = "Puntata troppo rischiosa! Riduci la percentuale.";
+                    playSound('error');
+                    setTimeout(() => {
+                        if (!userChoice) statusMessage.textContent = "Analisi del mercato...";
+                    }, 2000);
+                    return;
+                }
+                
                 userChoice = 'long';
                 tradeResult = isTradeSuccessful();
                 playSound('click');
@@ -1494,6 +1554,19 @@
 
         function chooseShort() {
             if (!isAnimating && gameActive && !userChoice) {
+                // Controllo di sicurezza finale prima del trade
+                const bet = calculateBet();
+                const maxSafeBet = Math.floor(balance / leverage);
+                
+                if (bet > maxSafeBet) {
+                    statusMessage.textContent = "Puntata troppo rischiosa! Riduci la percentuale.";
+                    playSound('error');
+                    setTimeout(() => {
+                        if (!userChoice) statusMessage.textContent = "Analisi del mercato...";
+                    }, 2000);
+                    return;
+                }
+                
                 userChoice = 'short';
                 tradeResult = isTradeSuccessful();
                 playSound('click');
@@ -1546,6 +1619,10 @@
         function handlePercentageChange() {
             betPercentage = parseInt(percentageSlider.value);
             percentageValue.textContent = `${betPercentage}%`;
+            
+            // Valida la puntata dopo aver cambiato la percentuale
+            validateBet();
+            
             updateBetInfo();
             saveGameState();
             playSound('click');
@@ -1557,6 +1634,9 @@
             leverage = settings.leverage;
             leverageValue.textContent = `${leverage}x`;
             leverageValue.style.color = settings.color;
+            
+            // Valida la puntata dopo aver cambiato la leva
+            validateBet();
             
             updateBetInfo();
             updateStats();
