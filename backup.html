@@ -71,17 +71,6 @@
             }
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-            20%, 40%, 60%, 80% { transform: translateX(2px); }
-        }
-        
         /* Menu Button - CORRETTO: in alto a destra allineato al titolo */
         .menu-button {
             position: absolute;
@@ -613,7 +602,7 @@
             font-size: 12px;
             color: #666;
             margin-top: 5px;
-            height: 60px; /* Aumentato per contenere più informazioni */
+            height: 40px;
             line-height: 1.4;
         }
         
@@ -628,6 +617,16 @@
         
         .unlock-info.fade-out {
             opacity: 0;
+        }
+        
+        @keyframes pulse-high-risk {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .high-risk {
+            animation: pulse-high-risk 1s infinite;
         }
         
         .stats {
@@ -656,25 +655,6 @@
         
         .page-content::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.4);
-        }
-
-        /* Nuove classi per il sistema tasse */
-        .tax-info {
-            font-size: 10px;
-            color: #888;
-            margin-top: 2px;
-        }
-        
-        .shake {
-            animation: shake 0.5s ease-in-out;
-        }
-        
-        .win-animation {
-            animation: pulse 0.5s ease-in-out 3;
-        }
-        
-        .loss-animation {
-            animation: shake 0.5s ease-in-out;
         }
 
         /* Media query per schermi piccoli */
@@ -814,34 +794,24 @@
         </div>
         <div class="page-content">
             <h2>Benvenuto in XTrade</h2>
-            <p>XTrade è un simulatore di trading con sistema di leva progressiva e tasse competitive. Gestisci il tuo capitale, scegli il livello di rischio e cerca di battere il tuo record.</p>
+            <p>XTrade è un simulatore di trading con sistema di leva progressiva. Gestisci il tuo capitale, scegli il livello di rischio e cerca di battere il tuo record.</p>
             
             <h2>Come Funziona</h2>
             <ul>
                 <li><strong>Analisi del grafico</strong>: Osserva l'andamento del prezzo e prevedi se salirà (LONG) o scenderà (SHORT)</li>
                 <li><strong>Sistema a livelli</strong>: Sblocca livelli di leva più alti raggiungendo determinati saldi</li>
-                <li><strong>Tasse progressive</strong>: Maggiore è la leva, maggiore è la tassa sui profitti</li>
+                <li><strong>Gestione del rischio</strong>: Maggiore è la leva, maggiore è il potenziale guadagno... e la perdita!</li>
                 <li><strong>Record personale</strong>: Il tuo record massimo viene salvato e non viene azzerato in caso di bancarotta</li>
             </ul>
             
-            <h2>Sistema dei Livelli e Tasse</h2>
+            <h2>Sistema dei Livelli</h2>
             <p>I livelli rappresentano il tuo progresso nel gioco:</p>
             <ul>
-                <li><strong>Basso</strong>: Leva 1x - 80% di probabilità - Tassa 5%</li>
-                <li><strong>Medio</strong>: Leve 2x-5x - Probabilità 70-50% - Tasse 13-37%</li>
-                <li><strong>Alto</strong>: Leva 10x-20x - Probabilità 40-30% - Tasse 77-85%</li>
-                <li><strong>Estremo</strong>: Leva 50x - 20% di probabilità - Tassa 85%</li>
-                <li><strong>Insano</strong>: Leva 100x - 10% di probabilità - Tassa 85%</li>
-            </ul>
-            
-            <h2>Calcolo del Punteggio Classifica</h2>
-            <p>Il punteggio per la classifica tiene conto di:</p>
-            <ul>
-                <li><strong>Saldo attuale</strong>: 40% del punteggio</li>
-                <li><strong>Consistenza</strong>: Win rate moltiplicato per 1000 (30%)</li>
-                <li><strong>Gestione del rischio</strong>: Penalizza uso eccessivo di leva (20%)</li>
-                <li><strong>Progresso</strong>: Miglior saldo raggiunto (10%)</li>
-                <li><strong>Penalità</strong>: Trade minimi richiesti (20 trade)</li>
+                <li><strong>Basso</strong>: Leva 1x - 80% di probabilità di vincita</li>
+                <li><strong>Medio</strong>: Leve 2x-5x - Probabilità dal 70% al 50%</li>
+                <li><strong>Alto</strong>: Leva 10x-20x - Probabilità dal 40% al 30%</li>
+                <li><strong>Estremo</strong>: Leva 50x - 20% di probabilità</li>
+                <li><strong>Insano</strong>: Leva 100x - Solo 10% di probabilità!</li>
             </ul>
             
             <h2>Consigli</h2>
@@ -876,16 +846,7 @@
                 </label>
             </div>
             
-            <!-- NUOVA SEZIONE: Visualizza Statistiche -->
-            <div class="settings-option" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                <div>
-                    <div class="settings-label">Le Tue Statistiche</div>
-                    <div class="settings-description">Consulta le tue performance dettagliate</div>
-                </div>
-                <div id="playerStats" style="width: 100%; font-size: 13px; color: #ccc; line-height: 1.6;">
-                    <!-- Le statistiche verranno caricate qui -->
-                </div>
-            </div>
+            <!-- SEZIONE "Sistema dei Livelli" RIMOSSA -->
             
             <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 5px;">
                 <div class="settings-label">Reset Dati</div>
@@ -933,7 +894,7 @@
             </div>
         </div>
         
-        <div class="bet-info" id="betInfo">Puntata: $10 (10%) | Leva: 1x (80% win) | Tassa: 5%</div>
+        <div class="bet-info" id="betInfo">Puntata: $10 (10%) | Leva: 1x (80% win)</div>
         
         <div class="unlock-info" id="unlockInfo"></div>
         
@@ -946,7 +907,7 @@
     <div class="stats">
         <div>Livello: <span id="currentLevel">Novizio</span></div>
         <div>Leve sbloccate: <span id="unlockedCount">1/8</span></div>
-        <div>Trade: <span id="totalTrades">0</span></div>
+        <div>Trade totali: <span id="totalTrades">0</span></div>
     </div>
     
     <div class="game-over" id="gameOverScreen">
@@ -955,16 +916,16 @@
     </div>
 
     <script>
-        // ==================== SISTEMA LEVE E TASSE ====================
+        // ==================== SISTEMA LEVE ====================
         const LEVERAGE_SETTINGS = [
-            { leverage: 1, winChance: 0.80, tax: 0.05, color: "#44ff44", name: "Novizio", level: "Basso" },
-            { leverage: 2, winChance: 0.70, tax: 0.13, color: "#66ff66", name: "Principiante", level: "Medio" },
-            { leverage: 3, winChance: 0.60, tax: 0.21, color: "#88ff88", name: "Intermedio", level: "Medio" },
-            { leverage: 5, winChance: 0.50, tax: 0.37, color: "#ffff44", name: "Esperto", level: "Medio" },
-            { leverage: 10, winChance: 0.40, tax: 0.77, color: "#ffaa44", name: "Risky", level: "Alto" },
-            { leverage: 20, winChance: 0.30, tax: 0.85, color: "#ff7744", name: "High Risk", level: "Alto" },
-            { leverage: 50, winChance: 0.20, tax: 0.85, color: "#ff4444", name: "Extreme", level: "Estremo" },
-            { leverage: 100, winChance: 0.10, tax: 0.85, color: "#ff2244", name: "Insano", level: "Insano" }
+            { leverage: 1, winChance: 0.80, color: "#44ff44", name: "Novizio", level: "Basso" },
+            { leverage: 2, winChance: 0.70, color: "#66ff66", name: "Principiante", level: "Medio" },
+            { leverage: 3, winChance: 0.60, color: "#88ff88", name: "Intermedio", level: "Medio" },
+            { leverage: 5, winChance: 0.50, color: "#ffff44", name: "Esperto", level: "Medio" },
+            { leverage: 10, winChance: 0.40, color: "#ffaa44", name: "Risky", level: "Alto" },
+            { leverage: 20, winChance: 0.30, color: "#ff7744", name: "High Risk", level: "Alto" },
+            { leverage: 50, winChance: 0.20, color: "#ff4444", name: "Extreme", level: "Estremo" },
+            { leverage: 100, winChance: 0.10, color: "#ff2244", name: "Insano", level: "Insano" }
         ];
 
         const LEVERAGE_UNLOCKS = [
@@ -996,13 +957,7 @@
         let leverage = 1;
         
         let totalTrades = 0;
-        let wins = 0;
-        let losses = 0;
-        let totalWon = 0;
-        let totalLost = 0;
-        let leverageUsed = [];
-        let currentStreak = 0;
-        let bestStreak = 0;
+        let leverageStats = {};
         let unlockMessageTimeout = null;
         let audioEnabled = true;
 
@@ -1027,7 +982,6 @@
         const settingsBackBtn = document.getElementById('settingsBackBtn');
         const audioToggle = document.getElementById('audioToggle');
         const resetDataBtn = document.getElementById('resetDataBtn');
-        const playerStatsElement = document.getElementById('playerStats');
         
         // Game elements
         const balanceElement = document.getElementById('balance');
@@ -1077,11 +1031,6 @@
                 document.body.style.overflow = 'hidden'; // Mantiene nascosto lo scroll globale
                 pageOverlay.querySelector('.page-content').style.overflowY = 'auto';
             }
-            
-            // Se apriamo le impostazioni, aggiorna le statistiche
-            if (pageOverlay === settingsOverlay) {
-                updatePlayerStats();
-            }
         }
 
         function closePage(pageOverlay) {
@@ -1099,24 +1048,21 @@
         function playSound(type) {
             if (!audioEnabled) return;
             
-            // Simulazione di suoni - in una versione reale si userebbero file audio
-            try {
-                switch(type) {
-                    case 'click':
-                        // Suono di click
-                        break;
-                    case 'win':
-                        // Suono di vittoria
-                        break;
-                    case 'lose':
-                        // Suono di perdita
-                        break;
-                    case 'error':
-                        // Suono di errore
-                        break;
-                }
-            } catch (e) {
-                console.log("Audio non supportato");
+            // Questa è una struttura base per i suoni
+            // In un'app completa, qui caricheremmo file audio reali
+            switch(type) {
+                case 'click':
+                    // Suono di click
+                    break;
+                case 'win':
+                    // Suono di vittoria
+                    break;
+                case 'lose':
+                    // Suono di perdita
+                    break;
+                case 'error':
+                    // Suono di errore
+                    break;
             }
         }
 
@@ -1144,7 +1090,6 @@
                         threshold: unlock.threshold,
                         leverage: settings.leverage,
                         winChance: settings.winChance,
-                        tax: settings.tax,
                         remaining: unlock.threshold - balance
                     };
                 }
@@ -1158,13 +1103,8 @@
         }
 
         function calculateTradeResult(isWin, betAmount) {
-            const settings = getCurrentLeverageSettings();
-            
             if (isWin) {
-                const grossProfit = betAmount * settings.leverage;
-                const tax = grossProfit * settings.tax;
-                const netProfit = grossProfit - tax;
-                return netProfit;
+                return betAmount * leverage;
             } else {
                 return -betAmount;
             }
@@ -1190,11 +1130,6 @@
             const savedLeverageIndex = localStorage.getItem('tradingLeverageIndex');
             const savedTotalTrades = localStorage.getItem('tradingTotalTrades');
             const savedAudioEnabled = localStorage.getItem('tradingAudioEnabled');
-            const savedWins = localStorage.getItem('tradingWins');
-            const savedLosses = localStorage.getItem('tradingLosses');
-            const savedTotalWon = localStorage.getItem('tradingTotalWon');
-            const savedTotalLost = localStorage.getItem('tradingTotalLost');
-            const savedBestStreak = localStorage.getItem('tradingBestStreak');
             
             if (savedBalance) balance = parseInt(savedBalance);
             if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
@@ -1218,11 +1153,6 @@
                 audioEnabled = savedAudioEnabled === 'true';
                 audioToggle.checked = audioEnabled;
             }
-            if (savedWins) wins = parseInt(savedWins);
-            if (savedLosses) losses = parseInt(savedLosses);
-            if (savedTotalWon) totalWon = parseFloat(savedTotalWon);
-            if (savedTotalLost) totalLost = parseFloat(savedTotalLost);
-            if (savedBestStreak) bestStreak = parseInt(savedBestStreak);
             
             updateBalanceDisplay();
             updateLeverageControls();
@@ -1238,11 +1168,6 @@
             localStorage.setItem('tradingLeverageIndex', leverageIndex.toString());
             localStorage.setItem('tradingTotalTrades', totalTrades.toString());
             localStorage.setItem('tradingAudioEnabled', audioEnabled.toString());
-            localStorage.setItem('tradingWins', wins.toString());
-            localStorage.setItem('tradingLosses', losses.toString());
-            localStorage.setItem('tradingTotalWon', totalWon.toString());
-            localStorage.setItem('tradingTotalLost', totalLost.toString());
-            localStorage.setItem('tradingBestStreak', bestStreak.toString());
         }
 
         function resetGameData() {
@@ -1252,11 +1177,6 @@
                 localStorage.removeItem('tradingPercentage');
                 localStorage.removeItem('tradingLeverageIndex');
                 localStorage.removeItem('tradingTotalTrades');
-                localStorage.removeItem('tradingWins');
-                localStorage.removeItem('tradingLosses');
-                localStorage.removeItem('tradingTotalWon');
-                localStorage.removeItem('tradingTotalLost');
-                localStorage.removeItem('tradingBestStreak');
                 
                 balance = 100;
                 bestBalance = 100;
@@ -1264,13 +1184,6 @@
                 leverageIndex = 0;
                 leverage = 1;
                 totalTrades = 0;
-                wins = 0;
-                losses = 0;
-                totalWon = 0;
-                totalLost = 0;
-                currentStreak = 0;
-                bestStreak = 0;
-                leverageUsed = [];
                 
                 percentageSlider.value = betPercentage;
                 percentageValue.textContent = `${betPercentage}%`;
@@ -1282,7 +1195,6 @@
                 updateBetInfo();
                 updateUnlockInfo();
                 updateStats();
-                updatePlayerStats();
                 saveGameState();
                 
                 // Chiudi le impostazioni e riavvia il gioco
@@ -1327,16 +1239,11 @@
             const settings = getCurrentLeverageSettings();
             const bet = calculateBet();
             const winChance = Math.round(settings.winChance * 100);
-            const taxPercent = Math.round(settings.tax * 100);
-            const netWin = (bet * settings.leverage * (1 - settings.tax)).toFixed(2);
+            const potentialWin = bet * leverage;
             const potentialLoss = bet;
             
-            // Calcola EV atteso
-            const expectedValue = (settings.winChance * (bet * settings.leverage * (1 - settings.tax))) - ((1 - settings.winChance) * bet);
-            
-            let info = `Puntata: $${bet} (${betPercentage}%) | Leva: ${settings.leverage}x`;
-            info += `<br>Probabilità: ${winChance}% | Tassa vittoria: ${taxPercent}%`;
-            info += `<br>Se vinci: +$${netWin} | Se perdi: -$${potentialLoss}`;
+            let info = `Puntata: $${bet} (${betPercentage}%) | Leva: ${leverage}x`;
+            info += `<br>Probabilità: ${winChance}% | Se vinci: +$${potentialWin} | Se perdi: -$${potentialLoss}`;
             
             betInfo.innerHTML = info;
             betInfo.style.color = settings.color;
@@ -1361,8 +1268,7 @@
             
             if (next) {
                 const winChance = Math.round(next.winChance * 100);
-                const taxPercent = Math.round(next.tax * 100);
-                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win, ${taxPercent}% tassa) a $${next.threshold} ($${next.remaining} rimanenti)`;
+                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win) a $${next.threshold} ($${next.remaining} rimanenti)`;
                 unlockInfo.style.color = "#ffaa44";
             } else {
                 unlockInfo.textContent = "Tutte le leve sbloccate!";
@@ -1378,89 +1284,11 @@
 
         function updateStats() {
             const settings = getCurrentLeverageSettings();
+            // Mostra il livello (Basso, Medio, Alto, Estremo, Insano) invece del nome
             currentLevelElement.textContent = settings.level;
+            
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             currentLevelElement.style.color = settings.color;
-        }
-
-        function updatePlayerStats() {
-            const winRate = totalTrades > 0 ? (wins / totalTrades) : 0;
-            const avgLeverage = leverageUsed.length > 0 ? 
-                leverageUsed.reduce((a, b) => a + b, 0) / leverageUsed.length : 1;
-            
-            const rankScore = calculateRankScore();
-            
-            let statsHTML = `
-                <div><strong>Trade Totali:</strong> ${totalTrades}</div>
-                <div><strong>Vittorie:</strong> ${wins} | <strong>Sconfitte:</strong> ${losses}</div>
-                <div><strong>Win Rate:</strong> ${(winRate * 100).toFixed(1)}%</div>
-                <div><strong>Profitto Totale:</strong> $${totalWon.toFixed(2)}</div>
-                <div><strong>Perdita Totale:</strong> $${totalLost.toFixed(2)}</div>
-                <div><strong>Leva Media:</strong> ${avgLeverage.toFixed(1)}x</div>
-                <div><strong>Streak Attuale:</strong> ${currentStreak}</div>
-                <div><strong>Miglior Streak:</strong> ${bestStreak}</div>
-                <div><strong>Punteggio Classifica:</strong> ${rankScore.score}</div>
-            `;
-            
-            // Aggiungi raccomandazione
-            statsHTML += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;"><strong>Consiglio:</strong> ${getTradeRecommendation()}</div>`;
-            
-            playerStatsElement.innerHTML = statsHTML;
-        }
-
-        function calculateRankScore() {
-            const winRate = totalTrades > 0 ? (wins / totalTrades) : 0;
-            const avgLeverage = leverageUsed.length > 0 ? 
-                leverageUsed.reduce((a, b) => a + b, 0) / leverageUsed.length : 1;
-            
-            // Base: saldo attuale (40%)
-            const balanceScore = balance * 0.4;
-            
-            // Consistenza: win rate (30%)
-            const consistencyScore = (winRate * 1000) * 0.3;
-            
-            // Gestione rischio: penalizza leve alte (20%)
-            const riskPenalty = Math.max(0.3, 1 - (avgLeverage / 50));
-            const riskScore = (balance * riskPenalty) * 0.2;
-            
-            // Progresso: miglior saldo raggiunto (10%)
-            const progressScore = (bestBalance / 100) * 0.1;
-            
-            // Penalità per trade troppo pochi
-            const minTradesPenalty = totalTrades < 20 ? 0.8 : 1;
-            
-            const finalScore = (balanceScore + consistencyScore + riskScore + progressScore) * minTradesPenalty;
-            
-            return {
-                score: Math.round(finalScore),
-                breakdown: {
-                    base: Math.round(balanceScore),
-                    consistency: Math.round(consistencyScore),
-                    riskBonus: Math.round(riskScore),
-                    progress: Math.round(progressScore),
-                    penalties: {
-                        leverage: riskPenalty,
-                        volume: minTradesPenalty
-                    }
-                }
-            };
-        }
-
-        function getTradeRecommendation() {
-            const winRate = totalTrades > 0 ? (wins / totalTrades) : 0;
-            const avgLeverage = leverageUsed.length > 0 ? 
-                leverageUsed.reduce((a, b) => a + b, 0) / leverageUsed.length : 1;
-            
-            if (winRate < 0.5 && avgLeverage > 5) {
-                return "👎 Troppa leva con win rate basso. Prova leva 1x-3x.";
-            } else if (winRate > 0.6 && avgLeverage < 3) {
-                return "👍 Ottima gestione! Potresti provare leva 5x per aumentare i profitti.";
-            } else if (currentStreak >= 3) {
-                return "🔥 Streak vincente! Considera di proteggere i profitti riducendo la puntata.";
-            } else if (balance < 150) {
-                return "💰 Saldo basso. Usa leve basse (1x-2x) per ricostruire gradualmente.";
-            }
-            
-            return "⚖️ Bilanciamento rischio/rendimento ottimale. Continua così!";
         }
 
         // ==================== GRAFICO ====================
@@ -1565,48 +1393,26 @@
             const win = tradeResult;
             const result = calculateTradeResult(win, bet);
             
-            // Aggiorna statistiche
             totalTrades++;
-            leverageUsed.push(settings.leverage);
+            totalTradesElement.textContent = totalTrades;
             
-            if (win) {
-                wins++;
-                currentStreak++;
-                if (currentStreak > bestStreak) {
-                    bestStreak = currentStreak;
-                }
-                totalWon += result;
-                
-                const grossProfit = bet * settings.leverage;
-                const tax = grossProfit * settings.tax;
-                const netProfit = grossProfit - tax;
-                
-                statusMessage.textContent = `VITTORIA! +$${netProfit.toFixed(2)} (${settings.leverage}x, tassa ${(settings.tax*100).toFixed(0)}%)`;
-                statusMessage.style.color = "#0c0";
-                chartColor = "#0c0";
-                
-                // Animazione vittoria
-                longBtn.classList.add('win-animation');
-                setTimeout(() => longBtn.classList.remove('win-animation'), 1500);
-                
-                playSound('win');
-            } else {
-                losses++;
-                currentStreak = 0;
-                totalLost += bet;
-                
-                statusMessage.textContent = `PERDITA! -$${bet}`;
-                statusMessage.style.color = "#f00";
-                chartColor = "#f00";
-                
-                // Animazione perdita
-                shortBtn.classList.add('loss-animation');
-                setTimeout(() => shortBtn.classList.remove('loss-animation'), 1500);
-                
-                playSound('lose');
+            if (!leverageStats[leverage]) {
+                leverageStats[leverage] = { total: 0, wins: 0 };
             }
+            leverageStats[leverage].total++;
+            if (win) leverageStats[leverage].wins++;
             
             balance += result;
+            
+            if (win) {
+                statusMessage.textContent = `VITTORIA! +$${bet * leverage} (${leverage}x)`;
+                chartColor = "#0c0";
+                playSound('win');
+            } else {
+                statusMessage.textContent = `PERDITA! -$${bet}`;
+                chartColor = "#f00";
+                playSound('lose');
+            }
             
             if (balance > bestBalance) {
                 bestBalance = balance;
@@ -1614,18 +1420,13 @@
             
             drawChart();
             
-            // Aggiorna UI
-            totalTradesElement.textContent = totalTrades;
+            saveGameState();
             updateBalanceDisplay();
             updateLeverageControls();
             updateBetInfo();
             updateUnlockInfo();
             updateStats();
             
-            // Salva stato
-            saveGameState();
-            
-            // Controlla game over
             if (balance <= 0) {
                 gameActive = false;
                 gameOverScreen.style.display = 'flex';
@@ -1633,7 +1434,6 @@
                 return;
             }
             
-            // Nuovo round
             setTimeout(startNewRound, 2000);
         }
 
@@ -1641,8 +1441,6 @@
         function enableTradeButtons() {
             longBtn.disabled = false;
             shortBtn.disabled = false;
-            statusMessage.textContent = "Fai la tua previsione!";
-            statusMessage.style.color = "#888";
         }
 
         function disableTradeButtons() {
@@ -1661,8 +1459,7 @@
             decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
             
             const settings = getCurrentLeverageSettings();
-            statusMessage.textContent = `Analisi del mercato... (Leva ${settings.leverage}x - ${Math.round(settings.winChance * 100)}% win - Tassa ${(settings.tax * 100).toFixed(0)}%)`;
-            statusMessage.style.color = "#888";
+            statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${Math.round(settings.winChance * 100)}% win)`;
             disableTradeButtons();
             
             if (animationId) {
@@ -1726,12 +1523,6 @@
             leverage = 1;
             betPercentage = 10;
             totalTrades = 0;
-            wins = 0;
-            losses = 0;
-            totalWon = 0;
-            totalLost = 0;
-            currentStreak = 0;
-            leverageUsed = [];
             tradeResult = null;
             
             percentageSlider.value = betPercentage;
@@ -1867,6 +1658,10 @@
             });
             
             startNewRound();
+            
+            LEVERAGE_SETTINGS.forEach(settings => {
+                leverageStats[settings.leverage] = { total: 0, wins: 0 };
+            });
         }
 
         window.addEventListener('load', initGame);
