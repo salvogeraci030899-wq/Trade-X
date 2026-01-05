@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>XTrade - Sistema Leva Progressiva</title>
+    <title>Trading - Sistema Leva Progressiva</title>
     <style>
         /* Disabilita tutte le interazioni di selezione e zoom */
         * {
@@ -41,17 +41,6 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-        }
-        
-        .page-title {
-            text-align: center;
-            font-size: 24px;
-            font-weight: 300;
-            letter-spacing: 2px;
-            padding: 10px 20px;
-            border-bottom: 1px solid #222;
-            background: #000;
-            color: #fff;
         }
         
         .header {
@@ -222,7 +211,6 @@
             margin-bottom: 20px;
             font-weight: 300;
             letter-spacing: 2px;
-            color: #ff0000;
         }
         
         .restart-btn {
@@ -308,8 +296,6 @@
     </style>
 </head>
 <body>
-    <div class="page-title">XTRADE</div>
-    
     <div class="header">
         <div class="balance-container">
             <div class="balance-row">
@@ -345,6 +331,8 @@
             </div>
         </div>
         
+        <!-- RIMOSSA LA LINEA COLORATA VERDE-ROSSA -->
+        
         <div class="bet-info" id="betInfo">Puntata: 10$ (10%) | Leva: 1x (80% win)</div>
         
         <div class="unlock-info" id="unlockInfo"></div>
@@ -362,7 +350,7 @@
     </div>
     
     <div class="game-over" id="gameOverScreen">
-        <h2>BANCAROTTA</h2>
+        <h2>GAME OVER</h2>
         <div style="margin-bottom: 20px; text-align: center;">
             <div>Record: <span id="finalBestBalance">100</span>$</div>
             <div>Leva massima raggiunta: <span id="finalMaxLeverage">1x</span></div>
@@ -405,10 +393,9 @@
         let decisionPoint = 0;
         let userChoice = null;
         let chartColor = "#fff";
-        let tradeResult = null;
         
         let betPercentage = 10;
-        let leverageIndex = 0;
+        let leverageIndex = 0; // Indice nell'array LEVERAGE_SETTINGS
         let leverage = 1;
         
         let totalTrades = 0;
@@ -548,6 +535,7 @@
         function updateLeverageControls() {
             const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             
+            // Se la leva corrente è troppo alta, riducila
             if (leverageIndex > maxUnlockedIndex) {
                 leverageIndex = maxUnlockedIndex;
                 leverageSlider.value = leverageIndex;
@@ -556,8 +544,10 @@
                 leverageValue.textContent = `${leverage}x`;
             }
             
+            // Aggiorna il massimo dello slider
             leverageSlider.max = maxUnlockedIndex;
             
+            // Aggiorna il colore in base al rischio
             const settings = getCurrentLeverageSettings();
             leverageValue.style.color = settings.color;
         }
@@ -575,6 +565,7 @@
             betInfo.innerHTML = info;
             betInfo.style.color = settings.color;
             
+            // Animazione per alto rischio
             if (settings.winChance <= 0.3) {
                 betInfo.classList.add('high-risk');
             } else {
@@ -602,18 +593,21 @@
             const settings = getCurrentLeverageSettings();
             currentLevelElement.textContent = settings.name;
             
+            // Calcola leve sbloccate
             const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             currentLevelElement.style.color = settings.color;
         }
 
         // ==================== GRAFICO ====================
-        function generateChartData(length, startValue, trendStrength = 0) {
+        function generateChartData() {
+            const dataLength = 180;
             const data = [];
-            let value = startValue || 50;
             
-            for (let i = 0; i < length; i++) {
-                // La stessa animazione organica originale
-                value += (Math.random() - 0.5) * 1.5 + trendStrength;
+            let value = 50;
+            const trend = (Math.random() - 0.5) * 0.1;
+            
+            for (let i = 0; i < dataLength; i++) {
+                value += (Math.random() - 0.5) * 1.5 + trend;
                 
                 if (value < 5) value = 5 + Math.random() * 5;
                 if (value > 95) value = 95 - Math.random() * 5;
@@ -680,19 +674,16 @@
                 drawChart();
                 
                 if (isAnimating && chartStep <= decisionPoint) {
-                    // Prima del punto di decisione: animazione veloce
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
                     }, 8 + Math.random() * 4);
                 } 
                 else if (userChoice && chartStep > decisionPoint) {
-                    // Dopo la scelta: animazione veloce
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
-                    }, 8 + Math.random() * 4);
+                    }, 20);
                 } 
                 else if (chartStep > decisionPoint && !userChoice) {
-                    // Punto di decisione raggiunto, attende scelta
                     isAnimating = false;
                     enableTradeButtons();
                     statusMessage.textContent = "Previsione?";
@@ -709,9 +700,10 @@
         function processTradeResult() {
             const settings = getCurrentLeverageSettings();
             const bet = calculateBet();
-            const win = tradeResult;
+            const win = isTradeSuccessful();
             const result = calculateTradeResult(win, bet);
             
+            // Aggiorna statistiche
             totalTrades++;
             totalTradesElement.textContent = totalTrades;
             
@@ -721,6 +713,7 @@
             leverageStats[leverage].total++;
             if (win) leverageStats[leverage].wins++;
             
+            // Applica risultato
             balance += result;
             
             if (win) {
@@ -769,12 +762,10 @@
         function startNewRound() {
             chartStep = 0;
             userChoice = null;
-            tradeResult = null;
             chartColor = "#fff";
             isAnimating = true;
             
-            // Genera i dati iniziali
-            chartData = generateChartData(180);
+            chartData = generateChartData();
             decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
             
             const settings = getCurrentLeverageSettings();
@@ -790,27 +781,9 @@
         function chooseLong() {
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'long';
-                tradeResult = isTradeSuccessful();
-                
-                // Determina la direzione del trend post-decisione
-                const trendStrength = tradeResult ? 0.3 : -0.3; // Su se vince, giù se perde
-                
-                // Estende i dati dopo la decisione con la stessa animazione organica
-                const startValue = chartData[decisionPoint];
-                const remainingLength = chartData.length - decisionPoint - 1;
-                
-                // Genera i nuovi dati con la stessa animazione organica ma con il trend corretto
-                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
-                
-                // Sostituisce solo la parte dopo la decisione
-                for (let i = 0; i < newSegment.length; i++) {
-                    chartData[decisionPoint + 1 + i] = newSegment[i];
-                }
-                
                 disableTradeButtons();
                 statusMessage.textContent = "LONG selezionato";
-                chartColor = "#fff"; // Bianco durante l'animazione
-                isAnimating = true;
+                chartColor = "#fff";
                 animationId = requestAnimationFrame(animateChart);
             }
         }
@@ -818,27 +791,9 @@
         function chooseShort() {
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'short';
-                tradeResult = isTradeSuccessful();
-                
-                // Determina la direzione del trend post-decisione
-                const trendStrength = tradeResult ? -0.3 : 0.3; // Giù se vince, su se perde
-                
-                // Estende i dati dopo la decisione con la stessa animazione organica
-                const startValue = chartData[decisionPoint];
-                const remainingLength = chartData.length - decisionPoint - 1;
-                
-                // Genera i nuovi dati con la stessa animazione organica ma con il trend corretto
-                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
-                
-                // Sostituisce solo la parte dopo la decisione
-                for (let i = 0; i < newSegment.length; i++) {
-                    chartData[decisionPoint + 1 + i] = newSegment[i];
-                }
-                
                 disableTradeButtons();
                 statusMessage.textContent = "SHORT selezionato";
-                chartColor = "#fff"; // Bianco durante l'animazione
-                isAnimating = true;
+                chartColor = "#fff";
                 animationId = requestAnimationFrame(animateChart);
             }
         }
@@ -850,7 +805,6 @@
             leverage = 1;
             betPercentage = 10;
             totalTrades = 0;
-            tradeResult = null;
             
             percentageSlider.value = betPercentage;
             percentageValue.textContent = `${betPercentage}%`;
@@ -890,22 +844,26 @@
 
         // ==================== PREVENZIONE ZOOM/SCROLL ====================
         function preventZoomAndScroll(e) {
+            // Prevenire zoom con Ctrl + scroll
             if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
                 return false;
             }
             
+            // Prevenire zoom con doppio tap
             if (e.touches && e.touches.length > 1) {
                 e.preventDefault();
                 return false;
             }
         }
 
+        // Disabilita il menu contestuale (tasto destro)
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             return false;
         });
 
+        // Disabilita lo scroll con la rotellina del mouse
         document.addEventListener('wheel', function(e) {
             if (e.ctrlKey) {
                 e.preventDefault();
@@ -913,12 +871,15 @@
             }
         }, { passive: false });
 
+        // Disabilita lo scroll touch
         document.addEventListener('touchmove', function(e) {
+            // Permettere lo scroll solo sui controlli slider
             if (!e.target.matches('input[type="range"]')) {
                 e.preventDefault();
             }
         }, { passive: false });
 
+        // Disabilita zoom con doppio tap
         let lastTouchEnd = 0;
         document.addEventListener('touchend', function(e) {
             const now = Date.now();
@@ -928,6 +889,7 @@
             lastTouchEnd = now;
         }, false);
 
+        // Disabilita gesti di zoom su iOS
         document.addEventListener('gesturestart', function(e) {
             e.preventDefault();
         });
@@ -958,6 +920,7 @@
             
             startNewRound();
             
+            // Inizializza statistiche
             LEVERAGE_SETTINGS.forEach(settings => {
                 leverageStats[settings.leverage] = { total: 0, wins: 0 };
             });
