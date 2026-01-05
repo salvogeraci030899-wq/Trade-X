@@ -43,6 +43,100 @@
             flex-direction: column;
         }
         
+        /* Menu Button */
+        .menu-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            z-index: 100;
+            background: transparent;
+            border: none;
+            padding: 5px;
+        }
+        
+        .menu-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #fff;
+        }
+        
+        /* Menu Overlay */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .menu-overlay.active {
+            display: flex;
+        }
+        
+        .menu-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .menu-close:hover {
+            opacity: 1;
+        }
+        
+        .menu-items {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            text-align: center;
+        }
+        
+        .menu-item {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #fff;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+        }
+        
+        .menu-item:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        
+        .menu-item:nth-child(1) { color: #4CAF50; }
+        .menu-item:nth-child(2) { color: #2196F3; }
+        .menu-item:nth-child(3) { color: #FF9800; }
+        .menu-item:nth-child(4) { color: #9C27B0; }
+        
         .page-title {
             text-align: center;
             font-size: 24px;
@@ -52,6 +146,7 @@
             border-bottom: 1px solid #222;
             background: #000;
             color: #fff;
+            position: relative;
         }
         
         .header {
@@ -319,6 +414,23 @@
 
         /* Media query per schermi piccoli */
         @media (max-width: 380px) {
+            .menu-button {
+                top: 15px;
+                right: 15px;
+                width: 25px;
+                height: 25px;
+            }
+            
+            .menu-dot {
+                width: 3px;
+                height: 3px;
+            }
+            
+            .menu-item {
+                font-size: 20px;
+                padding: 8px 16px;
+            }
+            
             .controls-container {
                 padding: 15px 12px;
             }
@@ -362,6 +474,15 @@
         }
         
         @media (max-width: 320px) {
+            .menu-button {
+                top: 12px;
+                right: 12px;
+            }
+            
+            .menu-item {
+                font-size: 18px;
+            }
+            
             .leverage-controls {
                 gap: 8px;
             }
@@ -392,6 +513,24 @@
     </style>
 </head>
 <body>
+    <!-- Menu Button -->
+    <button class="menu-button" id="menuButton">
+        <div class="menu-dot"></div>
+        <div class="menu-dot"></div>
+        <div class="menu-dot"></div>
+    </button>
+    
+    <!-- Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay">
+        <div class="menu-close" id="menuClose">✕</div>
+        <div class="menu-items">
+            <button class="menu-item" id="accountBtn">Account</button>
+            <button class="menu-item" id="rankBtn">Classifica</button>
+            <button class="menu-item" id="settingsBtn">Impostazioni</button>
+            <button class="menu-item" id="infoBtn">Info</button>
+        </div>
+    </div>
+    
     <div class="page-title">XTRADE</div>
     
     <div class="header">
@@ -500,6 +639,16 @@
         const ctx = canvas.getContext('2d', { antialias: false });
         ctx.imageSmoothingEnabled = false;
         
+        // Menu elements
+        const menuButton = document.getElementById('menuButton');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const menuClose = document.getElementById('menuClose');
+        const accountBtn = document.getElementById('accountBtn');
+        const rankBtn = document.getElementById('rankBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const infoBtn = document.getElementById('infoBtn');
+        
+        // Game elements
         const balanceElement = document.getElementById('balance');
         const bestBalanceElement = document.getElementById('bestBalance');
         const longBtn = document.getElementById('longBtn');
@@ -516,6 +665,52 @@
         const currentLevelElement = document.getElementById('currentLevel');
         const unlockedCountElement = document.getElementById('unlockedCount');
         const totalTradesElement = document.getElementById('totalTrades');
+
+        // ==================== FUNZIONI MENU ====================
+        function openMenu() {
+            menuOverlay.classList.add('active');
+            // Pausa il gioco quando il menu è aperto
+            isAnimating = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function closeMenu() {
+            menuOverlay.classList.remove('active');
+            // Riprendi il gioco quando il menu è chiuso
+            if (gameActive && !userChoice && chartStep <= decisionPoint) {
+                isAnimating = true;
+                animateChart();
+            }
+        }
+
+        function handleMenuButtonClick() {
+            openMenu();
+        }
+
+        function handleMenuCloseClick() {
+            closeMenu();
+        }
+
+        function handleMenuItemClick(item) {
+            // Per ora, mostriamo solo un messaggio in console
+            // In futuro, queste funzioni apriranno le rispettive pagine
+            console.log(`Menu item clicked: ${item}`);
+            
+            // Chiudi il menu dopo la selezione
+            closeMenu();
+            
+            // Mostra un messaggio temporaneo nella status bar
+            const originalMessage = statusMessage.textContent;
+            statusMessage.textContent = `${item} - Funzione in sviluppo`;
+            
+            setTimeout(() => {
+                if (gameActive) {
+                    statusMessage.textContent = originalMessage;
+                }
+            }, 2000);
+        }
 
         // ==================== FUNZIONI HELPER ====================
         function getCurrentLeverageSettings() {
@@ -1025,6 +1220,15 @@
             setupCanvas();
             loadGameState();
             
+            // Menu event listeners
+            menuButton.addEventListener('click', handleMenuButtonClick);
+            menuClose.addEventListener('click', handleMenuCloseClick);
+            accountBtn.addEventListener('click', () => handleMenuItemClick('Account'));
+            rankBtn.addEventListener('click', () => handleMenuItemClick('Classifica'));
+            settingsBtn.addEventListener('click', () => handleMenuItemClick('Impostazioni'));
+            infoBtn.addEventListener('click', () => handleMenuItemClick('Info'));
+            
+            // Game event listeners
             longBtn.addEventListener('click', chooseLong);
             shortBtn.addEventListener('click', chooseShort);
             restartBtn.addEventListener('click', restartGame);
