@@ -10,7 +10,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: monospace;
+            font-family: 'Segoe UI', monospace;
         }
         
         body {
@@ -19,9 +19,6 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
             overflow: hidden;
         }
         
@@ -30,55 +27,63 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 800px;
-            margin-bottom: 20px;
-            padding: 10px;
+            padding: 15px 25px;
             border-bottom: 1px solid #333;
+            background-color: #111;
+            z-index: 10;
         }
         
         .balance-info {
-            font-size: 18px;
+            font-size: 20px;
             letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .balance-info span {
+            color: #4CAF50;
         }
         
         /* Container principale */
         .game-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
             width: 100%;
-            max-width: 800px;
+            position: relative;
         }
         
         /* Canvas per il grafico */
         #chartCanvas {
+            flex: 1;
             width: 100%;
-            height: 300px;
             background-color: #000;
-            border: 1px solid #fff;
-            margin-bottom: 30px;
+            display: block;
         }
         
         /* Controlli di gioco */
         .controls {
             display: flex;
             justify-content: center;
-            gap: 30px;
-            margin-bottom: 20px;
+            gap: 40px;
+            padding: 20px;
+            background-color: #111;
+            border-top: 1px solid #333;
         }
         
         .trade-btn {
             background: none;
-            border: 1px solid #fff;
+            border: 2px solid #fff;
             color: #fff;
-            font-size: 24px;
-            width: 120px;
-            height: 60px;
+            font-size: 26px;
+            font-weight: 600;
+            width: 160px;
+            height: 70px;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             justify-content: center;
             align-items: center;
+            border-radius: 8px;
         }
         
         .trade-btn:hover {
@@ -90,12 +95,24 @@
             cursor: not-allowed;
         }
         
-        /* Messaggi di stato */
+        .long-btn {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+        
+        .short-btn {
+            border-color: #FF5252;
+            color: #FF5252;
+        }
+        
+        /* Messaggi di status */
         .status-message {
             font-size: 18px;
             text-align: center;
             min-height: 27px;
-            margin-bottom: 10px;
+            padding: 15px;
+            background-color: #111;
+            border-top: 1px solid #333;
         }
         
         /* Game over */
@@ -105,42 +122,118 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            background-color: rgba(0, 0, 0, 0.95);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 20;
         }
         
         .game-over h2 {
             font-size: 48px;
             margin-bottom: 20px;
-            color: #fff;
+            color: #FF5252;
         }
         
         .restart-btn {
             background: none;
-            border: 1px solid #fff;
+            border: 2px solid #fff;
             color: #fff;
             font-size: 18px;
-            padding: 12px 30px;
+            padding: 15px 40px;
             cursor: pointer;
             transition: all 0.2s;
+            border-radius: 8px;
+            font-weight: 600;
         }
         
         .restart-btn:hover {
             background-color: #222;
         }
         
-        /* Istruzioni */
-        .instructions {
-            margin-top: 20px;
-            font-size: 14px;
+        /* Controlli per la leva e percentuale */
+        .leverage-controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 30px;
+            background-color: #111;
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 45%;
+        }
+        
+        .control-label {
+            font-size: 16px;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .control-value {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #333;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .bet-info {
+            font-size: 16px;
             text-align: center;
-            color: #777;
-            max-width: 500px;
-            line-height: 1.5;
+            padding: 10px;
+            background-color: #111;
+            color: #aaa;
+        }
+        
+        .bet-info span {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+        
+        /* Animazione per il grafico */
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
         }
     </style>
 </head>
@@ -153,16 +246,37 @@
     <div class="game-container">
         <canvas id="chartCanvas"></canvas>
         
+        <div class="leverage-controls">
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Percentuale puntata</span>
+                    <span class="control-value" id="percentageValue">10%</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="1" max="100" value="10" class="slider" id="percentageSlider">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Leva finanziaria</span>
+                    <span class="control-value" id="leverageValue">1x</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="1" max="10" value="1" class="slider" id="leverageSlider">
+                </div>
+            </div>
+        </div>
+        
+        <div class="bet-info">
+            Puntata corrente: <span id="currentBet">$10</span> (Potenziale guadagno/perdita: <span id="potentialResult">$10</span>)
+        </div>
+        
         <div class="status-message" id="statusMessage">Guardando il grafico...</div>
         
         <div class="controls">
-            <button id="longBtn" class="trade-btn" disabled>▲ LONG</button>
-            <button id="shortBtn" class="trade-btn" disabled>▼ SHORT</button>
-        </div>
-        
-        <div class="instructions">
-            Prevedi se il prezzo salirà (LONG) o scenderà (SHORT) dopo che il grafico si ferma.
-            Vince $10 se indovini, perde $10 se sbagli.
+            <button id="longBtn" class="trade-btn long-btn" disabled>▲ LONG</button>
+            <button id="shortBtn" class="trade-btn short-btn" disabled>▼ SHORT</button>
         </div>
     </div>
     
@@ -182,7 +296,11 @@
         let animationId = null;
         let decisionPoint = 0;
         let userChoice = null;
-        let chartColor = "#ffffff"; // Bianco di default
+        let chartColor = "#ffffff";
+        
+        // Nuove variabili per le leve
+        let betPercentage = 10; // Percentuale di saldo da puntare
+        let leverage = 1; // Leva finanziaria
         
         // Elementi DOM
         const canvas = document.getElementById('chartCanvas');
@@ -194,6 +312,12 @@
         const statusMessage = document.getElementById('statusMessage');
         const gameOverScreen = document.getElementById('gameOverScreen');
         const restartBtn = document.getElementById('restartBtn');
+        const percentageSlider = document.getElementById('percentageSlider');
+        const percentageValue = document.getElementById('percentageValue');
+        const leverageSlider = document.getElementById('leverageSlider');
+        const leverageValue = document.getElementById('leverageValue');
+        const currentBetElement = document.getElementById('currentBet');
+        const potentialResultElement = document.getElementById('potentialResult');
         
         // Imposta dimensioni canvas
         function setupCanvas() {
@@ -205,17 +329,32 @@
         function loadGameState() {
             const savedBalance = localStorage.getItem('tradingBalance');
             const savedBestBalance = localStorage.getItem('tradingBestBalance');
+            const savedPercentage = localStorage.getItem('tradingPercentage');
+            const savedLeverage = localStorage.getItem('tradingLeverage');
             
             if (savedBalance) balance = parseInt(savedBalance);
             if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
+            if (savedPercentage) {
+                betPercentage = parseInt(savedPercentage);
+                percentageSlider.value = betPercentage;
+                percentageValue.textContent = `${betPercentage}%`;
+            }
+            if (savedLeverage) {
+                leverage = parseInt(savedLeverage);
+                leverageSlider.value = leverage;
+                leverageValue.textContent = `${leverage}x`;
+            }
             
             updateBalanceDisplay();
+            updateBetInfo();
         }
         
         // Salva saldo in localStorage
         function saveGameState() {
             localStorage.setItem('tradingBalance', balance.toString());
             localStorage.setItem('tradingBestBalance', bestBalance.toString());
+            localStorage.setItem('tradingPercentage', betPercentage.toString());
+            localStorage.setItem('tradingLeverage', leverage.toString());
         }
         
         // Aggiorna display saldo
@@ -224,16 +363,29 @@
             bestBalanceElement.textContent = `$${bestBalance}`;
         }
         
-        // Genera dati per il grafico (random walk con leggero trend)
+        // Calcola la puntata corrente
+        function calculateBet() {
+            return Math.floor(balance * (betPercentage / 100));
+        }
+        
+        // Aggiorna le informazioni sulla puntata
+        function updateBetInfo() {
+            const bet = calculateBet();
+            const potential = bet * leverage;
+            currentBetElement.textContent = `$${bet}`;
+            potentialResultElement.textContent = `$${potential}`;
+        }
+        
+        // Genera dati per il grafico (random walk)
         function generateChartData() {
-            const dataLength = 100;
+            const dataLength = 150;
             const data = [];
             
             // Valore iniziale
             let value = 50;
             
-            // Trend casuale (leggermente positivo o negativo)
-            const trend = (Math.random() - 0.5) * 0.2;
+            // Trend casuale
+            const trend = (Math.random() - 0.5) * 0.15;
             
             for (let i = 0; i < dataLength; i++) {
                 // Aggiungi rumore e trend
@@ -249,7 +401,7 @@
             return data;
         }
         
-        // Disegna il grafico
+        // Disegna il grafico senza bordi
         function drawChart() {
             // Pulisci canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -261,14 +413,16 @@
             const maxValue = Math.max(...chartData);
             const valueRange = maxValue - minValue;
             
-            // Aggiungi margine verticale
-            const verticalMargin = 20;
-            const scaleY = (canvas.height - verticalMargin * 2) / valueRange;
+            // Nessun margine verticale - linea va da bordo a bordo
+            const verticalMargin = 0;
+            const scaleY = (canvas.height - verticalMargin * 2) / (valueRange || 1);
             const stepX = canvas.width / (chartData.length - 1);
             
             // Imposta stile linea
             ctx.strokeStyle = chartColor;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             ctx.beginPath();
             
             // Disegna linea fino al punto corrente
@@ -292,8 +446,15 @@
                 
                 ctx.fillStyle = chartColor;
                 ctx.beginPath();
-                ctx.arc(decisionX, decisionY, 5, 0, Math.PI * 2);
+                ctx.arc(decisionX, decisionY, 7, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Aggiungi alone al punto
+                ctx.strokeStyle = chartColor;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(decisionX, decisionY, 12, 0, Math.PI * 2);
+                ctx.stroke();
             }
         }
         
@@ -305,18 +466,18 @@
                 
                 // Se stiamo ancora nella fase di animazione iniziale
                 if (isAnimating && chartStep <= decisionPoint) {
-                    // Velocità variabile per l'animazione iniziale (5-10 secondi)
-                    const initialSpeed = 10 + Math.random() * 5;
+                    // Velocità variabile per l'animazione iniziale
+                    const initialSpeed = 8 + Math.random() * 5;
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
                     }, initialSpeed);
                 } 
                 // Se l'utente ha fatto una scelta e stiamo mostrando il risultato
                 else if (userChoice && chartStep > decisionPoint) {
-                    // Velocità più veloce per la parte finale (2-3 secondi)
+                    // Velocità più veloce per la parte finale
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
-                    }, 30);
+                    }, 25);
                 } 
                 // Se l'animazione iniziale è completa e stiamo aspettando la scelta
                 else if (chartStep > decisionPoint && !userChoice) {
@@ -338,14 +499,23 @@
                     const isCorrect = (userChoice === 'long' && endPrice > startPrice) || 
                                      (userChoice === 'short' && endPrice < startPrice);
                     
+                    // Calcola la puntata e il risultato
+                    const betAmount = calculateBet();
+                    const resultAmount = betAmount * leverage;
+                    
                     // Aggiorna saldo
                     if (isCorrect) {
-                        balance += 10;
-                        statusMessage.textContent = "Corretto! +$10";
+                        balance += resultAmount;
+                        statusMessage.textContent = `Corretto! +$${resultAmount}`;
+                        chartColor = "#4CAF50";
                     } else {
-                        balance -= 10;
-                        statusMessage.textContent = "Sbagliato! -$10";
+                        balance -= resultAmount;
+                        statusMessage.textContent = `Sbagliato! -$${resultAmount}`;
+                        chartColor = "#FF5252";
                     }
+                    
+                    // Ridisegna con il colore corretto
+                    drawChart();
                     
                     // Aggiorna record
                     if (balance > bestBalance) {
@@ -355,6 +525,7 @@
                     // Salva stato
                     saveGameState();
                     updateBalanceDisplay();
+                    updateBetInfo();
                     
                     // Controlla game over
                     if (balance <= 0) {
@@ -364,7 +535,7 @@
                     }
                     
                     // Prepara prossimo round dopo una pausa
-                    setTimeout(startNewRound, 2000);
+                    setTimeout(startNewRound, 2500);
                 }
             }
         }
@@ -373,12 +544,16 @@
         function enableTradeButtons() {
             longBtn.disabled = false;
             shortBtn.disabled = false;
+            longBtn.style.opacity = "1";
+            shortBtn.style.opacity = "1";
         }
         
         // Disabilita pulsanti di trading
         function disableTradeButtons() {
             longBtn.disabled = true;
             shortBtn.disabled = true;
+            longBtn.style.opacity = "0.5";
+            shortBtn.style.opacity = "0.5";
         }
         
         // Inizia un nuovo round
@@ -392,8 +567,8 @@
             // Genera nuovi dati
             chartData = generateChartData();
             
-            // Punto decisionale casuale (tra 30% e 70% del grafico)
-            decisionPoint = Math.floor(chartData.length * (0.3 + Math.random() * 0.4));
+            // Punto decisionale casuale (tra 40% e 70% del grafico)
+            decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
             
             // Aggiorna messaggio
             statusMessage.textContent = "Guardando il grafico...";
@@ -434,28 +609,31 @@
             }
         }
         
-        // Controlla risultato e cambia colore del grafico
-        function checkResultAndColorChart() {
-            if (userChoice && chartStep >= chartData.length) {
-                const startPrice = chartData[decisionPoint];
-                const endPrice = chartData[chartData.length - 1];
-                const isCorrect = (userChoice === 'long' && endPrice > startPrice) || 
-                                 (userChoice === 'short' && endPrice < startPrice);
-                
-                // Cambia colore in base al risultato
-                chartColor = isCorrect ? "#00ff00" : "#ff0000";
-                drawChart();
-            }
-        }
-        
         // Riavvia il gioco
         function restartGame() {
             balance = 100;
             gameActive = true;
             gameOverScreen.style.display = 'none';
             updateBalanceDisplay();
+            updateBetInfo();
             saveGameState();
             startNewRound();
+        }
+        
+        // Gestisce il cambio della percentuale di puntata
+        function handlePercentageChange() {
+            betPercentage = parseInt(percentageSlider.value);
+            percentageValue.textContent = `${betPercentage}%`;
+            updateBetInfo();
+            saveGameState();
+        }
+        
+        // Gestisce il cambio della leva finanziaria
+        function handleLeverageChange() {
+            leverage = parseInt(leverageSlider.value);
+            leverageValue.textContent = `${leverage}x`;
+            updateBetInfo();
+            saveGameState();
         }
         
         // Inizializzazione gioco
@@ -470,6 +648,8 @@
             longBtn.addEventListener('click', chooseLong);
             shortBtn.addEventListener('click', chooseShort);
             restartBtn.addEventListener('click', restartGame);
+            percentageSlider.addEventListener('input', handlePercentageChange);
+            leverageSlider.addEventListener('input', handleLeverageChange);
             
             // Adatta canvas al ridimensionamento finestra
             window.addEventListener('resize', () => {
