@@ -46,9 +46,8 @@
         /* Menu Button */
         .menu-button {
             position: absolute;
-            top: 50%;
+            top: 16px;
             right: 20px;
-            transform: translateY(-50%);
             width: 30px;
             height: 30px;
             display: flex;
@@ -411,11 +410,10 @@
         /* Media query per schermi piccoli */
         @media (max-width: 380px) {
             .menu-button {
-                top: 50%;
+                top: 14px;
                 right: 15px;
                 width: 25px;
                 height: 25px;
-                transform: translateY(-50%);
             }
             
             .menu-dot {
@@ -472,9 +470,8 @@
         
         @media (max-width: 320px) {
             .menu-button {
-                top: 50%;
+                top: 12px;
                 right: 12px;
-                transform: translateY(-50%);
             }
             
             .menu-item {
@@ -1243,6 +1240,9 @@
             LEVERAGE_SETTINGS.forEach(settings => {
                 leverageStats[settings.leverage] = { total: 0, wins: 0 };
             });
+            
+            // Cambia il titolo da "XTRADE" a "XTrade"
+            document.querySelector('.page-title').textContent = 'XTrade';
         }
 
         window.addEventListener('load', initGame);
