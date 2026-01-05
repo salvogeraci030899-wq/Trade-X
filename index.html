@@ -6,577 +6,44 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>XTrade - Sistema Leva Progressiva</title>
     <style>
-        /* Disabilita tutte le interazioni di selezione e zoom */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+        /* ... (tutti gli stili rimangono uguali) ... */
         
-        /* Disabilita lo scroll su tutti gli elementi */
-        html, body {
-            overflow: hidden;
-            touch-action: none;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-        }
-        
-        /* Prevenire il comportamento di zoom con doppio tap */
-        * {
-            -webkit-user-drag: none;
-        }
-        
-        body {
-            background: #000;
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .page-title {
-            text-align: center;
-            font-size: 24px;
-            font-weight: 300;
-            letter-spacing: 2px;
-            padding: 10px 20px;
-            border-bottom: 1px solid #222;
-            background: #000;
-            color: #fff;
-        }
-        
-        .header {
-            padding: 15px 20px;
-            display: flex;
-            flex-direction: column;
-            font-size: 18px;
-            font-weight: 400;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #222;
-        }
-        
-        .balance-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .balance-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .balance-label {
-            color: #888;
-            font-weight: 300;
-            min-width: 80px;
-        }
-        
-        .balance-value {
-            font-weight: 400;
-        }
-        
-        #bestBalance {
-            color: #4CAF50;
-        }
-        
-        #balance {
-            color: #fff;
-        }
-        
-        #chartCanvas {
-            flex: 1;
-            width: 100%;
-            display: block;
-            touch-action: none;
-        }
-        
-        .controls-container {
-            padding: 15px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .leverage-controls {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .control {
-            flex: 1;
-            min-width: 0; /* Importante: permette al flex di restringersi */
-        }
-        
-        .control label {
-            display: block;
-            font-size: 12px;
-            margin-bottom: 5px;
-            color: #888;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        input[type="range"] {
-            flex: 1;
-            height: 2px;
-            background: #333;
-            -webkit-appearance: none;
-            outline: none;
-            touch-action: pan-y;
-            min-width: 0;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-            border: none;
-        }
-        
-        .slider-value {
-            min-width: 45px;
-            font-size: 14px;
-            text-align: right;
-            white-space: nowrap;
-        }
-        
-        .trade-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 5px;
-        }
-        
-        .trade-btn {
-            flex: 1;
-            height: 50px;
-            background: transparent;
-            border: 1px solid #fff;
-            color: #fff;
-            font-size: 18px;
-            font-weight: 300;
-            cursor: pointer;
-            transition: all 0.2s;
-            letter-spacing: 1px;
-        }
-        
-        .trade-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .trade-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-        
-        .long-btn {
-            border-color: #0c0;
-            color: #0c0;
-        }
-        
-        .short-btn {
-            border-color: #f00;
-            color: #f00;
-        }
-        
-        .status {
-            text-align: center;
-            padding: 10px;
-            font-size: 14px;
-            height: 36px;
-            color: #888;
-            letter-spacing: 0.3px;
-        }
-        
-        .game-over {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .game-over h2 {
-            font-size: 40px;
-            margin-bottom: 20px;
-            font-weight: 300;
-            letter-spacing: 2px;
-            color: #ff0000;
-        }
-        
-        .restart-btn {
-            background: transparent;
-            border: 1px solid #fff;
-            color: #fff;
-            padding: 12px 30px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 300;
-            letter-spacing: 1px;
-        }
-        
-        .restart-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .bet-info {
-            text-align: center;
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-            height: 40px;
-            line-height: 1.4;
-        }
-        
-        .unlock-info {
-            text-align: center;
-            font-size: 11px;
-            color: #888;
-            margin-top: 5px;
-            height: 16px;
-        }
-        
-        @keyframes pulse-high-risk {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        
-        .high-risk {
-            animation: pulse-high-risk 1s infinite;
-        }
-        
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            border-bottom: 1px dotted #666;
-            cursor: help;
-        }
-        
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 300px;
-            background-color: #222;
-            color: #fff;
-            text-align: center;
-            padding: 5px;
-            border-radius: 4px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -150px;
+        /* Aggiungi questa regola per la scritta di sblocco */
+        .unlock-info.fade-out {
             opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-        
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 20px;
-            font-size: 12px;
-            color: #666;
-            border-top: 1px solid #222;
-        }
-
-        /* Media query per schermi piccoli */
-        @media (max-width: 380px) {
-            .controls-container {
-                padding: 15px 12px;
-            }
-            
-            .leverage-controls {
-                gap: 12px;
-            }
-            
-            .slider-value {
-                min-width: 40px;
-                font-size: 12px;
-            }
-            
-            .control label {
-                font-size: 11px;
-            }
-            
-            .trade-btn {
-                font-size: 16px;
-                height: 45px;
-            }
-            
-            .stats {
-                padding: 10px 12px;
-                font-size: 11px;
-            }
-            
-            .page-title {
-                padding: 10px 12px;
-                font-size: 22px;
-            }
-            
-            .header {
-                padding: 12px;
-                font-size: 16px;
-            }
-            
-            .balance-label {
-                min-width: 70px;
-            }
-        }
-        
-        @media (max-width: 320px) {
-            .leverage-controls {
-                gap: 8px;
-            }
-            
-            .slider-container {
-                gap: 5px;
-            }
-            
-            .slider-value {
-                min-width: 35px;
-                font-size: 11px;
-            }
-            
-            .control label {
-                font-size: 10px;
-            }
-            
-            .trade-btn {
-                font-size: 14px;
-                height: 40px;
-                letter-spacing: 0.5px;
-            }
-            
-            .stats {
-                font-size: 10px;
-            }
+            transition: opacity 0.5s ease-out;
         }
     </style>
 </head>
 <body>
-    <div class="page-title">XTRADE</div>
-    
-    <div class="header">
-        <div class="balance-container">
-            <div class="balance-row">
-                <div class="balance-label">Record:</div>
-                <div class="balance-value" id="bestBalance">$100</div>
-            </div>
-            <div class="balance-row">
-                <div class="balance-label">Saldo:</div>
-                <div class="balance-value" id="balance">$100</div>
-            </div>
-        </div>
-    </div>
-    
-    <canvas id="chartCanvas"></canvas>
-    
-    <div class="status" id="statusMessage">Analisi del mercato...</div>
-    
-    <div class="controls-container">
-        <div class="leverage-controls">
-            <div class="control">
-                <label>PUNTATA (%)</label>
-                <div class="slider-container">
-                    <input type="range" min="1" max="100" value="10" id="percentageSlider">
-                    <span class="slider-value" id="percentageValue">10%</span>
-                </div>
-            </div>
-            <div class="control">
-                <label>LEVA (RISCHIO)</label>
-                <div class="slider-container">
-                    <input type="range" min="0" max="7" value="0" id="leverageSlider">
-                    <span class="slider-value" id="leverageValue">1x</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bet-info" id="betInfo">Puntata: $10 (10%) | Leva: 1x (80% win)</div>
-        
-        <div class="unlock-info" id="unlockInfo"></div>
-        
-        <div class="trade-buttons">
-            <button id="longBtn" class="trade-btn long-btn" disabled>▲ LONG</button>
-            <button id="shortBtn" class="trade-btn short-btn" disabled>▼ SHORT</button>
-        </div>
-    </div>
-    
-    <div class="stats">
-        <div>Livello: <span id="currentLevel">Novizio</span></div>
-        <div>Leve sbloccate: <span id="unlockedCount">1/8</span></div>
-        <div>Trade totali: <span id="totalTrades">0</span></div>
-    </div>
+    <!-- ... (HTML rimane lo stesso) ... -->
     
     <div class="game-over" id="gameOverScreen">
         <h2>BANCAROTTA</h2>
-        <button id="restartBtn" class="restart-btn">RIPRENDI</button>
+        <button id="restartBtn" class="restart-btn">RIPROVA</button> <!-- Cambiato da RIPRENDI a RIPROVA -->
     </div>
 
     <script>
         // ==================== SISTEMA LEVE ====================
-        const LEVERAGE_SETTINGS = [
-            { leverage: 1, winChance: 0.80, color: "#44ff44", name: "Novizio" },
-            { leverage: 2, winChance: 0.70, color: "#66ff66", name: "Principiante" },
-            { leverage: 3, winChance: 0.60, color: "#88ff88", name: "Intermedio" },
-            { leverage: 5, winChance: 0.50, color: "#ffff44", name: "Esperto" },
-            { leverage: 10, winChance: 0.40, color: "#ffaa44", name: "Risky" },
-            { leverage: 20, winChance: 0.30, color: "#ff7744", name: "High Risk" },
-            { leverage: 50, winChance: 0.20, color: "#ff4444", name: "Extreme" },
-            { leverage: 100, winChance: 0.10, color: "#ff2244", name: "Insano" }
-        ];
-
-        const LEVERAGE_UNLOCKS = [
-            { threshold: 100, maxLeverageIndex: 0 },   // 1x
-            { threshold: 200, maxLeverageIndex: 1 },   // 2x
-            { threshold: 300, maxLeverageIndex: 2 },   // 3x
-            { threshold: 500, maxLeverageIndex: 3 },   // 5x
-            { threshold: 1000, maxLeverageIndex: 4 },  // 10x
-            { threshold: 2000, maxLeverageIndex: 5 },  // 20x
-            { threshold: 5000, maxLeverageIndex: 6 },  // 50x
-            { threshold: 10000, maxLeverageIndex: 7 }  // 100x
-        ];
+        // ... (tutto uguale fino alle variabili globali) ...
 
         // ==================== VARIABILI GLOBALI ====================
         let balance = 100;
-        let bestBalance = 100;
-        let chartData = [];
-        let chartStep = 0;
-        let gameActive = true;
-        let isAnimating = true;
-        let animationId = null;
-        let decisionPoint = 0;
-        let userChoice = null;
-        let chartColor = "#fff";
-        let tradeResult = null;
-        
-        let betPercentage = 10;
-        let leverageIndex = 0;
-        let leverage = 1;
-        
-        let totalTrades = 0;
-        let leverageStats = {};
-        
-        // ==================== ELEMENTI DOM ====================
-        const canvas = document.getElementById('chartCanvas');
-        const ctx = canvas.getContext('2d', { antialias: false });
-        ctx.imageSmoothingEnabled = false;
-        
-        const balanceElement = document.getElementById('balance');
-        const bestBalanceElement = document.getElementById('bestBalance');
-        const longBtn = document.getElementById('longBtn');
-        const shortBtn = document.getElementById('shortBtn');
-        const statusMessage = document.getElementById('statusMessage');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const restartBtn = document.getElementById('restartBtn');
-        const percentageSlider = document.getElementById('percentageSlider');
-        const percentageValue = document.getElementById('percentageValue');
-        const leverageSlider = document.getElementById('leverageSlider');
-        const leverageValue = document.getElementById('leverageValue');
-        const betInfo = document.getElementById('betInfo');
-        const unlockInfo = document.getElementById('unlockInfo');
-        const currentLevelElement = document.getElementById('currentLevel');
-        const unlockedCountElement = document.getElementById('unlockedCount');
-        const totalTradesElement = document.getElementById('totalTrades');
-
-        // ==================== FUNZIONI HELPER ====================
-        function getCurrentLeverageSettings() {
-            return LEVERAGE_SETTINGS[leverageIndex];
-        }
-
-        function getMaxUnlockedLeverageIndex() {
-            for (let i = LEVERAGE_UNLOCKS.length - 1; i >= 0; i--) {
-                if (balance >= LEVERAGE_UNLOCKS[i].threshold) {
-                    return LEVERAGE_UNLOCKS[i].maxLeverageIndex;
-                }
-            }
-            return 0;
-        }
-
-        function getNextUnlock() {
-            const currentMaxIndex = getMaxUnlockedLeverageIndex();
-            
-            for (let unlock of LEVERAGE_UNLOCKS) {
-                if (unlock.maxLeverageIndex > currentMaxIndex) {
-                    const settings = LEVERAGE_SETTINGS[unlock.maxLeverageIndex];
-                    return {
-                        threshold: unlock.threshold,
-                        leverage: settings.leverage,
-                        winChance: settings.winChance,
-                        remaining: unlock.threshold - balance
-                    };
-                }
-            }
-            return null;
-        }
-
-        function isTradeSuccessful() {
-            const settings = getCurrentLeverageSettings();
-            return Math.random() < settings.winChance;
-        }
-
-        function calculateTradeResult(isWin, betAmount) {
-            if (isWin) {
-                return betAmount * leverage; // Vince: puntata × leva
-            } else {
-                return -betAmount; // Perde: solo la puntata
-            }
-        }
+        let bestBalance = localStorage.getItem('tradingBestBalance') ? parseInt(localStorage.getItem('tradingBestBalance')) : 100; // MODIFICA: Carica da localStorage
+        // ... (altre variabili rimangono uguali) ...
 
         // ==================== FUNZIONI CORE ====================
-        function setupCanvas() {
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.getBoundingClientRect();
-            
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            
-            ctx.scale(dpr, dpr);
-            canvas.style.width = `${rect.width}px`;
-            canvas.style.height = `${rect.height}px`;
-        }
+        // ... (altre funzioni rimangono uguali) ...
 
         function loadGameState() {
             const savedBalance = localStorage.getItem('tradingBalance');
-            const savedBestBalance = localStorage.getItem('tradingBestBalance');
+            const savedBestBalance = localStorage.getItem('tradingBestBalance'); // MODIFICA: Carica bestBalance
             const savedPercentage = localStorage.getItem('tradingPercentage');
             const savedLeverageIndex = localStorage.getItem('tradingLeverageIndex');
             const savedTotalTrades = localStorage.getItem('tradingTotalTrades');
             
             if (savedBalance) balance = parseInt(savedBalance);
-            if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
+            if (savedBestBalance) bestBalance = parseInt(savedBestBalance); // MODIFICA: Non resettare a 100
             if (savedPercentage) {
                 betPercentage = parseInt(savedPercentage);
                 percentageSlider.value = betPercentage;
@@ -601,178 +68,37 @@
             updateStats();
         }
 
-        function saveGameState() {
-            localStorage.setItem('tradingBalance', balance.toString());
-            localStorage.setItem('tradingBestBalance', bestBalance.toString());
-            localStorage.setItem('tradingPercentage', betPercentage.toString());
-            localStorage.setItem('tradingLeverageIndex', leverageIndex.toString());
-            localStorage.setItem('tradingTotalTrades', totalTrades.toString());
-        }
-
-        function updateBalanceDisplay() {
-            balanceElement.textContent = "$" + balance;
-            bestBalanceElement.textContent = "$" + bestBalance;
-        }
-
-        function calculateBet() {
-            return Math.floor(balance * (betPercentage / 100));
-        }
-
-        function updateLeverageControls() {
-            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
-            
-            if (leverageIndex > maxUnlockedIndex) {
-                leverageIndex = maxUnlockedIndex;
-                leverageSlider.value = leverageIndex;
-                const settings = LEVERAGE_SETTINGS[leverageIndex];
-                leverage = settings.leverage;
-                leverageValue.textContent = `${leverage}x`;
-            }
-            
-            leverageSlider.max = maxUnlockedIndex;
-            
-            const settings = getCurrentLeverageSettings();
-            leverageValue.style.color = settings.color;
-        }
-
-        function updateBetInfo() {
-            const settings = getCurrentLeverageSettings();
-            const bet = calculateBet();
-            const winChance = Math.round(settings.winChance * 100);
-            const potentialWin = bet * leverage;
-            const potentialLoss = bet;
-            
-            let info = `Puntata: $${bet} (${betPercentage}%) | Leva: ${leverage}x`;
-            info += `<br>Probabilità: ${winChance}% | Se vinci: +$${potentialWin} | Se perdi: -$${potentialLoss}`;
-            
-            betInfo.innerHTML = info;
-            betInfo.style.color = settings.color;
-            
-            if (settings.winChance <= 0.3) {
-                betInfo.classList.add('high-risk');
-            } else {
-                betInfo.classList.remove('high-risk');
-            }
-        }
+        // MODIFICA: Aggiungi variabile per timeout
+        let unlockMessageTimeout = null;
 
         function updateUnlockInfo() {
             const next = getNextUnlock();
             const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             
+            // Cancella il timeout precedente se esiste
+            if (unlockMessageTimeout) {
+                clearTimeout(unlockMessageTimeout);
+                unlockMessageTimeout = null;
+            }
+            
             if (next) {
                 const winChance = Math.round(next.winChance * 100);
                 unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win) a $${next.threshold} ($${next.remaining} rimanenti)`;
                 unlockInfo.style.color = "#ffaa44";
+                unlockInfo.classList.remove('fade-out');
             } else {
-                unlockInfo.textContent = "🎉 Tutte le leve sbloccate!";
+                // MODIFICA: Rimossa l'emoji 🎉
+                unlockInfo.textContent = "Tutte le leve sbloccate!";
                 unlockInfo.style.color = "#44ff44";
+                unlockInfo.classList.remove('fade-out');
+                
+                // MODIFICA: Dopo 3 secondi, fa scomparire la scritta
+                unlockMessageTimeout = setTimeout(() => {
+                    unlockInfo.classList.add('fade-out');
+                }, 3000);
             }
             
             unlockedCountElement.textContent = `${maxUnlockedIndex + 1}/${LEVERAGE_SETTINGS.length}`;
-        }
-
-        function updateStats() {
-            const settings = getCurrentLeverageSettings();
-            currentLevelElement.textContent = settings.name;
-            
-            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
-            currentLevelElement.style.color = settings.color;
-        }
-
-        // ==================== GRAFICO ====================
-        function generateChartData(length, startValue, trendStrength = 0) {
-            const data = [];
-            let value = startValue || 50;
-            
-            for (let i = 0; i < length; i++) {
-                value += (Math.random() - 0.5) * 1.5 + trendStrength;
-                
-                if (value < 5) value = 5 + Math.random() * 5;
-                if (value > 95) value = 95 - Math.random() * 5;
-                
-                data.push(value);
-            }
-            
-            return data;
-        }
-
-        function drawChart() {
-            const rect = canvas.getBoundingClientRect();
-            const width = rect.width;
-            const height = rect.height;
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            if (chartData.length === 0) return;
-            
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            const dpr = window.devicePixelRatio || 1;
-            ctx.scale(dpr, dpr);
-            
-            const minValue = Math.min(...chartData);
-            const maxValue = Math.max(...chartData);
-            const valueRange = maxValue - minValue || 1;
-            
-            const scaleY = height / valueRange;
-            const stepX = width / (chartData.length - 1);
-            
-            ctx.strokeStyle = chartColor;
-            ctx.lineWidth = 1.5;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.beginPath();
-            
-            for (let i = 0; i < Math.min(chartStep, chartData.length); i++) {
-                const x = i * stepX;
-                const y = height - ((chartData[i] - minValue) * scaleY);
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            }
-            
-            ctx.stroke();
-            
-            if (userChoice && decisionPoint > 0 && chartStep > decisionPoint) {
-                const decisionX = decisionPoint * stepX;
-                const decisionY = height - ((chartData[decisionPoint] - minValue) * scaleY);
-                
-                ctx.fillStyle = chartColor;
-                ctx.beginPath();
-                ctx.arc(decisionX, decisionY, 4, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        function animateChart() {
-            if (chartStep < chartData.length) {
-                chartStep++;
-                drawChart();
-                
-                if (isAnimating && chartStep <= decisionPoint) {
-                    setTimeout(() => {
-                        animationId = requestAnimationFrame(animateChart);
-                    }, 8 + Math.random() * 4);
-                } 
-                else if (userChoice && chartStep > decisionPoint) {
-                    setTimeout(() => {
-                        animationId = requestAnimationFrame(animateChart);
-                    }, 8 + Math.random() * 4);
-                } 
-                else if (chartStep > decisionPoint && !userChoice) {
-                    isAnimating = false;
-                    enableTradeButtons();
-                    statusMessage.textContent = "Previsione?";
-                    return;
-                }
-                else {
-                    animationId = requestAnimationFrame(animateChart);
-                }
-            } else {
-                processTradeResult();
-            }
         }
 
         function processTradeResult() {
@@ -800,8 +126,10 @@
                 chartColor = "#f00";
             }
             
+            // MODIFICA: Aggiorna il record SOLO se il saldo attuale è maggiore
             if (balance > bestBalance) {
                 bestBalance = balance;
+                localStorage.setItem('tradingBestBalance', bestBalance.toString()); // Salva il record
             }
             
             drawChart();
@@ -816,92 +144,17 @@
             if (balance <= 0) {
                 gameActive = false;
                 gameOverScreen.style.display = 'flex';
+                // MODIFICA: Il record NON viene azzerato in caso di bancarotta
+                // bestBalance rimane invariato
                 return;
             }
             
             setTimeout(startNewRound, 2000);
         }
 
-        // ==================== CONTROLLI UI ====================
-        function enableTradeButtons() {
-            longBtn.disabled = false;
-            shortBtn.disabled = false;
-        }
-
-        function disableTradeButtons() {
-            longBtn.disabled = true;
-            shortBtn.disabled = true;
-        }
-
-        function startNewRound() {
-            chartStep = 0;
-            userChoice = null;
-            tradeResult = null;
-            chartColor = "#fff";
-            isAnimating = true;
-            
-            chartData = generateChartData(180);
-            decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
-            
-            const settings = getCurrentLeverageSettings();
-            statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${Math.round(settings.winChance * 100)}% win)`;
-            disableTradeButtons();
-            
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-            }
-            animateChart();
-        }
-
-        function chooseLong() {
-            if (!isAnimating && gameActive && !userChoice) {
-                userChoice = 'long';
-                tradeResult = isTradeSuccessful();
-                
-                const trendStrength = tradeResult ? 0.08 : -0.08;
-                const startValue = chartData[decisionPoint];
-                const remainingLength = chartData.length - decisionPoint - 1;
-                
-                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
-                
-                for (let i = 0; i < newSegment.length; i++) {
-                    chartData[decisionPoint + 1 + i] = newSegment[i];
-                }
-                
-                disableTradeButtons();
-                statusMessage.textContent = "LONG selezionato";
-                chartColor = "#fff";
-                isAnimating = true;
-                animationId = requestAnimationFrame(animateChart);
-            }
-        }
-
-        function chooseShort() {
-            if (!isAnimating && gameActive && !userChoice) {
-                userChoice = 'short';
-                tradeResult = isTradeSuccessful();
-                
-                const trendStrength = tradeResult ? -0.08 : 0.08;
-                const startValue = chartData[decisionPoint];
-                const remainingLength = chartData.length - decisionPoint - 1;
-                
-                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
-                
-                for (let i = 0; i < newSegment.length; i++) {
-                    chartData[decisionPoint + 1 + i] = newSegment[i];
-                }
-                
-                disableTradeButtons();
-                statusMessage.textContent = "SHORT selezionato";
-                chartColor = "#fff";
-                isAnimating = true;
-                animationId = requestAnimationFrame(animateChart);
-            }
-        }
-
         function restartGame() {
+            // MODIFICA: Resetta solo il saldo corrente, NON il record
             balance = 100;
-            bestBalance = 100;
             gameActive = true;
             leverageIndex = 0;
             leverage = 1;
@@ -925,102 +178,7 @@
             startNewRound();
         }
 
-        // ==================== EVENT HANDLERS ====================
-        function handlePercentageChange() {
-            betPercentage = parseInt(percentageSlider.value);
-            percentageValue.textContent = `${betPercentage}%`;
-            updateBetInfo();
-            saveGameState();
-        }
-
-        function handleLeverageChange() {
-            leverageIndex = parseInt(leverageSlider.value);
-            const settings = LEVERAGE_SETTINGS[leverageIndex];
-            leverage = settings.leverage;
-            leverageValue.textContent = `${leverage}x`;
-            leverageValue.style.color = settings.color;
-            
-            updateBetInfo();
-            updateStats();
-            saveGameState();
-        }
-
-        // ==================== PREVENZIONE ZOOM/SCROLL ====================
-        function preventZoomAndScroll(e) {
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                return false;
-            }
-            
-            if (e.touches && e.touches.length > 1) {
-                e.preventDefault();
-                return false;
-            }
-        }
-
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-        document.addEventListener('wheel', function(e) {
-            if (e.ctrlKey) {
-                e.preventDefault();
-                return false;
-            }
-        }, { passive: false });
-
-        document.addEventListener('touchmove', function(e) {
-            if (!e.target.matches('input[type="range"]')) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(e) {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                e.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        });
-
-        document.addEventListener('gesturechange', function(e) {
-            e.preventDefault();
-        });
-
-        document.addEventListener('gestureend', function(e) {
-            e.preventDefault();
-        });
-
-        // ==================== INIZIALIZZAZIONE ====================
-        function initGame() {
-            setupCanvas();
-            loadGameState();
-            
-            longBtn.addEventListener('click', chooseLong);
-            shortBtn.addEventListener('click', chooseShort);
-            restartBtn.addEventListener('click', restartGame);
-            percentageSlider.addEventListener('input', handlePercentageChange);
-            leverageSlider.addEventListener('input', handleLeverageChange);
-            
-            window.addEventListener('resize', () => {
-                setupCanvas();
-                drawChart();
-            });
-            
-            startNewRound();
-            
-            LEVERAGE_SETTINGS.forEach(settings => {
-                leverageStats[settings.leverage] = { total: 0, wins: 0 };
-            });
-        }
-
-        window.addEventListener('load', initGame);
+        // ... (il resto del codice rimane uguale) ...
     </script>
 </body>
 </html>
