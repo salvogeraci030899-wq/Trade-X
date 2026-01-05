@@ -89,7 +89,7 @@
         }
         
         .slider-value {
-            min-width: 40px;
+            min-width: 80px;
             font-size: 14px;
             text-align: right;
         }
@@ -183,7 +183,18 @@
             font-size: 12px;
             color: #666;
             margin-top: 5px;
-            height: 18px;
+            height: 40px;
+            line-height: 1.4;
+        }
+        
+        .risk-high { color: #ff4444; }
+        .risk-medium { color: #ffaa00; }
+        .risk-low { color: #44ff44; }
+        
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
         }
     </style>
 </head>
@@ -200,22 +211,22 @@
     <div class="controls-container">
         <div class="leverage-controls">
             <div class="control">
-                <label>PUNTATA</label>
+                <label>PUNTATA (% del saldo)</label>
                 <div class="slider-container">
                     <input type="range" min="1" max="100" value="10" id="percentageSlider">
                     <span class="slider-value" id="percentageValue">10%</span>
                 </div>
             </div>
             <div class="control">
-                <label>LEVA</label>
+                <label>LEVA (rischio/rendimento)</label>
                 <div class="slider-container">
-                    <input type="range" min="1" max="10" value="1" id="leverageSlider">
-                    <span class="slider-value" id="leverageValue">1x</span>
+                    <input type="range" min="0" max="7" value="0" id="leverageSlider">
+                    <span class="slider-value" id="leverageValue">1x (80%)</span>
                 </div>
             </div>
         </div>
         
-        <div class="bet-info" id="betInfo">Puntata: 10$ | Potenziale: 10$</div>
+        <div class="bet-info" id="betInfo">Puntata: 10$ | Se vinci: +10$ | Se perdi: -10$ (80% win)</div>
         
         <div class="trade-buttons">
             <button id="longBtn" class="trade-btn long-btn" disabled>▲ LONG</button>
@@ -229,7 +240,19 @@
     </div>
 
     <script>
-        // Inizializzazione
+        // ===== SISTEMA DI LEVA CON PROBABILITÀ =====
+        const LEVERAGE_LEVELS = [
+            { leverage: 1, winProbability: 0.8, unlockThreshold: 100, color: "#44ff44" },    // 80% win
+            { leverage: 2, winProbability: 0.7, unlockThreshold: 150, color: "#88ff44" },    // 70% win
+            { leverage: 3, winProbability: 0.6, unlockThreshold: 200, color: "#ccff44" },    // 60% win
+            { leverage: 5, winProbability: 0.5, unlockThreshold: 300, color: "#ffcc44" },    // 50% win
+            { leverage: 10, winProbability: 0.4, unlockThreshold: 500, color: "#ff8844" },   // 40% win
+            { leverage: 20, winProbability: 0.3, unlockThreshold: 800, color: "#ff4444" },   // 30% win
+            { leverage: 50, winProbability: 0.2, unlockThreshold: 1500, color: "#ff4488" },  // 20% win
+            { leverage: 100, winProbability: 0.1, unlockThreshold: 3000, color: "#ff44cc" }  // 10% win
+        ];
+
+        // ===== VARIABILI GLOBALI =====
         let balance = 100;
         let bestBalance = 100;
         let chartData = [];
@@ -243,7 +266,8 @@
         
         // Variabili per le leve
         let betPercentage = 10;
-        let leverage = 1;
+        let currentLeverageIndex = 0;
+        let unlockedLeverageLevels = [];
         
         // Elementi DOM
         const canvas = document.getElementById('chartCanvas');
@@ -263,7 +287,7 @@
         const leverageValue = document.getElementById('leverageValue');
         const betInfo = document.getElementById('betInfo');
         
-        // Setup canvas
+        // ===== INIZIALIZZAZIONE =====
         function setupCanvas() {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -276,12 +300,12 @@
             canvas.style.height = `${rect.height}px`;
         }
         
-        // Carica stato
+        // Carica stato del gioco
         function loadGameState() {
             const savedBalance = localStorage.getItem('tradingBalance');
             const savedBestBalance = localStorage.getItem('tradingBestBalance');
             const savedPercentage = localStorage.getItem('tradingPercentage');
-            const savedLeverage = localStorage.getItem('tradingLeverage');
+            const savedLeverageIndex = localStorage.getItem('tradingLeverageIndex');
             
             if (savedBalance) balance = parseInt(savedBalance);
             if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
@@ -290,43 +314,106 @@
                 percentageSlider.value = betPercentage;
                 percentageValue.textContent = `${betPercentage}%`;
             }
-            if (savedLeverage) {
-                leverage = parseInt(savedLeverage);
-                leverageSlider.value = leverage;
-                leverageValue.textContent = `${leverage}x`;
+            if (savedLeverageIndex) {
+                currentLeverageIndex = Math.min(7, parseInt(savedLeverageIndex));
             }
             
+            updateUnlockedLeverageLevels();
             updateBalanceDisplay();
             updateBetInfo();
         }
         
-        // Salva stato
+        // Salva stato del gioco
         function saveGameState() {
             localStorage.setItem('tradingBalance', balance.toString());
             localStorage.setItem('tradingBestBalance', bestBalance.toString());
             localStorage.setItem('tradingPercentage', betPercentage.toString());
-            localStorage.setItem('tradingLeverage', leverage.toString());
+            localStorage.setItem('tradingLeverageIndex', currentLeverageIndex.toString());
         }
         
         // Aggiorna display saldo
         function updateBalanceDisplay() {
             balanceElement.textContent = balance;
             bestBalanceElement.textContent = bestBalance;
+            updateUnlockedLeverageLevels();
+            updateLeverageControls();
         }
         
-        // Calcola puntata
+        // Calcola puntata attuale
         function calculateBet() {
             return Math.floor(balance * (betPercentage / 100));
         }
         
-        // Aggiorna info puntata
-        function updateBetInfo() {
-            const bet = calculateBet();
-            const potential = bet * leverage;
-            betInfo.textContent = `Puntata: ${bet}$ | Potenziale: ${potential}$`;
+        // Aggiorna le leve sbloccate in base al saldo
+        function updateUnlockedLeverageLevels() {
+            unlockedLeverageLevels = LEVERAGE_LEVELS.filter(level => balance >= level.unlockThreshold);
+            
+            // Se l'indice corrente non è valido, ridimensionalo
+            if (currentLeverageIndex >= unlockedLeverageLevels.length) {
+                currentLeverageIndex = Math.max(0, unlockedLeverageLevels.length - 1);
+            }
         }
         
-        // Genera dati grafico (random walk)
+        // Aggiorna controlli della leva
+        function updateLeverageControls() {
+            if (unlockedLeverageLevels.length === 0) return;
+            
+            leverageSlider.max = unlockedLeverageLevels.length - 1;
+            leverageSlider.disabled = unlockedLeverageLevels.length <= 1;
+            
+            const currentLevel = unlockedLeverageLevels[currentLeverageIndex];
+            leverageValue.textContent = `${currentLevel.leverage}x (${Math.round(currentLevel.winProbability * 100)}%)`;
+            leverageValue.style.color = currentLevel.color;
+            
+            // Mostra il prossimo sblocco
+            showNextUnlockInfo();
+        }
+        
+        // Mostra informazioni sul prossimo sblocco
+        function showNextUnlockInfo() {
+            const currentMaxLeverage = unlockedLeverageLevels[unlockedLeverageLevels.length - 1].leverage;
+            
+            for (let i = 0; i < LEVERAGE_LEVELS.length; i++) {
+                if (LEVERAGE_LEVELS[i].leverage > currentMaxLeverage) {
+                    const nextLevel = LEVERAGE_LEVELS[i];
+                    const remaining = nextLevel.unlockThreshold - balance;
+                    
+                    if (remaining > 0) {
+                        statusMessage.innerHTML = `Prossimo sblocco: Leva ${nextLevel.leverage}x (${Math.round(nextLevel.winProbability * 100)}% win) a $${nextLevel.unlockThreshold} <span style="color:#888">(+$${remaining})</span>`;
+                    }
+                    return;
+                }
+            }
+        }
+        
+        // Aggiorna info puntata
+        function updateBetInfo() {
+            if (unlockedLeverageLevels.length === 0) return;
+            
+            const currentLevel = unlockedLeverageLevels[currentLeverageIndex];
+            const bet = calculateBet();
+            const potentialWin = bet * currentLevel.leverage;
+            const potentialLoss = bet;
+            const winPercentage = Math.round(currentLevel.winProbability * 100);
+            
+            betInfo.innerHTML = `
+                Puntata: <strong>${bet}$</strong> (${betPercentage}% del saldo)<br>
+                Se vinci: <span style="color:#0c0">+${potentialWin}$</span> | 
+                Se perdi: <span style="color:#f00">-${potentialLoss}$</span> | 
+                Probabilità: ${winPercentage}%
+            `;
+            
+            // Colore in base al rischio
+            if (winPercentage <= 20) {
+                betInfo.className = "bet-info risk-high";
+            } else if (winPercentage <= 50) {
+                betInfo.className = "bet-info risk-medium";
+            } else {
+                betInfo.className = "bet-info risk-low";
+            }
+        }
+        
+        // ===== GRAFICO =====
         function generateChartData() {
             const dataLength = 180;
             const data = [];
@@ -346,7 +433,7 @@
             return data;
         }
         
-        // Disegna grafico HD senza margini
+        // Disegna grafico HD
         function drawChart() {
             const rect = canvas.getBoundingClientRect();
             const width = rect.width;
@@ -356,12 +443,10 @@
             
             if (chartData.length === 0) return;
             
-            // Reset context per HD
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             const dpr = window.devicePixelRatio || 1;
             ctx.scale(dpr, dpr);
             
-            // Calcola scale (senza margini)
             const minValue = Math.min(...chartData);
             const maxValue = Math.max(...chartData);
             const valueRange = maxValue - minValue || 1;
@@ -369,7 +454,6 @@
             const scaleY = height / valueRange;
             const stepX = width / (chartData.length - 1);
             
-            // Disegna linea HD
             ctx.strokeStyle = chartColor;
             ctx.lineWidth = 1.5;
             ctx.lineCap = 'round';
@@ -428,34 +512,7 @@
                 }
             } else {
                 if (userChoice) {
-                    const startPrice = chartData[decisionPoint];
-                    const endPrice = chartData[chartData.length - 1];
-                    const isCorrect = (userChoice === 'long' && endPrice > startPrice) || 
-                                     (userChoice === 'short' && endPrice < startPrice);
-                    
-                    const bet = calculateBet();
-                    const result = bet * leverage;
-                    
-                    if (isCorrect) {
-                        balance += result;
-                        statusMessage.textContent = `+${result}$`;
-                        chartColor = "#0c0";
-                    } else {
-                        balance -= result;
-                        statusMessage.textContent = `-${result}$`;
-                        chartColor = "#f00";
-                    }
-                    
-                    drawChart();
-                    
-                    if (balance > bestBalance) {
-                        bestBalance = balance;
-                    }
-                    
-                    saveGameState();
-                    updateBalanceDisplay();
-                    updateBetInfo();
-                    
+                    // Risultato già processato in handleTradeChoice
                     if (balance <= 0) {
                         gameActive = false;
                         gameOverScreen.style.display = 'flex';
@@ -467,7 +524,7 @@
             }
         }
         
-        // Abilita/disabilita pulsanti
+        // ===== LOGICA DI TRADING =====
         function enableTradeButtons() {
             longBtn.disabled = false;
             shortBtn.disabled = false;
@@ -491,37 +548,75 @@
             statusMessage.textContent = "Analisi del mercato...";
             disableTradeButtons();
             
+            // Mostra info sul prossimo sblocco se non c'è scelta utente
+            if (isAnimating && !userChoice) {
+                showNextUnlockInfo();
+            }
+            
             if (animationId) {
                 cancelAnimationFrame(animationId);
             }
             animateChart();
         }
         
-        // Scelte trading
-        function chooseLong() {
-            if (!isAnimating && gameActive && !userChoice) {
-                userChoice = 'long';
-                disableTradeButtons();
-                statusMessage.textContent = "LONG selezionato";
-                chartColor = "#fff";
-                animationId = requestAnimationFrame(animateChart);
+        // Gestisce la scelta di trading (LONG o SHORT)
+        function handleTradeChoice(direction) {
+            if (!isAnimating || userChoice !== null) return;
+            
+            userChoice = direction;
+            disableTradeButtons();
+            
+            // Determina se vince in base alla probabilità della leva
+            const currentLevel = unlockedLeverageLevels[currentLeverageIndex];
+            const win = Math.random() < currentLevel.winProbability;
+            
+            // Calcola risultato
+            const bet = calculateBet();
+            let result;
+            
+            if (win) {
+                result = bet * currentLevel.leverage;
+                balance += result;
+                statusMessage.textContent = `VINTO! +${result}$ (${currentLevel.leverage}x)`;
+                chartColor = "#0c0";
+                
+                // Animazione pulsanti vittoria
+                if (direction === 'long') {
+                    longBtn.style.animation = "pulse-red 0.5s 3";
+                } else {
+                    shortBtn.style.animation = "pulse-red 0.5s 3";
+                }
+            } else {
+                result = -bet;
+                balance += result;
+                statusMessage.textContent = `PERSO! ${result}$`;
+                chartColor = "#f00";
             }
-        }
-        
-        function chooseShort() {
-            if (!isAnimating && gameActive && !userChoice) {
-                userChoice = 'short';
-                disableTradeButtons();
-                statusMessage.textContent = "SHORT selezionato";
-                chartColor = "#fff";
-                animationId = requestAnimationFrame(animateChart);
+            
+            // Aggiorna display e salva
+            if (balance > bestBalance) {
+                bestBalance = balance;
             }
+            
+            saveGameState();
+            updateBalanceDisplay();
+            updateBetInfo();
+            
+            // Continua animazione per mostrare risultato
+            isAnimating = true;
+            animationId = requestAnimationFrame(animateChart);
         }
         
         // Riavvia gioco
         function restartGame() {
             balance = 100;
+            betPercentage = 10;
+            currentLeverageIndex = 0;
             gameActive = true;
+            
+            percentageSlider.value = betPercentage;
+            percentageValue.textContent = `${betPercentage}%`;
+            
             gameOverScreen.style.display = 'none';
             updateBalanceDisplay();
             updateBetInfo();
@@ -529,7 +624,7 @@
             startNewRound();
         }
         
-        // Gestione leve
+        // ===== GESTIONE EVENTI =====
         function handlePercentageChange() {
             betPercentage = parseInt(percentageSlider.value);
             percentageValue.textContent = `${betPercentage}%`;
@@ -538,19 +633,33 @@
         }
         
         function handleLeverageChange() {
-            leverage = parseInt(leverageSlider.value);
-            leverageValue.textContent = `${leverage}x`;
+            currentLeverageIndex = parseInt(leverageSlider.value);
+            
+            // Assicurati che l'indice sia valido
+            if (currentLeverageIndex >= unlockedLeverageLevels.length) {
+                currentLeverageIndex = unlockedLeverageLevels.length - 1;
+            }
+            
+            updateLeverageControls();
             updateBetInfo();
             saveGameState();
+            
+            // Mostra warning per leve rischiose
+            const currentLevel = unlockedLeverageLevels[currentLeverageIndex];
+            if (currentLevel.winProbability <= 0.3) {
+                const winChance = Math.round(currentLevel.winProbability * 100);
+                statusMessage.textContent = `⚠️ Attenzione! Solo ${winChance}% di probabilità di vincita`;
+                statusMessage.style.color = "#ff4444";
+            }
         }
         
-        // Inizializzazione
+        // ===== INIZIALIZZAZIONE GIOCO =====
         function initGame() {
             setupCanvas();
             loadGameState();
             
-            longBtn.addEventListener('click', chooseLong);
-            shortBtn.addEventListener('click', chooseShort);
+            longBtn.addEventListener('click', () => handleTradeChoice('long'));
+            shortBtn.addEventListener('click', () => handleTradeChoice('short'));
             restartBtn.addEventListener('click', restartGame);
             percentageSlider.addEventListener('input', handlePercentageChange);
             leverageSlider.addEventListener('input', handleLeverageChange);
