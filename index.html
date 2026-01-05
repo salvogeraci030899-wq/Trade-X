@@ -679,11 +679,27 @@
                 chartStep++;
                 drawChart();
                 
-                // Stessa animazione organica per tutto il grafico
-                if (isAnimating) {
+                if (isAnimating && chartStep <= decisionPoint) {
+                    // Prima del punto di decisione: animazione veloce
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
                     }, 8 + Math.random() * 4);
+                } 
+                else if (userChoice && chartStep > decisionPoint) {
+                    // Dopo la scelta: animazione veloce
+                    setTimeout(() => {
+                        animationId = requestAnimationFrame(animateChart);
+                    }, 8 + Math.random() * 4);
+                } 
+                else if (chartStep > decisionPoint && !userChoice) {
+                    // Punto di decisione raggiunto, attende scelta
+                    isAnimating = false;
+                    enableTradeButtons();
+                    statusMessage.textContent = "Previsione?";
+                    return;
+                }
+                else {
+                    animationId = requestAnimationFrame(animateChart);
                 }
             } else {
                 processTradeResult();
@@ -757,7 +773,7 @@
             chartColor = "#fff";
             isAnimating = true;
             
-            // Genera i dati iniziali (fino al punto di decisione)
+            // Genera i dati iniziali
             chartData = generateChartData(180);
             decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
             
