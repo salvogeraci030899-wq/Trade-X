@@ -1,9 +1,10 @@
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Trading - Sistema Leva Progressiva</title>
+    <title>XTrade - Sistema Leva Progressiva</title>
     <style>
         /* Disabilita tutte le interazioni di selezione e zoom */
         * {
@@ -40,6 +41,17 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+        
+        .page-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            padding: 10px 20px;
+            border-bottom: 1px solid #222;
+            background: #000;
+            color: #fff;
         }
         
         .header {
@@ -210,6 +222,7 @@
             margin-bottom: 20px;
             font-weight: 300;
             letter-spacing: 2px;
+            color: #ff0000;
         }
         
         .restart-btn {
@@ -295,6 +308,8 @@
     </style>
 </head>
 <body>
+    <div class="page-title">XTRADE</div>
+    
     <div class="header">
         <div class="balance-container">
             <div class="balance-row">
@@ -330,8 +345,6 @@
             </div>
         </div>
         
-        <!-- RIMOSSA LA LINEA COLORATA VERDE-ROSSA -->
-        
         <div class="bet-info" id="betInfo">Puntata: 10$ (10%) | Leva: 1x (80% win)</div>
         
         <div class="unlock-info" id="unlockInfo"></div>
@@ -349,7 +362,7 @@
     </div>
     
     <div class="game-over" id="gameOverScreen">
-        <h2>GAME OVER</h2>
+        <h2>BANCAROTTA</h2>
         <div style="margin-bottom: 20px; text-align: center;">
             <div>Record: <span id="finalBestBalance">100</span>$</div>
             <div>Leva massima raggiunta: <span id="finalMaxLeverage">1x</span></div>
@@ -392,6 +405,8 @@
         let decisionPoint = 0;
         let userChoice = null;
         let chartColor = "#fff";
+        let tradeResult = null; // true = vittoria, false = sconfitta
+        let postDecisionDirection = 0; // 0 = neutrale, 1 = su, -1 = giù
         
         let betPercentage = 10;
         let leverageIndex = 0; // Indice nell'array LEVERAGE_SETTINGS
@@ -603,9 +618,15 @@
             const data = [];
             
             let value = 50;
-            const trend = (Math.random() - 0.5) * 0.1;
+            let trend = (Math.random() - 0.5) * 0.1;
+            
+            // Se c'è una direzione post-decisione, applicala
+            if (postDecisionDirection !== 0) {
+                trend = postDecisionDirection * 0.2; // Trend più forte dopo la decisione
+            }
             
             for (let i = 0; i < dataLength; i++) {
+                // Stessa formula dell'animazione originale
                 value += (Math.random() - 0.5) * 1.5 + trend;
                 
                 if (value < 5) value = 5 + Math.random() * 5;
@@ -672,15 +693,17 @@
                 chartStep++;
                 drawChart();
                 
+                // Stessa animazione originale
                 if (isAnimating && chartStep <= decisionPoint) {
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
                     }, 8 + Math.random() * 4);
                 } 
                 else if (userChoice && chartStep > decisionPoint) {
+                    // Stessa animazione anche dopo la decisione
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
-                    }, 20);
+                    }, 8 + Math.random() * 4);
                 } 
                 else if (chartStep > decisionPoint && !userChoice) {
                     isAnimating = false;
@@ -699,7 +722,7 @@
         function processTradeResult() {
             const settings = getCurrentLeverageSettings();
             const bet = calculateBet();
-            const win = isTradeSuccessful();
+            const win = tradeResult;
             const result = calculateTradeResult(win, bet);
             
             // Aggiorna statistiche
@@ -761,6 +784,8 @@
         function startNewRound() {
             chartStep = 0;
             userChoice = null;
+            tradeResult = null;
+            postDecisionDirection = 0;
             chartColor = "#fff";
             isAnimating = true;
             
@@ -780,9 +805,20 @@
         function chooseLong() {
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'long';
+                tradeResult = isTradeSuccessful();
+                
+                // Determina la direzione del grafico in base al risultato
+                // LONG vince: grafico sale (direzione positiva)
+                // LONG perde: grafico scende (direzione negativa)
+                postDecisionDirection = tradeResult ? 1 : -1;
+                
+                // Ricalcola i dati del grafico con la direzione corretta
+                chartData = generateChartData();
+                
                 disableTradeButtons();
                 statusMessage.textContent = "LONG selezionato";
-                chartColor = "#fff";
+                chartColor = "#fff"; // Bianco durante l'animazione
+                isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
             }
         }
@@ -790,9 +826,20 @@
         function chooseShort() {
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'short';
+                tradeResult = isTradeSuccessful();
+                
+                // Determina la direzione del grafico in base al risultato
+                // SHORT vince: grafico scende (direzione negativa)
+                // SHORT perde: grafico sale (direzione positiva)
+                postDecisionDirection = tradeResult ? -1 : 1;
+                
+                // Ricalcola i dati del grafico con la direzione corretta
+                chartData = generateChartData();
+                
                 disableTradeButtons();
                 statusMessage.textContent = "SHORT selezionato";
-                chartColor = "#fff";
+                chartColor = "#fff"; // Bianco durante l'animazione
+                isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
             }
         }
@@ -804,6 +851,8 @@
             leverage = 1;
             betPercentage = 10;
             totalTrades = 0;
+            tradeResult = null;
+            postDecisionDirection = 0;
             
             percentageSlider.value = betPercentage;
             percentageValue.textContent = `${betPercentage}%`;
