@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>XTrade - Sistema Leva Progressiva</title>
+    <style>
+        /* Disabilita tutte le interazioni di selezione e zoom */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Disabilita lo scroll su tutti gli elementi */
+        html, body {
+            overflow: hidden;
+            touch-action: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Prevenire il comportamento di zoom con doppio tap */
+        * {
+            -webkit-user-drag: none;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Animazioni fluttuanti */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        @keyframes float-subtle {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-3px);
+            }
+        }
+        
+        @keyframes float-very-subtle {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-2px);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+        
+        /* Menu Button - CORRETTO: in alto a destra allineato al titolo */
+        .menu-button {
+            position: absolute;
+            top: 10px; /* CORRETTO: stessa altezza del padding del titolo */
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            z-index: 100;
+            background: transparent;
+            border: none;
+            padding: 5px;
+            animation: float-very-subtle 3s ease-in-out infinite;
+        }
+        
+        .menu-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #fff;
+        }
+        
+        /* Menu Overlay - MODIFICATO: sfondo completamente nero senza trasparenza */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000; /* MODIFICATO: da rgba(0,0,0,0.95) a #000 */
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .menu-overlay.active {
+            display: flex;
+        }
+        
+        .menu-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+            cursor: pointer;
+            opacity: 0.7;
+            animation: float-very-subtle 3s ease-in-out infinite;
+        }
+        
+        .menu-close:hover {
+            opacity: 1;
+        }
+        
+        .menu-items {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            text-align: center;
+        }
+        
+        .menu-item {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #fff;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .menu-item:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+        
+        .menu-item:nth-child(3) {
+            animation-delay: 1s;
+        }
+        
+        .menu-item:nth-child(4) {
+            animation-delay: 1.5s;
+        }
+        
+        .menu-item:hover {
+            opacity: 1;
+            transform: scale(1.05);
+            animation-play-state: paused;
+        }
+        
+        /* Pagine Overlay */
+        .page-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            padding: 20px;
+            padding-top: 60px;
+        }
+        
+        .page-overlay.active {
+            display: flex;
+        }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
+            flex-shrink: 0;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            animation: float-subtle 5s ease-in-out infinite;
+        }
+        
+        /* MODIFICA: Contenuto pagina Info scorrevole - CORRETTO */
+        #infoOverlay .page-content {
+            flex: 1;
+            line-height: 1.6;
+            font-size: 16px;
+            color: #ccc;
+            overflow-y: auto !important; /* MODIFICATO: forzato auto */
+            -webkit-overflow-scrolling: touch !important; /* MODIFICATO: forzato touch */
+            padding-right: 10px;
+            touch-action: pan-y !important; /* MODIFICATO: permesso scroll verticale */
+            overscroll-behavior: contain;
+        }
+        
+        /* MODIFICA: Contenuto Settings scorrevole */
+        #settingsOverlay .page-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto !important; /* MODIFICATO: forzato auto */
+            -webkit-overflow-scrolling: touch !important; /* MODIFICATO: forzato touch */
+            padding-right: 10px;
+            touch-action: pan-y !important; /* MODIFICATO: permesso scroll verticale */
+            overscroll-behavior: contain;
+        }
+        
+        /* MODIFICA: Contenuto scrollabile specifico per info */
+        #infoOverlay {
+            display: none;
+            flex-direction: column;
+        }
+        
+        #infoOverlay.active {
+            display: flex;
+        }
+        
+        .page-content h2 {
+            color: #fff;
+            margin: 20px 0 10px 0;
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            animation: float-very-subtle 6s ease-in-out infinite;
+        }
+        
+        .page-content h2:nth-child(odd) {
+            animation-delay: 0.5s;
+        }
+        
+        .page-content h2:nth-child(even) {
+            animation-delay: 1s;
+        }
+        
+        .page-content p {
+            margin: 10px 0 20px 0;
+        }
+        
+        .page-content ul {
+            padding-left: 20px;
+            margin: 10px 0 20px 0;
+        }
+        
+        .page-content li {
+            margin: 8px 0;
+        }
+        
+        .back-button {
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .settings-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+        }
+        
+        .settings-label {
+            font-size: 16px;
+            color: #fff;
+        }
+        
+        .settings-description {
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        /* MODIFICATO: toggle audio in bianco e nero */
+        input:checked + .toggle-slider {
+            background-color: #fff; /* Bianco invece di verde */
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+            background-color: #000; /* Nero invece di bianco */
+        }
+        
+        .level-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+        }
+        
+        .level-name {
+            font-size: 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .level-description {
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .level-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        /* MODIFICATO: titolo cambiato da XTRADE a XTrade con animazione */
+        .game-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            padding: 10px 20px;
+            border-bottom: 1px solid #222;
+            background: #000;
+            color: #fff;
+            position: relative;
+            height: 44px; /* MODIFICATO: altezza fissa per allineamento */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .header {
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #222;
+        }
+        
+        .balance-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .balance-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .balance-label {
+            color: #888;
+            font-weight: 300;
+            min-width: 80px;
+        }
+        
+        .balance-value {
+            font-weight: 400;
+        }
+        
+        #bestBalance {
+            color: #4CAF50;
+        }
+        
+        #balance {
+            color: #fff;
+        }
+        
+        #chartCanvas {
+            flex: 1;
+            width: 100%;
+            display: block;
+            touch-action: none;
+        }
+        
+        .controls-container {
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .leverage-controls {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .control {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .control label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #888;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 2px;
+            background: #333;
+            -webkit-appearance: none;
+            outline: none;
+            touch-action: pan-y;
+            min-width: 0;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .slider-value {
+            min-width: 45px;
+            font-size: 14px;
+            text-align: right;
+            white-space: nowrap;
+        }
+        
+        .trade-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        
+        .trade-btn {
+            flex: 1;
+            height: 50px;
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+        
+        .trade-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .trade-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .long-btn {
+            border-color: #0c0;
+            color: #0c0;
+        }
+        
+        .short-btn {
+            border-color: #f00;
+            color: #f00;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            height: 36px;
+            color: #888;
+            letter-spacing: 0.3px;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .game-over h2 {
+            font-size: 40px;
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #ff0000;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .restart-btn {
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 12px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 300;
+            letter-spacing: 1px;
+            animation: float-very-subtle 4s ease-in-out infinite;
+        }
+        
+        .restart-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .bet-info {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            height: 60px; /* Aumentato per contenere più informazioni */
+            line-height: 1.4;
+        }
+        
+        .unlock-info {
+            text-align: center;
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+            height: 16px;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        .unlock-info.fade-out {
+            opacity: 0;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #222;
+        }
+
+        /* Stili per la scrollbar - MODIFICATI: più visibili */
+        .page-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .page-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        
+        .page-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        .page-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Nuove classi per il sistema tasse */
+        .tax-info {
+            font-size: 10px;
+            color: #888;
+            margin-top: 2px;
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        .win-animation {
+            animation: pulse 0.5s ease-in-out 3;
+        }
+        
+        .loss-animation {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        /* Media query per schermi piccoli */
+        @media (max-width: 380px) {
+            .menu-button {
+                top: 10px; /* CORRETTO: stessa altezza per schermi piccoli */
+                right: 15px;
+                width: 25px;
+                height: 25px;
+            }
+            
+            .menu-dot {
+                width: 3px;
+                height: 3px;
+            }
+            
+            .menu-item {
+                font-size: 20px;
+                padding: 8px 16px;
+            }
+            
+            .controls-container {
+                padding: 15px 12px;
+            }
+            
+            .leverage-controls {
+                gap: 12px;
+            }
+            
+            .slider-value {
+                min-width: 40px;
+                font-size: 12px;
+            }
+            
+            .control label {
+                font-size: 11px;
+            }
+            
+            .trade-btn {
+                font-size: 16px;
+                height: 45px;
+            }
+            
+            .stats {
+                padding: 10px 12px;
+                font-size: 11px;
+            }
+            
+            .game-title {
+                padding: 10px 12px;
+                font-size: 22px;
+                height: 42px; /* MODIFICATO: altezza ridotta per schermi piccoli */
+            }
+            
+            .header {
+                padding: 12px;
+                font-size: 16px;
+            }
+            
+            .balance-label {
+                min-width: 70px;
+            }
+            
+            .page-overlay {
+                padding: 15px;
+                padding-top: 50px;
+            }
+        }
+        
+        @media (max-width: 320px) {
+            .menu-button {
+                top: 10px; /* CORRETTO: stessa altezza per schermi molto piccoli */
+                right: 12px;
+            }
+            
+            .menu-item {
+                font-size: 18px;
+            }
+            
+            .leverage-controls {
+                gap: 8px;
+            }
+            
+            .slider-container {
+                gap: 5px;
+            }
+            
+            .slider-value {
+                min-width: 35px;
+                font-size: 11px;
+            }
+            
+            .control label {
+                font-size: 10px;
+            }
+            
+            .trade-btn {
+                font-size: 14px;
+                height: 40px;
+                letter-spacing: 0.5px;
+            }
+            
+            .stats {
+                font-size: 10px;
+            }
+            
+            .game-title {
+                height: 40px; /* MODIFICATO: ulteriormente ridotto per schermi molto piccoli */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Button -->
+    <button class="menu-button" id="menuButton">
+        <div class="menu-dot"></div>
+        <div class="menu-dot"></div>
+        <div class="menu-dot"></div>
+    </button>
+    
+    <!-- Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay">
+        <div class="menu-close" id="menuClose">✕</div>
+        <div class="menu-items">
+            <button class="menu-item" id="accountBtn">Account</button>
+            <button class="menu-item" id="rankBtn">Classifica</button>
+            <button class="menu-item" id="settingsBtn">Impostazioni</button>
+            <button class="menu-item" id="infoBtn">Info</button>
+        </div>
+    </div>
+    
+    <!-- Info Page Overlay - MODIFICATO: struttura per scroll corretto -->
+    <div class="page-overlay" id="infoOverlay">
+        <div class="page-header">
+            <h1 class="page-title">Info</h1>
+            <button class="back-button" id="infoBackBtn">Indietro</button>
+        </div>
+        <div class="page-content">
+            <h2>Benvenuto in XTrade</h2>
+            <p>XTrade è un simulatore di trading con sistema di leva progressiva e tasse competitive. Gestisci il tuo capitale, scegli il livello di rischio e cerca di battere il tuo record.</p>
+            
+            <h2>Come Funziona</h2>
+            <ul>
+                <li><strong>Analisi del grafico</strong>: Osserva l'andamento del prezzo e prevedi se salirà (LONG) o scenderà (SHORT)</li>
+                <li><strong>Sistema a livelli</strong>: Sblocca livelli di leva più alti raggiungendo determinati saldi</li>
+                <li><strong>Tasse progressive</strong>: Maggiore è la leva, maggiore è la tassa sui profitti</li>
+                <li><strong>Record personale</strong>: Il tuo record massimo viene salvato e non viene azzerato in caso di bancarotta</li>
+            </ul>
+            
+            <h2>Sistema dei Livelli e Tasse</h2>
+            <p>I livelli rappresentano il tuo progresso nel gioco:</p>
+            <ul>
+                <li><strong>Basso</strong>: Leva 1x - 80% di probabilità - Tassa 5%</li>
+                <li><strong>Medio</strong>: Leve 2x-5x - Probabilità 70-50% - Tasse 13-37%</li>
+                <li><strong>Alto</strong>: Leva 10x-20x - Probabilità 40-30% - Tasse 77-85%</li>
+                <li><strong>Estremo</strong>: Leva 50x - 20% di probabilità - Tassa 85%</li>
+                <li><strong>Insano</strong>: Leva 100x - 10% di probabilità - Tassa 85%</li>
+            </ul>
+            
+            <h2>Calcolo del Punteggio Classifica</h2>
+            <p>Il punteggio per la classifica tiene conto di:</p>
+            <ul>
+                <li><strong>Saldo attuale</strong>: 40% del punteggio</li>
+                <li><strong>Consistenza</strong>: Win rate moltiplicato per 1000 (30%)</li>
+                <li><strong>Gestione del rischio</strong>: Penalizza uso eccessivo di leva (20%)</li>
+                <li><strong>Progresso</strong>: Miglior saldo raggiunto (10%)</li>
+                <li><strong>Penalità</strong>: Trade minimi richiesti (20 trade)</li>
+            </ul>
+            
+            <h2>Consigli</h2>
+            <ul>
+                <li>Inizia con leve basse per familiarizzare con il sistema</li>
+                <li>Gestisci sempre la tua puntata in percentuale del capitale</li>
+                <li>Non puntare tutto su un singolo trade</li>
+                <li>Ricorda: il trading reale comporta rischi finanziari reali</li>
+            </ul>
+            
+            <p style="margin-top: 30px; color: #666; font-size: 14px; text-align: center;">
+                XTrade - Simulatore educativo per comprendere i rischi del trading con leva
+            </p>
+        </div>
+    </div>
+    
+    <!-- Settings Page Overlay - MODIFICATO: rimossa sezione "Sistema dei livelli" -->
+    <div class="page-overlay" id="settingsOverlay">
+        <div class="page-header">
+            <h1 class="page-title">Impostazioni</h1>
+            <button class="back-button" id="settingsBackBtn">Indietro</button>
+        </div>
+        <div class="page-content">
+            <div class="settings-option">
+                <div>
+                    <div class="settings-label">Audio</div>
+                    <div class="settings-description">Attiva/disattiva gli effetti sonori del gioco</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="audioToggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <!-- NUOVA SEZIONE: Visualizza Statistiche -->
+            <div class="settings-option" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <div>
+                    <div class="settings-label">Le Tue Statistiche</div>
+                    <div class="settings-description">Consulta le tue performance dettagliate</div>
+                </div>
+                <div id="playerStats" style="width: 100%; font-size: 13px; color: #ccc; line-height: 1.6;">
+                    <!-- Le statistiche verranno caricate qui -->
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 5px;">
+                <div class="settings-label">Reset Dati</div>
+                <div class="settings-description" style="margin-bottom: 15px;">Cancella tutti i dati di gioco salvati e riparti da zero</div>
+                <button class="back-button" id="resetDataBtn" style="width: 100%;">Reset Dati di Gioco</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Game Interface - MODIFICATO: titolo cambiato da XTRADE a XTrade -->
+    <div class="game-title">XTrade</div>
+    
+    <div class="header">
+        <div class="balance-container">
+            <div class="balance-row">
+                <div class="balance-label">Record:</div>
+                <div class="balance-value" id="bestBalance">$100</div>
+            </div>
+            <div class="balance-row">
+                <div class="balance-label">Saldo:</div>
+                <div class="balance-value" id="balance">$100</div>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="chartCanvas"></canvas>
+    
+    <div class="status" id="statusMessage">Analisi del mercato...</div>
+    
+    <div class="controls-container">
+        <div class="leverage-controls">
+            <div class="control">
+                <label>PUNTATA (%)</label>
+                <div class="slider-container">
+                    <input type="range" min="1" max="100" value="10" id="percentageSlider">
+                    <span class="slider-value" id="percentageValue">10%</span>
+                </div>
+            </div>
+            <div class="control">
+                <label>LEVA (RISCHIO)</label>
+                <div class="slider-container">
+                    <input type="range" min="0" max="7" value="0" id="leverageSlider">
+                    <span class="slider-value" id="leverageValue">1x</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bet-info" id="betInfo">Puntata: $10 (10%) | Leva: 1x (80% win) | Tassa: 5%</div>
+        
+        <div class="unlock-info" id="unlockInfo"></div>
+        
+        <div class="trade-buttons">
+            <button id="longBtn" class="trade-btn long-btn" disabled>▲ LONG</button>
+            <button id="shortBtn" class="trade-btn short-btn" disabled>▼ SHORT</button>
+        </div>
+    </div>
+    
+    <div class="stats">
+        <div>Livello: <span id="currentLevel">Novizio</span></div>
+        <div>Leve sbloccate: <span id="unlockedCount">1/8</span></div>
+        <div>Trade: <span id="totalTrades">0</span></div>
+    </div>
+    
+    <div class="game-over" id="gameOverScreen">
+        <h2>BANCAROTTA</h2>
+        <button id="restartBtn" class="restart-btn">RIPROVA</button>
+    </div>
+
+    <script>
+        // ==================== SISTEMA LEVE E TASSE ====================
+        const LEVERAGE_SETTINGS = [
+            { leverage: 1, winChance: 0.80, tax: 0.05, color: "#44ff44", name: "Novizio", level: "Basso" },
+            { leverage: 2, winChance: 0.70, tax: 0.13, color: "#66ff66", name: "Principiante", level: "Medio" },
+            { leverage: 3, winChance: 0.60, tax: 0.21, color: "#88ff88", name: "Intermedio", level: "Medio" },
+            { leverage: 5, winChance: 0.50, tax: 0.37, color: "#ffff44", name: "Esperto", level: "Medio" },
+            { leverage: 10, winChance: 0.40, tax: 0.77, color: "#ffaa44", name: "Risky", level: "Alto" },
+            { leverage: 20, winChance: 0.30, tax: 0.85, color: "#ff7744", name: "High Risk", level: "Alto" },
+            { leverage: 50, winChance: 0.20, tax: 0.85, color: "#ff4444", name: "Extreme", level: "Estremo" },
+            { leverage: 100, winChance: 0.10, tax: 0.85, color: "#ff2244", name: "Insano", level: "Insano" }
+        ];
+
+        const LEVERAGE_UNLOCKS = [
+            { threshold: 100, maxLeverageIndex: 0 },   // 1x
+            { threshold: 200, maxLeverageIndex: 1 },   // 2x
+            { threshold: 300, maxLeverageIndex: 2 },   // 3x
+            { threshold: 500, maxLeverageIndex: 3 },   // 5x
+            { threshold: 1000, maxLeverageIndex: 4 },  // 10x
+            { threshold: 2000, maxLeverageIndex: 5 },  // 20x
+            { threshold: 5000, maxLeverageIndex: 6 },  // 50x
+            { threshold: 10000, maxLeverageIndex: 7 }  // 100x
+        ];
+
+        // ==================== VARIABILI GLOBALI ====================
+        let balance = 100;
+        let bestBalance = 100;
+        let chartData = [];
+        let chartStep = 0;
+        let gameActive = true;
+        let isAnimating = true;
+        let animationId = null;
+        let decisionPoint = 0;
+        let userChoice = null;
+        let chartColor = "#fff";
+        let tradeResult = null;
+        
+        let betPercentage = 10;
+        let leverageIndex = 0;
+        let leverage = 1;
+        
+        let totalTrades = 0;
+        let wins = 0;
+        let losses = 0;
+        let totalWon = 0;
+        let totalLost = 0;
+        let leverageUsed = [];
+        let currentStreak = 0;
+        let bestStreak = 0;
+        let unlockMessageTimeout = null;
+        let audioEnabled = true;
+
+        // ==================== ELEMENTI DOM ====================
+        const canvas = document.getElementById('chartCanvas');
+        const ctx = canvas.getContext('2d', { antialias: false });
+        ctx.imageSmoothingEnabled = false;
+        
+        // Menu elements
+        const menuButton = document.getElementById('menuButton');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const menuClose = document.getElementById('menuClose');
+        const accountBtn = document.getElementById('accountBtn');
+        const rankBtn = document.getElementById('rankBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const infoBtn = document.getElementById('infoBtn');
+        
+        // Page overlays
+        const infoOverlay = document.getElementById('infoOverlay');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const infoBackBtn = document.getElementById('infoBackBtn');
+        const settingsBackBtn = document.getElementById('settingsBackBtn');
+        const audioToggle = document.getElementById('audioToggle');
+        const resetDataBtn = document.getElementById('resetDataBtn');
+        const playerStatsElement = document.getElementById('playerStats');
+        
+        // Game elements
+        const balanceElement = document.getElementById('balance');
+        const bestBalanceElement = document.getElementById('bestBalance');
+        const longBtn = document.getElementById('longBtn');
+        const shortBtn = document.getElementById('shortBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const restartBtn = document.getElementById('restartBtn');
+        const percentageSlider = document.getElementById('percentageSlider');
+        const percentageValue = document.getElementById('percentageValue');
+        const leverageSlider = document.getElementById('leverageSlider');
+        const leverageValue = document.getElementById('leverageValue');
+        const betInfo = document.getElementById('betInfo');
+        const unlockInfo = document.getElementById('unlockInfo');
+        const currentLevelElement = document.getElementById('currentLevel');
+        const unlockedCountElement = document.getElementById('unlockedCount');
+        const totalTradesElement = document.getElementById('totalTrades');
+
+        // ==================== FUNZIONI MENU ====================
+        function openMenu() {
+            menuOverlay.classList.add('active');
+            isAnimating = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function closeMenu() {
+            menuOverlay.classList.remove('active');
+            if (gameActive && !userChoice && chartStep <= decisionPoint) {
+                isAnimating = true;
+                animateChart();
+            }
+        }
+
+        function openPage(pageOverlay) {
+            closeMenu();
+            pageOverlay.classList.add('active');
+            isAnimating = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            // MODIFICA: Permetti scroll solo nelle pagine overlay
+            if (pageOverlay === infoOverlay || pageOverlay === settingsOverlay) {
+                document.body.style.overflow = 'hidden'; // Mantiene nascosto lo scroll globale
+                pageOverlay.querySelector('.page-content').style.overflowY = 'auto';
+            }
+            
+            // Se apriamo le impostazioni, aggiorna le statistiche
+            if (pageOverlay === settingsOverlay) {
+                updatePlayerStats();
+            }
+        }
+
+        function closePage(pageOverlay) {
+            pageOverlay.classList.remove('active');
+            if (gameActive && !userChoice && chartStep <= decisionPoint) {
+                isAnimating = true;
+                animateChart();
+            }
+            
+            // MODIFICA: Ripristina overflow nascosto
+            document.body.style.overflow = 'hidden';
+        }
+
+        // ==================== FUNZIONI AUDIO ====================
+        function playSound(type) {
+            if (!audioEnabled) return;
+            
+            // Simulazione di suoni - in una versione reale si userebbero file audio
+            try {
+                switch(type) {
+                    case 'click':
+                        // Suono di click
+                        break;
+                    case 'win':
+                        // Suono di vittoria
+                        break;
+                    case 'lose':
+                        // Suono di perdita
+                        break;
+                    case 'error':
+                        // Suono di errore
+                        break;
+                }
+            } catch (e) {
+                console.log("Audio non supportato");
+            }
+        }
+
+        // ==================== FUNZIONI HELPER ====================
+        function getCurrentLeverageSettings() {
+            return LEVERAGE_SETTINGS[leverageIndex];
+        }
+
+        function getMaxUnlockedLeverageIndex() {
+            for (let i = LEVERAGE_UNLOCKS.length - 1; i >= 0; i--) {
+                if (balance >= LEVERAGE_UNLOCKS[i].threshold) {
+                    return LEVERAGE_UNLOCKS[i].maxLeverageIndex;
+                }
+            }
+            return 0;
+        }
+
+        function getNextUnlock() {
+            const currentMaxIndex = getMaxUnlockedLeverageIndex();
+            
+            for (let unlock of LEVERAGE_UNLOCKS) {
+                if (unlock.maxLeverageIndex > currentMaxIndex) {
+                    const settings = LEVERAGE_SETTINGS[unlock.maxLeverageIndex];
+                    return {
+                        threshold: unlock.threshold,
+                        leverage: settings.leverage,
+                        winChance: settings.winChance,
+                        tax: settings.tax,
+                        remaining: unlock.threshold - balance
+                    };
+                }
+            }
+            return null;
+        }
+
+        function isTradeSuccessful() {
+            const settings = getCurrentLeverageSettings();
+            return Math.random() < settings.winChance;
+        }
+
+        function calculateTradeResult(isWin, betAmount) {
+            const settings = getCurrentLeverageSettings();
+            
+            if (isWin) {
+                const grossProfit = betAmount * settings.leverage;
+                const tax = grossProfit * settings.tax;
+                const netProfit = grossProfit - tax;
+                return netProfit;
+            } else {
+                return -betAmount;
+            }
+        }
+
+        // ==================== FUNZIONI CORE ====================
+        function setupCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            ctx.scale(dpr, dpr);
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
+        }
+
+        function loadGameState() {
+            const savedBalance = localStorage.getItem('tradingBalance');
+            const savedBestBalance = localStorage.getItem('tradingBestBalance');
+            const savedPercentage = localStorage.getItem('tradingPercentage');
+            const savedLeverageIndex = localStorage.getItem('tradingLeverageIndex');
+            const savedTotalTrades = localStorage.getItem('tradingTotalTrades');
+            const savedAudioEnabled = localStorage.getItem('tradingAudioEnabled');
+            const savedWins = localStorage.getItem('tradingWins');
+            const savedLosses = localStorage.getItem('tradingLosses');
+            const savedTotalWon = localStorage.getItem('tradingTotalWon');
+            const savedTotalLost = localStorage.getItem('tradingTotalLost');
+            const savedBestStreak = localStorage.getItem('tradingBestStreak');
+            
+            if (savedBalance) balance = parseInt(savedBalance);
+            if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
+            if (savedPercentage) {
+                betPercentage = parseInt(savedPercentage);
+                percentageSlider.value = betPercentage;
+                percentageValue.textContent = `${betPercentage}%`;
+            }
+            if (savedLeverageIndex) {
+                leverageIndex = parseInt(savedLeverageIndex);
+                leverageSlider.value = leverageIndex;
+                const settings = LEVERAGE_SETTINGS[leverageIndex];
+                leverage = settings.leverage;
+                leverageValue.textContent = `${leverage}x`;
+            }
+            if (savedTotalTrades) {
+                totalTrades = parseInt(savedTotalTrades);
+                totalTradesElement.textContent = totalTrades;
+            }
+            if (savedAudioEnabled !== null) {
+                audioEnabled = savedAudioEnabled === 'true';
+                audioToggle.checked = audioEnabled;
+            }
+            if (savedWins) wins = parseInt(savedWins);
+            if (savedLosses) losses = parseInt(savedLosses);
+            if (savedTotalWon) totalWon = parseFloat(savedTotalWon);
+            if (savedTotalLost) totalLost = parseFloat(savedTotalLost);
+            if (savedBestStreak) bestStreak = parseInt(savedBestStreak);
+            
+            updateBalanceDisplay();
+            updateLeverageControls();
+            updateBetInfo();
+            updateUnlockInfo();
+            updateStats();
+        }
+
+        function saveGameState() {
+            localStorage.setItem('tradingBalance', balance.toString());
+            localStorage.setItem('tradingBestBalance', bestBalance.toString());
+            localStorage.setItem('tradingPercentage', betPercentage.toString());
+            localStorage.setItem('tradingLeverageIndex', leverageIndex.toString());
+            localStorage.setItem('tradingTotalTrades', totalTrades.toString());
+            localStorage.setItem('tradingAudioEnabled', audioEnabled.toString());
+            localStorage.setItem('tradingWins', wins.toString());
+            localStorage.setItem('tradingLosses', losses.toString());
+            localStorage.setItem('tradingTotalWon', totalWon.toString());
+            localStorage.setItem('tradingTotalLost', totalLost.toString());
+            localStorage.setItem('tradingBestStreak', bestStreak.toString());
+        }
+
+        function resetGameData() {
+            if (confirm("Sei sicuro di voler resettare tutti i dati di gioco? Perderai saldo, record e statistiche.")) {
+                localStorage.removeItem('tradingBalance');
+                localStorage.removeItem('tradingBestBalance');
+                localStorage.removeItem('tradingPercentage');
+                localStorage.removeItem('tradingLeverageIndex');
+                localStorage.removeItem('tradingTotalTrades');
+                localStorage.removeItem('tradingWins');
+                localStorage.removeItem('tradingLosses');
+                localStorage.removeItem('tradingTotalWon');
+                localStorage.removeItem('tradingTotalLost');
+                localStorage.removeItem('tradingBestStreak');
+                
+                balance = 100;
+                bestBalance = 100;
+                betPercentage = 10;
+                leverageIndex = 0;
+                leverage = 1;
+                totalTrades = 0;
+                wins = 0;
+                losses = 0;
+                totalWon = 0;
+                totalLost = 0;
+                currentStreak = 0;
+                bestStreak = 0;
+                leverageUsed = [];
+                
+                percentageSlider.value = betPercentage;
+                percentageValue.textContent = `${betPercentage}%`;
+                leverageSlider.value = leverageIndex;
+                leverageValue.textContent = `${leverage}x`;
+                
+                updateBalanceDisplay();
+                updateLeverageControls();
+                updateBetInfo();
+                updateUnlockInfo();
+                updateStats();
+                updatePlayerStats();
+                saveGameState();
+                
+                // Chiudi le impostazioni e riavvia il gioco
+                closePage(settingsOverlay);
+                if (gameOverScreen.style.display === 'flex') {
+                    gameOverScreen.style.display = 'none';
+                }
+                gameActive = true;
+                startNewRound();
+                
+                alert("Dati di gioco resettati con successo!");
+            }
+        }
+
+        function updateBalanceDisplay() {
+            balanceElement.textContent = "$" + balance;
+            bestBalanceElement.textContent = "$" + bestBalance;
+        }
+
+        function calculateBet() {
+            return Math.floor(balance * (betPercentage / 100));
+        }
+
+        function updateLeverageControls() {
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            if (leverageIndex > maxUnlockedIndex) {
+                leverageIndex = maxUnlockedIndex;
+                leverageSlider.value = leverageIndex;
+                const settings = LEVERAGE_SETTINGS[leverageIndex];
+                leverage = settings.leverage;
+                leverageValue.textContent = `${leverage}x`;
+            }
+            
+            leverageSlider.max = maxUnlockedIndex;
+            
+            const settings = getCurrentLeverageSettings();
+            leverageValue.style.color = settings.color;
+        }
+
+        function updateBetInfo() {
+            const settings = getCurrentLeverageSettings();
+            const bet = calculateBet();
+            const winChance = Math.round(settings.winChance * 100);
+            const taxPercent = Math.round(settings.tax * 100);
+            const netWin = (bet * settings.leverage * (1 - settings.tax)).toFixed(2);
+            const potentialLoss = bet;
+            
+            // Calcola EV atteso
+            const expectedValue = (settings.winChance * (bet * settings.leverage * (1 - settings.tax))) - ((1 - settings.winChance) * bet);
+            
+            let info = `Puntata: $${bet} (${betPercentage}%) | Leva: ${settings.leverage}x`;
+            info += `<br>Probabilità: ${winChance}% | Tassa vittoria: ${taxPercent}%`;
+            info += `<br>Se vinci: +$${netWin} | Se perdi: -$${potentialLoss}`;
+            
+            betInfo.innerHTML = info;
+            betInfo.style.color = settings.color;
+            
+            if (settings.winChance <= 0.3) {
+                betInfo.classList.add('high-risk');
+            } else {
+                betInfo.classList.remove('high-risk');
+            }
+        }
+
+        function updateUnlockInfo() {
+            if (unlockMessageTimeout) {
+                clearTimeout(unlockMessageTimeout);
+                unlockMessageTimeout = null;
+            }
+            
+            const next = getNextUnlock();
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            unlockInfo.classList.remove('fade-out');
+            
+            if (next) {
+                const winChance = Math.round(next.winChance * 100);
+                const taxPercent = Math.round(next.tax * 100);
+                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win, ${taxPercent}% tassa) a $${next.threshold} ($${next.remaining} rimanenti)`;
+                unlockInfo.style.color = "#ffaa44";
+            } else {
+                unlockInfo.textContent = "Tutte le leve sbloccate!";
+                unlockInfo.style.color = "#44ff44";
+                
+                unlockMessageTimeout = setTimeout(() => {
+                    unlockInfo.classList.add('fade-out');
+                }, 3000);
+            }
+            
+            unlockedCountElement.textContent = `${maxUnlockedIndex + 1}/${LEVERAGE_SETTINGS.length}`;
+        }
+
+        function updateStats() {
+            const settings = getCurrentLeverageSettings();
+            currentLevelElement.textContent = settings.level;
+            currentLevelElement.style.color = settings.color;
+        }
+
+        function updatePlayerStats() {
+            const winRate = totalTrades > 0 ? (wins / totalTrades) : 0;
+            const avgLeverage = leverageUsed.length > 0 ? 
+                leverageUsed.reduce((a, b) => a + b, 0) / leverageUsed.length : 1;
+            
+            const rankScore = calculateRankScore();
+            
+            let statsHTML = `
+                <div><strong>Trade Totali:</strong> ${totalTrades}</div>
+                <div><strong>Vittorie:</strong> ${wins} | <strong>Sconfitte:</strong> ${losses}</div>
+                <div><strong>Win Rate:</strong> ${(winRate * 100).toFixed(1)}%</div>
+                <div><strong>Profitto Totale:</strong> $${totalWon.toFixed(2)}</div>
+                <div><strong>Perdita Totale:</strong> $${totalLost.toFixed(2)}</div>
+                <div><strong>Leva Media:</strong> ${avgLeverage.toFixed(1)}x</div>
+                <div><strong>Streak Attuale:</strong> ${currentStreak}</div>
+                <div><strong>Miglior Streak:</strong> ${bestStreak}</div>
+                <div><strong>Punteggio Classifica:</strong> ${rankScore.score}</div>
+            `;
+            
+            // Aggiungi raccomandazione
+            statsHTML += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;"><strong>Consiglio:</strong> ${getTradeRecommendation()}</div>`;
+            
+            playerStatsElement.innerHTML = statsHTML;
+        }
+
+        function calculateRankScore() {
+            const winRate = totalTrades > 0 ? (wins / totalTrades) : 0;
+            const avgLeverage = leverageUsed.length > 0 ? 
+                leverageUsed.reduce((a, b) => a + b, 0) / leverageUsed.length : 1;
+            
+            // Base: saldo attuale (40%)
+            const balanceScore = balance * 0.4;
+            
+            // Consistenza: win rate (30%)
+            const consistencyScore = (winRate * 1000) * 0.3;
+            
+            // Gestione rischio: penalizza leve alte (20%)
+            const riskPenalty = Math.max(0.3, 1 - (avgLeverage / 50));
+            const riskScore = (balance * riskPenalty) * 0.2;
+            
+            // Progresso: miglior saldo raggiunto (10%)
+            const progressScore = (bestBalance / 100) * 0.1;
+            
+            // Penalità per trade troppo pochi
+            const minTradesPenalty = totalTrades < 20 ? 0.8 : 1;
+            
+            const finalScore = (balanceScore + consistencyScore + riskScore + progressScore) * minTradesPenalty;
+            
+            return {
+                score: Math.round(finalScore),
+                breakdown: {
+                    base: Math.round(balanceScore),
+                    consistency: Math.round(consistencyScore),
+                    riskBonus: Math.round(riskScore),
+                    progress: Math.round(progressScore),
+                    penalties: {
+                        leverage: riskPenalty,
+                        volume: minTradesPenalty
+                    }
+                }
+            };
+        }
+
+        function getTradeRecommendation() {
+            const winRate = totalTrades > 0 ? (wins / totalTrades) : 0;
+            const avgLeverage = leverageUsed.length > 0 ? 
+                leverageUsed.reduce((a, b) => a + b, 0) / leverageUsed.length : 1;
+            
+            if (winRate < 0.5 && avgLeverage > 5) {
+                return "👎 Troppa leva con win rate basso. Prova leva 1x-3x.";
+            } else if (winRate > 0.6 && avgLeverage < 3) {
+                return "👍 Ottima gestione! Potresti provare leva 5x per aumentare i profitti.";
+            } else if (currentStreak >= 3) {
+                return "🔥 Streak vincente! Considera di proteggere i profitti riducendo la puntata.";
+            } else if (balance < 150) {
+                return "💰 Saldo basso. Usa leve basse (1x-2x) per ricostruire gradualmente.";
+            }
+            
+            return "⚖️ Bilanciamento rischio/rendimento ottimale. Continua così!";
+        }
+
+        // ==================== GRAFICO ====================
+        function generateChartData(length, startValue, trendStrength = 0) {
+            const data = [];
+            let value = startValue || 50;
+            
+            for (let i = 0; i < length; i++) {
+                value += (Math.random() - 0.5) * 1.5 + trendStrength;
+                
+                if (value < 5) value = 5 + Math.random() * 5;
+                if (value > 95) value = 95 - Math.random() * 5;
+                
+                data.push(value);
+            }
+            
+            return data;
+        }
+
+        function drawChart() {
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (chartData.length === 0) return;
+            
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            const dpr = window.devicePixelRatio || 1;
+            ctx.scale(dpr, dpr);
+            
+            const minValue = Math.min(...chartData);
+            const maxValue = Math.max(...chartData);
+            const valueRange = maxValue - minValue || 1;
+            
+            const scaleY = height / valueRange;
+            const stepX = width / (chartData.length - 1);
+            
+            ctx.strokeStyle = chartColor;
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            
+            for (let i = 0; i < Math.min(chartStep, chartData.length); i++) {
+                const x = i * stepX;
+                const y = height - ((chartData[i] - minValue) * scaleY);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            if (userChoice && decisionPoint > 0 && chartStep > decisionPoint) {
+                const decisionX = decisionPoint * stepX;
+                const decisionY = height - ((chartData[decisionPoint] - minValue) * scaleY);
+                
+                ctx.fillStyle = chartColor;
+                ctx.beginPath();
+                ctx.arc(decisionX, decisionY, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function animateChart() {
+            if (chartStep < chartData.length) {
+                chartStep++;
+                drawChart();
+                
+                if (isAnimating && chartStep <= decisionPoint) {
+                    setTimeout(() => {
+                        animationId = requestAnimationFrame(animateChart);
+                    }, 8 + Math.random() * 4);
+                } 
+                else if (userChoice && chartStep > decisionPoint) {
+                    setTimeout(() => {
+                        animationId = requestAnimationFrame(animateChart);
+                    }, 8 + Math.random() * 4);
+                } 
+                else if (chartStep > decisionPoint && !userChoice) {
+                    isAnimating = false;
+                    enableTradeButtons();
+                    statusMessage.textContent = "Previsione?";
+                    return;
+                }
+                else {
+                    animationId = requestAnimationFrame(animateChart);
+                }
+            } else {
+                processTradeResult();
+            }
+        }
+
+        function processTradeResult() {
+            const settings = getCurrentLeverageSettings();
+            const bet = calculateBet();
+            const win = tradeResult;
+            const result = calculateTradeResult(win, bet);
+            
+            // Aggiorna statistiche
+            totalTrades++;
+            leverageUsed.push(settings.leverage);
+            
+            if (win) {
+                wins++;
+                currentStreak++;
+                if (currentStreak > bestStreak) {
+                    bestStreak = currentStreak;
+                }
+                totalWon += result;
+                
+                const grossProfit = bet * settings.leverage;
+                const tax = grossProfit * settings.tax;
+                const netProfit = grossProfit - tax;
+                
+                statusMessage.textContent = `VITTORIA! +$${netProfit.toFixed(2)} (${settings.leverage}x, tassa ${(settings.tax*100).toFixed(0)}%)`;
+                statusMessage.style.color = "#0c0";
+                chartColor = "#0c0";
+                
+                // Animazione vittoria
+                longBtn.classList.add('win-animation');
+                setTimeout(() => longBtn.classList.remove('win-animation'), 1500);
+                
+                playSound('win');
+            } else {
+                losses++;
+                currentStreak = 0;
+                totalLost += bet;
+                
+                statusMessage.textContent = `PERDITA! -$${bet}`;
+                statusMessage.style.color = "#f00";
+                chartColor = "#f00";
+                
+                // Animazione perdita
+                shortBtn.classList.add('loss-animation');
+                setTimeout(() => shortBtn.classList.remove('loss-animation'), 1500);
+                
+                playSound('lose');
+            }
+            
+            balance += result;
+            
+            if (balance > bestBalance) {
+                bestBalance = balance;
+            }
+            
+            drawChart();
+            
+            // Aggiorna UI
+            totalTradesElement.textContent = totalTrades;
+            updateBalanceDisplay();
+            updateLeverageControls();
+            updateBetInfo();
+            updateUnlockInfo();
+            updateStats();
+            
+            // Salva stato
+            saveGameState();
+            
+            // Controlla game over
+            if (balance <= 0) {
+                gameActive = false;
+                gameOverScreen.style.display = 'flex';
+                playSound('error');
+                return;
+            }
+            
+            // Nuovo round
+            setTimeout(startNewRound, 2000);
+        }
+
+        // ==================== CONTROLLI UI ====================
+        function enableTradeButtons() {
+            longBtn.disabled = false;
+            shortBtn.disabled = false;
+            statusMessage.textContent = "Fai la tua previsione!";
+            statusMessage.style.color = "#888";
+        }
+
+        function disableTradeButtons() {
+            longBtn.disabled = true;
+            shortBtn.disabled = true;
+        }
+
+        function startNewRound() {
+            chartStep = 0;
+            userChoice = null;
+            tradeResult = null;
+            chartColor = "#fff";
+            isAnimating = true;
+            
+            chartData = generateChartData(180);
+            decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
+            
+            const settings = getCurrentLeverageSettings();
+            statusMessage.textContent = `Analisi del mercato... (Leva ${settings.leverage}x - ${Math.round(settings.winChance * 100)}% win - Tassa ${(settings.tax * 100).toFixed(0)}%)`;
+            statusMessage.style.color = "#888";
+            disableTradeButtons();
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            animateChart();
+        }
+
+        function chooseLong() {
+            if (!isAnimating && gameActive && !userChoice) {
+                userChoice = 'long';
+                tradeResult = isTradeSuccessful();
+                playSound('click');
+                
+                const trendStrength = tradeResult ? 0.08 : -0.08;
+                const startValue = chartData[decisionPoint];
+                const remainingLength = chartData.length - decisionPoint - 1;
+                
+                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
+                
+                for (let i = 0; i < newSegment.length; i++) {
+                    chartData[decisionPoint + 1 + i] = newSegment[i];
+                }
+                
+                disableTradeButtons();
+                statusMessage.textContent = "LONG selezionato";
+                chartColor = "#fff";
+                isAnimating = true;
+                animationId = requestAnimationFrame(animateChart);
+            }
+        }
+
+        function chooseShort() {
+            if (!isAnimating && gameActive && !userChoice) {
+                userChoice = 'short';
+                tradeResult = isTradeSuccessful();
+                playSound('click');
+                
+                const trendStrength = tradeResult ? -0.08 : 0.08;
+                const startValue = chartData[decisionPoint];
+                const remainingLength = chartData.length - decisionPoint - 1;
+                
+                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
+                
+                for (let i = 0; i < newSegment.length; i++) {
+                    chartData[decisionPoint + 1 + i] = newSegment[i];
+                }
+                
+                disableTradeButtons();
+                statusMessage.textContent = "SHORT selezionato";
+                chartColor = "#fff";
+                isAnimating = true;
+                animationId = requestAnimationFrame(animateChart);
+            }
+        }
+
+        function restartGame() {
+            balance = 100;
+            gameActive = true;
+            leverageIndex = 0;
+            leverage = 1;
+            betPercentage = 10;
+            totalTrades = 0;
+            wins = 0;
+            losses = 0;
+            totalWon = 0;
+            totalLost = 0;
+            currentStreak = 0;
+            leverageUsed = [];
+            tradeResult = null;
+            
+            percentageSlider.value = betPercentage;
+            percentageValue.textContent = `${betPercentage}%`;
+            leverageSlider.value = leverageIndex;
+            leverageValue.textContent = `${leverage}x`;
+            
+            gameOverScreen.style.display = 'none';
+            
+            updateBalanceDisplay();
+            updateLeverageControls();
+            updateBetInfo();
+            updateUnlockInfo();
+            updateStats();
+            saveGameState();
+            startNewRound();
+            playSound('click');
+        }
+
+        // ==================== EVENT HANDLERS ====================
+        function handlePercentageChange() {
+            betPercentage = parseInt(percentageSlider.value);
+            percentageValue.textContent = `${betPercentage}%`;
+            updateBetInfo();
+            saveGameState();
+            playSound('click');
+        }
+
+        function handleLeverageChange() {
+            leverageIndex = parseInt(leverageSlider.value);
+            const settings = LEVERAGE_SETTINGS[leverageIndex];
+            leverage = settings.leverage;
+            leverageValue.textContent = `${leverage}x`;
+            leverageValue.style.color = settings.color;
+            
+            updateBetInfo();
+            updateStats();
+            saveGameState();
+            playSound('click');
+        }
+
+        function handleAudioToggle() {
+            audioEnabled = audioToggle.checked;
+            saveGameState();
+            playSound('click');
+        }
+
+        // ==================== PREVENZIONE ZOOM/SCROLL ====================
+        function preventZoomAndScroll(e) {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                return false;
+            }
+            
+            if (e.touches && e.touches.length > 1) {
+                e.preventDefault();
+                return false;
+            }
+        }
+
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                return false;
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', function(e) {
+            // MODIFICA: Permetti scroll solo nei contenuti delle pagine overlay
+            if (e.target.closest('.page-content')) {
+                return; // Permetti scroll
+            }
+            if (!e.target.matches('input[type="range"]')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gesturechange', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gestureend', function(e) {
+            e.preventDefault();
+        });
+
+        // ==================== INIZIALIZZAZIONE ====================
+        function initGame() {
+            setupCanvas();
+            loadGameState();
+            
+            // Menu event listeners
+            menuButton.addEventListener('click', openMenu);
+            menuClose.addEventListener('click', closeMenu);
+            
+            // Page navigation
+            infoBtn.addEventListener('click', () => openPage(infoOverlay));
+            settingsBtn.addEventListener('click', () => openPage(settingsOverlay));
+            infoBackBtn.addEventListener('click', () => closePage(infoOverlay));
+            settingsBackBtn.addEventListener('click', () => closePage(settingsOverlay));
+            
+            // Settings controls
+            audioToggle.addEventListener('change', handleAudioToggle);
+            resetDataBtn.addEventListener('click', resetGameData);
+            
+            // Game event listeners
+            longBtn.addEventListener('click', chooseLong);
+            shortBtn.addEventListener('click', chooseShort);
+            restartBtn.addEventListener('click', restartGame);
+            percentageSlider.addEventListener('input', handlePercentageChange);
+            leverageSlider.addEventListener('input', handleLeverageChange);
+            
+            window.addEventListener('resize', () => {
+                setupCanvas();
+                drawChart();
+            });
+            
+            startNewRound();
+        }
+
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
