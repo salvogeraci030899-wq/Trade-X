@@ -1,9 +1,10 @@
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Trading - Sistema Leva Progressiva</title>
+    <title>XTrade - Sistema Leva Progressiva</title>
     <style>
         /* Disabilita tutte le interazioni di selezione e zoom */
         * {
@@ -40,6 +41,17 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+        
+        .page-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            padding: 10px 20px;
+            border-bottom: 1px solid #222;
+            background: #000;
+            color: #fff;
         }
         
         .header {
@@ -210,6 +222,7 @@
             margin-bottom: 20px;
             font-weight: 300;
             letter-spacing: 2px;
+            color: #ff0000;
         }
         
         .restart-btn {
@@ -295,6 +308,8 @@
     </style>
 </head>
 <body>
+    <div class="page-title">XTRADE</div>
+    
     <div class="header">
         <div class="balance-container">
             <div class="balance-row">
@@ -347,7 +362,7 @@
     </div>
     
     <div class="game-over" id="gameOverScreen">
-        <h2>GAME OVER</h2>
+        <h2>BANCAROTTA</h2>
         <div style="margin-bottom: 20px; text-align: center;">
             <div>Record: <span id="finalBestBalance">100</span>$</div>
             <div>Leva massima raggiunta: <span id="finalMaxLeverage">1x</span></div>
@@ -390,11 +405,7 @@
         let decisionPoint = 0;
         let userChoice = null;
         let chartColor = "#fff";
-        
-        // Nuove variabili per gestire l'esito
-        let tradeOutcome = null; // 'win' o 'lose'
-        let outcomeDirection = null; // 'up' o 'down'
-        let tradeWin = false; // true se l'utente vince
+        let tradeResult = null;
         
         let betPercentage = 10;
         let leverageIndex = 0;
@@ -458,11 +469,16 @@
             return null;
         }
 
+        function isTradeSuccessful() {
+            const settings = getCurrentLeverageSettings();
+            return Math.random() < settings.winChance;
+        }
+
         function calculateTradeResult(isWin, betAmount) {
             if (isWin) {
-                return betAmount * leverage;
+                return betAmount * leverage; // Vince: puntata × leva
             } else {
-                return -betAmount;
+                return -betAmount; // Perde: solo la puntata
             }
         }
 
@@ -585,36 +601,19 @@
         function updateStats() {
             const settings = getCurrentLeverageSettings();
             currentLevelElement.textContent = settings.name;
+            
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             currentLevelElement.style.color = settings.color;
         }
 
         // ==================== GRAFICO ====================
-        function generateChartData() {
-            const dataLength = 180;
+        function generateChartData(length, startValue, trendStrength = 0) {
             const data = [];
+            let value = startValue || 50;
             
-            let value = 50;
-            const trend = (Math.random() - 0.5) * 0.1;
-            
-            for (let i = 0; i < dataLength; i++) {
-                // Fase 1: Prima della scelta (movimento casuale)
-                if (i <= decisionPoint) {
-                    value += (Math.random() - 0.5) * 1.5 + trend;
-                } 
-                // Fase 2: Dopo la scelta, in base all'esito
-                else if (outcomeDirection) {
-                    if (outcomeDirection === 'up') {
-                        // Linea sale (vittoria LONG o sconfitta SHORT)
-                        value += Math.abs((Math.random() - 0.3) * 2) + 0.5;
-                    } else {
-                        // Linea scende (vittoria SHORT o sconfitta LONG)
-                        value -= Math.abs((Math.random() - 0.3) * 2) + 0.5;
-                    }
-                } 
-                // Se non abbiamo ancora l'esito, movimento neutro
-                else {
-                    value += (Math.random() - 0.5) * 1.5;
-                }
+            for (let i = 0; i < length; i++) {
+                // La stessa animazione organica originale, con trend molto leggero
+                value += (Math.random() - 0.5) * 1.5 + trendStrength;
                 
                 if (value < 5) value = 5 + Math.random() * 5;
                 if (value > 95) value = 95 - Math.random() * 5;
@@ -681,19 +680,19 @@
                 drawChart();
                 
                 if (isAnimating && chartStep <= decisionPoint) {
-                    // Fase 1: prima della scelta
+                    // Prima del punto di decisione: animazione veloce
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
                     }, 8 + Math.random() * 4);
                 } 
                 else if (userChoice && chartStep > decisionPoint) {
-                    // Fase 2: dopo la scelta, anima verso il risultato
+                    // Dopo la scelta: animazione veloce
                     setTimeout(() => {
                         animationId = requestAnimationFrame(animateChart);
-                    }, 20);
+                    }, 8 + Math.random() * 4);
                 } 
                 else if (chartStep > decisionPoint && !userChoice) {
-                    // Attesa della scelta dell'utente
+                    // Punto di decisione raggiunto, attende scelta
                     isAnimating = false;
                     enableTradeButtons();
                     statusMessage.textContent = "Previsione?";
@@ -703,7 +702,6 @@
                     animationId = requestAnimationFrame(animateChart);
                 }
             } else {
-                // Animazione completata, mostra risultato
                 processTradeResult();
             }
         }
@@ -711,11 +709,9 @@
         function processTradeResult() {
             const settings = getCurrentLeverageSettings();
             const bet = calculateBet();
+            const win = tradeResult;
+            const result = calculateTradeResult(win, bet);
             
-            // tradeWin è già stato deciso in chooseLong/chooseShort
-            const result = calculateTradeResult(tradeWin, bet);
-            
-            // Aggiorna statistiche
             totalTrades++;
             totalTradesElement.textContent = totalTrades;
             
@@ -723,26 +719,20 @@
                 leverageStats[leverage] = { total: 0, wins: 0 };
             }
             leverageStats[leverage].total++;
-            if (tradeWin) leverageStats[leverage].wins++;
+            if (win) leverageStats[leverage].wins++;
             
-            // Applica risultato
             balance += result;
             
-            // Messaggio dettagliato che spiega perché ha vinto/perso
-            if (tradeWin) {
-                if (userChoice === 'long') {
-                    statusMessage.textContent = `VITTORIA! La linea è salita +${bet * leverage}$ (${leverage}x)`;
-                } else {
-                    statusMessage.textContent = `VITTORIA! La linea è scesa +${bet * leverage}$ (${leverage}x)`;
-                }
+            if (win) {
+                statusMessage.textContent = `VITTORIA! +${bet * leverage}$ (${leverage}x)`;
                 chartColor = "#0c0";
             } else {
-                if (userChoice === 'long') {
-                    statusMessage.textContent = `PERDITA! La linea è scesa -${bet}$`;
-                } else {
-                    statusMessage.textContent = `PERDITA! La linea è salita -${bet}$`;
-                }
+                statusMessage.textContent = `PERDITA! -${bet}$`;
                 chartColor = "#f00";
+            }
+            
+            if (balance > bestBalance) {
+                bestBalance = balance;
             }
             
             drawChart();
@@ -762,14 +752,7 @@
                 return;
             }
             
-            // Reset e nuovo round dopo 3 secondi
-            setTimeout(() => {
-                tradeOutcome = null;
-                outcomeDirection = null;
-                userChoice = null;
-                tradeWin = false;
-                startNewRound();
-            }, 3000);
+            setTimeout(startNewRound, 2000);
         }
 
         // ==================== CONTROLLI UI ====================
@@ -786,17 +769,13 @@
         function startNewRound() {
             chartStep = 0;
             userChoice = null;
-            tradeOutcome = null;
-            outcomeDirection = null;
-            tradeWin = false;
+            tradeResult = null;
             chartColor = "#fff";
             isAnimating = true;
             
-            // Genera il punto decisionale
-            decisionPoint = Math.floor(180 * (0.4 + Math.random() * 0.3));
-            
-            // Genera dati iniziali (senza esito)
-            chartData = generateChartData();
+            // Genera i dati iniziali
+            chartData = generateChartData(180);
+            decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
             
             const settings = getCurrentLeverageSettings();
             statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${Math.round(settings.winChance * 100)}% win)`;
@@ -811,21 +790,28 @@
         function chooseLong() {
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'long';
+                tradeResult = isTradeSuccessful();
+                
+                // Determina la direzione del trend post-decisione - MOLTO più leggero!
+                // 0.08 invece di 0.3 per un trend molto più sottile
+                const trendStrength = tradeResult ? 0.08 : -0.08;
+                
+                // Estende i dati dopo la decisione con la stessa animazione organica
+                const startValue = chartData[decisionPoint];
+                const remainingLength = chartData.length - decisionPoint - 1;
+                
+                // Genera i nuovi dati con la stessa animazione organica ma con il trend corretto
+                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
+                
+                // Sostituisce solo la parte dopo la decisione
+                for (let i = 0; i < newSegment.length; i++) {
+                    chartData[decisionPoint + 1 + i] = newSegment[i];
+                }
+                
                 disableTradeButtons();
-                
-                // Decide immediatamente se è una vittoria (basato sulle probabilità della leva)
-                const settings = getCurrentLeverageSettings();
-                tradeWin = Math.random() < settings.winChance;
-                
-                // Determina la direzione della linea in base all'esito
-                tradeOutcome = tradeWin ? 'win' : 'lose';
-                outcomeDirection = tradeWin ? 'up' : 'down'; // Se vince, linea sale; se perde, linea scende
-                
-                // Rigenera il grafico con la direzione corretta
-                chartData = generateChartData();
-                
-                statusMessage.textContent = tradeWin ? "LONG selezionato - In attesa..." : "LONG selezionato - In attesa...";
-                chartColor = "#fff";
+                statusMessage.textContent = "LONG selezionato";
+                chartColor = "#fff"; // Bianco durante l'animazione
+                isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
             }
         }
@@ -833,21 +819,28 @@
         function chooseShort() {
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'short';
+                tradeResult = isTradeSuccessful();
+                
+                // Determina la direzione del trend post-decisione - MOLTO più leggero!
+                // 0.08 invece di 0.3 per un trend molto più sottile
+                const trendStrength = tradeResult ? -0.08 : 0.08;
+                
+                // Estende i dati dopo la decisione con la stessa animazione organica
+                const startValue = chartData[decisionPoint];
+                const remainingLength = chartData.length - decisionPoint - 1;
+                
+                // Genera i nuovi dati con la stessa animazione organica ma con il trend corretto
+                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
+                
+                // Sostituisce solo la parte dopo la decisione
+                for (let i = 0; i < newSegment.length; i++) {
+                    chartData[decisionPoint + 1 + i] = newSegment[i];
+                }
+                
                 disableTradeButtons();
-                
-                // Decide immediatamente se è una vittoria (basato sulle probabilità della leva)
-                const settings = getCurrentLeverageSettings();
-                tradeWin = Math.random() < settings.winChance;
-                
-                // Determina la direzione della linea in base all'esito
-                tradeOutcome = tradeWin ? 'win' : 'lose';
-                outcomeDirection = tradeWin ? 'down' : 'up'; // Se vince, linea scende; se perde, linea sale
-                
-                // Rigenera il grafico con la direzione corretta
-                chartData = generateChartData();
-                
-                statusMessage.textContent = tradeWin ? "SHORT selezionato - In attesa..." : "SHORT selezionato - In attesa...";
-                chartColor = "#fff";
+                statusMessage.textContent = "SHORT selezionato";
+                chartColor = "#fff"; // Bianco durante l'animazione
+                isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
             }
         }
@@ -859,9 +852,7 @@
             leverage = 1;
             betPercentage = 10;
             totalTrades = 0;
-            tradeOutcome = null;
-            outcomeDirection = null;
-            tradeWin = false;
+            tradeResult = null;
             
             percentageSlider.value = betPercentage;
             percentageValue.textContent = `${betPercentage}%`;
@@ -969,7 +960,6 @@
             
             startNewRound();
             
-            // Inizializza statistiche
             LEVERAGE_SETTINGS.forEach(settings => {
                 leverageStats[settings.leverage] = { total: 0, wins: 0 };
             });
