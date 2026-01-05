@@ -43,11 +43,12 @@
             flex-direction: column;
         }
         
-        /* Menu Button */
+        /* Menu Button - MODIFICATO: allineato verticalmente con il titolo */
         .menu-button {
             position: absolute;
-            top: 16px;
+            top: 50%; /* MODIFICATO: usato centramento verticale */
             right: 20px;
+            transform: translateY(-50%); /* MODIFICATO: per centrare verticalmente */
             width: 30px;
             height: 30px;
             display: flex;
@@ -167,15 +168,17 @@
             letter-spacing: 2px;
         }
         
-        /* MODIFICA: Contenuto pagina Info scorrevole */
+        /* MODIFICA: Contenuto pagina Info scorrevole - CORRETTO */
         #infoOverlay .page-content {
             flex: 1;
             line-height: 1.6;
             font-size: 16px;
             color: #ccc;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow-y: auto !important; /* MODIFICATO: forzato auto */
+            -webkit-overflow-scrolling: touch !important; /* MODIFICATO: forzato touch */
             padding-right: 10px;
+            touch-action: pan-y !important; /* MODIFICATO: permesso scroll verticale */
+            overscroll-behavior: contain;
         }
         
         /* MODIFICA: Contenuto Settings scorrevole */
@@ -183,9 +186,21 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow-y: auto !important; /* MODIFICATO: forzato auto */
+            -webkit-overflow-scrolling: touch !important; /* MODIFICATO: forzato touch */
             padding-right: 10px;
+            touch-action: pan-y !important; /* MODIFICATO: permesso scroll verticale */
+            overscroll-behavior: contain;
+        }
+        
+        /* MODIFICA: Contenuto scrollabile specifico per info */
+        #infoOverlay {
+            display: none;
+            flex-direction: column;
+        }
+        
+        #infoOverlay.active {
+            display: flex;
         }
         
         .page-content h2 {
@@ -196,9 +211,13 @@
             letter-spacing: 1px;
         }
         
+        .page-content p {
+            margin: 10px 0 20px 0;
+        }
+        
         .page-content ul {
             padding-left: 20px;
-            margin: 10px 0;
+            margin: 10px 0 20px 0;
         }
         
         .page-content li {
@@ -323,6 +342,10 @@
             background: #000;
             color: #fff;
             position: relative;
+            height: 44px; /* MODIFICATO: altezza fissa per allineamento */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .header {
@@ -559,7 +582,7 @@
             border-top: 1px solid #222;
         }
 
-        /* Stili per la scrollbar */
+        /* Stili per la scrollbar - MODIFICATI: più visibili */
         .page-content::-webkit-scrollbar {
             width: 8px;
         }
@@ -570,19 +593,20 @@
         }
         
         .page-content::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 4px;
         }
         
         .page-content::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.4);
         }
 
         /* Media query per schermi piccoli */
         @media (max-width: 380px) {
             .menu-button {
-                top: 14px;
+                top: 50%; /* MODIFICATO: mantenuto centramento verticale */
                 right: 15px;
+                transform: translateY(-50%);
                 width: 25px;
                 height: 25px;
             }
@@ -624,9 +648,10 @@
                 font-size: 11px;
             }
             
-            .page-title {
+            .game-title {
                 padding: 10px 12px;
                 font-size: 22px;
+                height: 42px; /* MODIFICATO: altezza ridotta per schermi piccoli */
             }
             
             .header {
@@ -646,8 +671,9 @@
         
         @media (max-width: 320px) {
             .menu-button {
-                top: 12px;
+                top: 50%; /* MODIFICATO: mantenuto centramento verticale */
                 right: 12px;
+                transform: translateY(-50%);
             }
             
             .menu-item {
@@ -680,6 +706,10 @@
             .stats {
                 font-size: 10px;
             }
+            
+            .game-title {
+                height: 40px; /* MODIFICATO: ulteriormente ridotto per schermi molto piccoli */
+            }
         }
     </style>
 </head>
@@ -702,7 +732,7 @@
         </div>
     </div>
     
-    <!-- Info Page Overlay -->
+    <!-- Info Page Overlay - MODIFICATO: struttura per scroll corretto -->
     <div class="page-overlay" id="infoOverlay">
         <div class="page-header">
             <h1 class="page-title">Info</h1>
@@ -942,19 +972,10 @@
                 cancelAnimationFrame(animationId);
             }
             
-            // MODIFICA: Resetta lo scroll a inizio pagina quando si apre
-            if (pageOverlay === infoOverlay) {
-                // Resetta lo scroll della pagina info
-                const pageContent = pageOverlay.querySelector('.page-content');
-                if (pageContent) {
-                    pageContent.scrollTop = 0;
-                }
-            } else if (pageOverlay === settingsOverlay) {
-                // Resetta lo scroll della lista livelli
-                const levelsContainer = pageOverlay.querySelector('.levels-container');
-                if (levelsContainer) {
-                    levelsContainer.scrollTop = 0;
-                }
+            // MODIFICA: Permetti scroll solo nelle pagine overlay
+            if (pageOverlay === infoOverlay || pageOverlay === settingsOverlay) {
+                document.body.style.overflow = 'hidden'; // Mantiene nascosto lo scroll globale
+                pageOverlay.querySelector('.page-content').style.overflowY = 'auto';
             }
         }
 
@@ -964,6 +985,9 @@
                 isAnimating = true;
                 animateChart();
             }
+            
+            // MODIFICA: Ripristina overflow nascosto
+            document.body.style.overflow = 'hidden';
         }
 
         // ==================== FUNZIONI AUDIO ====================
@@ -1518,6 +1542,10 @@
         }, { passive: false });
 
         document.addEventListener('touchmove', function(e) {
+            // MODIFICA: Permetti scroll solo nei contenuti delle pagine overlay
+            if (e.target.closest('.page-content')) {
+                return; // Permetti scroll
+            }
             if (!e.target.matches('input[type="range"]')) {
                 e.preventDefault();
             }
