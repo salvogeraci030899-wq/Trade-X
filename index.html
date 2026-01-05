@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Trading - Sistema Leva Progressiva</title>
+    <title>XTrade - Sistema Leva Progressiva</title>
     <style>
         /* Disabilita tutte le interazioni di selezione e zoom */
         * {
@@ -43,14 +43,25 @@
             flex-direction: column;
         }
         
+        /* Titolo XTrade al centro in alto */
+        .page-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 10px 0;
+            color: #fff;
+            border-bottom: 1px solid #222;
+            background: #000;
+        }
+        
         .header {
-            padding: 15px 20px;
+            padding: 10px 20px;
             display: flex;
             flex-direction: column;
             font-size: 18px;
             font-weight: 400;
             letter-spacing: 0.5px;
-            border-bottom: 1px solid #222;
         }
         
         .balance-container {
@@ -143,6 +154,10 @@
             min-width: 40px;
             font-size: 14px;
             text-align: right;
+            white-space: nowrap;
+            overflow: visible;
+            /* FIX: Previene l'indicatore di uscire dallo schermo */
+            max-width: 60px;
         }
         
         .trade-buttons {
@@ -211,6 +226,7 @@
             margin-bottom: 20px;
             font-weight: 300;
             letter-spacing: 2px;
+            color: #ff0000; /* ROSSO per BANCAROTTA */
         }
         
         .restart-btn {
@@ -293,9 +309,48 @@
             color: #666;
             border-top: 1px solid #222;
         }
+        
+        /* Messaggio temporaneo per leva bloccata */
+        .temp-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ff4444;
+            z-index: 1001;
+            display: none;
+            text-align: center;
+            max-width: 80%;
+            font-size: 16px;
+            color: #ff4444;
+        }
+        
+        /* Messaggio per tutte le leve sbloccate */
+        .all-unlocked-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #4CAF50;
+            z-index: 1001;
+            display: none;
+            text-align: center;
+            max-width: 80%;
+            font-size: 16px;
+            color: #4CAF50;
+        }
     </style>
 </head>
 <body>
+    <!-- Titolo XTrade al centro in alto -->
+    <div class="page-title">XTRADE</div>
+    
     <div class="header">
         <div class="balance-container">
             <div class="balance-row">
@@ -331,8 +386,6 @@
             </div>
         </div>
         
-        <!-- RIMOSSA LA LINEA COLORATA VERDE-ROSSA -->
-        
         <div class="bet-info" id="betInfo">Puntata: 10$ (10%) | Leva: 1x (80% win)</div>
         
         <div class="unlock-info" id="unlockInfo"></div>
@@ -350,13 +403,19 @@
     </div>
     
     <div class="game-over" id="gameOverScreen">
-        <h2>GAME OVER</h2>
+        <h2>BANCAROTTA</h2>
         <div style="margin-bottom: 20px; text-align: center;">
             <div>Record: <span id="finalBestBalance">100</span>$</div>
             <div>Leva massima raggiunta: <span id="finalMaxLeverage">1x</span></div>
         </div>
         <button id="restartBtn" class="restart-btn">RIPRENDI</button>
     </div>
+    
+    <!-- Messaggio per leva bloccata -->
+    <div class="temp-message" id="lockedLeverageMessage">Leva bloccata - Saldo non sufficiente</div>
+    
+    <!-- Messaggio per tutte le leve sbloccate -->
+    <div class="all-unlocked-message" id="allUnlockedMessage">Tutte le leve sono state sbloccate</div>
 
     <script>
         // ==================== SISTEMA LEVE ====================
@@ -393,6 +452,8 @@
         let decisionPoint = 0;
         let userChoice = null;
         let chartColor = "#fff";
+        let tradeDirection = null; // 'long' o 'short'
+        let tradeWin = null; // true o false
         
         let betPercentage = 10;
         let leverageIndex = 0; // Indice nell'array LEVERAGE_SETTINGS
@@ -400,6 +461,7 @@
         
         let totalTrades = 0;
         let leverageStats = {};
+        let allUnlockedShown = false;
         
         // ==================== ELEMENTI DOM ====================
         const canvas = document.getElementById('chartCanvas');
@@ -424,6 +486,8 @@
         const totalTradesElement = document.getElementById('totalTrades');
         const finalBestBalance = document.getElementById('finalBestBalance');
         const finalMaxLeverage = document.getElementById('finalMaxLeverage');
+        const lockedLeverageMessage = document.getElementById('lockedLeverageMessage');
+        const allUnlockedMessage = document.getElementById('allUnlockedMessage');
 
         // ==================== FUNZIONI HELPER ====================
         function getCurrentLeverageSettings() {
@@ -469,6 +533,13 @@
             }
         }
 
+        function showTempMessage(messageElement, duration = 2000) {
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, duration);
+        }
+
         // ==================== FUNZIONI CORE ====================
         function setupCanvas() {
             const dpr = window.devicePixelRatio || 1;
@@ -488,6 +559,7 @@
             const savedPercentage = localStorage.getItem('tradingPercentage');
             const savedLeverageIndex = localStorage.getItem('tradingLeverageIndex');
             const savedTotalTrades = localStorage.getItem('tradingTotalTrades');
+            const savedAllUnlockedShown = localStorage.getItem('tradingAllUnlockedShown');
             
             if (savedBalance) balance = parseInt(savedBalance);
             if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
@@ -507,6 +579,9 @@
                 totalTrades = parseInt(savedTotalTrades);
                 totalTradesElement.textContent = totalTrades;
             }
+            if (savedAllUnlockedShown) {
+                allUnlockedShown = savedAllUnlockedShown === 'true';
+            }
             
             updateBalanceDisplay();
             updateLeverageControls();
@@ -521,6 +596,7 @@
             localStorage.setItem('tradingPercentage', betPercentage.toString());
             localStorage.setItem('tradingLeverageIndex', leverageIndex.toString());
             localStorage.setItem('tradingTotalTrades', totalTrades.toString());
+            localStorage.setItem('tradingAllUnlockedShown', allUnlockedShown.toString());
         }
 
         function updateBalanceDisplay() {
@@ -534,6 +610,13 @@
 
         function updateLeverageControls() {
             const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            // Controlla se tutte le leve sono sbloccate
+            if (maxUnlockedIndex === 7 && !allUnlockedShown) {
+                allUnlockedShown = true;
+                saveGameState();
+                showTempMessage(allUnlockedMessage, 3000);
+            }
             
             // Se la leva corrente è troppo alta, riducila
             if (leverageIndex > maxUnlockedIndex) {
@@ -550,6 +633,11 @@
             // Aggiorna il colore in base al rischio
             const settings = getCurrentLeverageSettings();
             leverageValue.style.color = settings.color;
+            
+            // FIX: Assicura che l'indicatore non esca dallo schermo
+            leverageValue.style.maxWidth = '60px';
+            leverageValue.style.overflow = 'hidden';
+            leverageValue.style.textOverflow = 'ellipsis';
         }
 
         function updateBetInfo() {
@@ -582,7 +670,7 @@
                 unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win) a $${next.threshold} (+$${next.remaining})`;
                 unlockInfo.style.color = "#ffaa44";
             } else {
-                unlockInfo.textContent = "🎉 Tutte le leve sbloccate!";
+                unlockInfo.textContent = "Tutte le leve sbloccate";
                 unlockInfo.style.color = "#44ff44";
             }
             
@@ -598,17 +686,47 @@
             currentLevelElement.style.color = settings.color;
         }
 
-        // ==================== GRAFICO ====================
+        // ==================== GRAFICO - FIX BUG COERENZA ====================
         function generateChartData() {
             const dataLength = 180;
             const data = [];
             
+            // Genera il punto di partenza
             let value = 50;
-            const trend = (Math.random() - 0.5) * 0.1;
             
-            for (let i = 0; i < dataLength; i++) {
-                value += (Math.random() - 0.5) * 1.5 + trend;
+            // Determina la direzione del trend basata sul trade
+            let trendDirection = 0;
+            
+            if (tradeDirection === 'long' && tradeWin === true) {
+                trendDirection = 1; // Su per long vincente
+            } else if (tradeDirection === 'long' && tradeWin === false) {
+                trendDirection = -1; // Giù per long perdente
+            } else if (tradeDirection === 'short' && tradeWin === true) {
+                trendDirection = -1; // Giù per short vincente
+            } else if (tradeDirection === 'short' && tradeWin === false) {
+                trendDirection = 1; // Su per short perdente
+            }
+            
+            // Fase iniziale random fino al decision point
+            for (let i = 0; i < decisionPoint; i++) {
+                value += (Math.random() - 0.5) * 1.5;
                 
+                if (value < 10) value = 10 + Math.random() * 5;
+                if (value > 90) value = 90 - Math.random() * 5;
+                
+                data.push(value);
+            }
+            
+            // Fase dopo il decision point con trend coerente
+            for (let i = decisionPoint; i < dataLength; i++) {
+                // Aumenta l'intensità del trend dopo il decision point
+                if (trendDirection !== 0) {
+                    value += trendDirection * (2 + Math.random() * 3);
+                } else {
+                    value += (Math.random() - 0.5) * 2;
+                }
+                
+                // Limiti del grafico
                 if (value < 5) value = 5 + Math.random() * 5;
                 if (value > 95) value = 95 - Math.random() * 5;
                 
@@ -700,7 +818,7 @@
         function processTradeResult() {
             const settings = getCurrentLeverageSettings();
             const bet = calculateBet();
-            const win = isTradeSuccessful();
+            const win = tradeWin;
             const result = calculateTradeResult(win, bet);
             
             // Aggiorna statistiche
@@ -745,6 +863,10 @@
                 return;
             }
             
+            // Reset per il prossimo round
+            tradeDirection = null;
+            tradeWin = null;
+            
             setTimeout(startNewRound, 2000);
         }
 
@@ -765,7 +887,8 @@
             chartColor = "#fff";
             isAnimating = true;
             
-            chartData = generateChartData();
+            // Genera dati del grafico senza trend specifico
+            chartData = generateInitialRandomChartData();
             decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
             
             const settings = getCurrentLeverageSettings();
@@ -778,22 +901,83 @@
             animateChart();
         }
 
+        function generateInitialRandomChartData() {
+            const dataLength = 180;
+            const data = [];
+            
+            let value = 50;
+            const trend = (Math.random() - 0.5) * 0.1;
+            
+            for (let i = 0; i < dataLength; i++) {
+                value += (Math.random() - 0.5) * 1.5 + trend;
+                
+                if (value < 10) value = 10 + Math.random() * 5;
+                if (value > 90) value = 90 - Math.random() * 5;
+                
+                data.push(value);
+            }
+            
+            return data;
+        }
+
         function chooseLong() {
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            // Controlla se la leva è bloccata
+            if (leverageIndex > maxUnlockedIndex) {
+                showTempMessage(lockedLeverageMessage, 2000);
+                // Ripristina la leva al massimo sbloccato
+                leverageIndex = maxUnlockedIndex;
+                leverageSlider.value = leverageIndex;
+                const settings = LEVERAGE_SETTINGS[leverageIndex];
+                leverage = settings.leverage;
+                leverageValue.textContent = `${leverage}x`;
+                updateLeverageControls();
+                updateBetInfo();
+                return;
+            }
+            
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'long';
+                tradeDirection = 'long';
+                tradeWin = isTradeSuccessful();
                 disableTradeButtons();
                 statusMessage.textContent = "LONG selezionato";
                 chartColor = "#fff";
+                
+                // RIGENERA i dati del grafico con il trend corretto
+                chartData = generateChartData();
                 animationId = requestAnimationFrame(animateChart);
             }
         }
 
         function chooseShort() {
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            // Controlla se la leva è bloccata
+            if (leverageIndex > maxUnlockedIndex) {
+                showTempMessage(lockedLeverageMessage, 2000);
+                // Ripristina la leva al massimo sbloccato
+                leverageIndex = maxUnlockedIndex;
+                leverageSlider.value = leverageIndex;
+                const settings = LEVERAGE_SETTINGS[leverageIndex];
+                leverage = settings.leverage;
+                leverageValue.textContent = `${leverage}x`;
+                updateLeverageControls();
+                updateBetInfo();
+                return;
+            }
+            
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'short';
+                tradeDirection = 'short';
+                tradeWin = isTradeSuccessful();
                 disableTradeButtons();
                 statusMessage.textContent = "SHORT selezionato";
                 chartColor = "#fff";
+                
+                // RIGENERA i dati del grafico con il trend corretto
+                chartData = generateChartData();
                 animationId = requestAnimationFrame(animateChart);
             }
         }
@@ -805,6 +989,8 @@
             leverage = 1;
             betPercentage = 10;
             totalTrades = 0;
+            tradeDirection = null;
+            tradeWin = null;
             
             percentageSlider.value = betPercentage;
             percentageValue.textContent = `${betPercentage}%`;
@@ -831,7 +1017,18 @@
         }
 
         function handleLeverageChange() {
-            leverageIndex = parseInt(leverageSlider.value);
+            const newLeverageIndex = parseInt(leverageSlider.value);
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            // Controlla se la leva selezionata è bloccata
+            if (newLeverageIndex > maxUnlockedIndex) {
+                showTempMessage(lockedLeverageMessage, 2000);
+                // Ripristina al valore precedente
+                leverageSlider.value = leverageIndex;
+                return;
+            }
+            
+            leverageIndex = newLeverageIndex;
             const settings = LEVERAGE_SETTINGS[leverageIndex];
             leverage = settings.leverage;
             leverageValue.textContent = `${leverage}x`;
@@ -844,26 +1041,22 @@
 
         // ==================== PREVENZIONE ZOOM/SCROLL ====================
         function preventZoomAndScroll(e) {
-            // Prevenire zoom con Ctrl + scroll
             if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
                 return false;
             }
             
-            // Prevenire zoom con doppio tap
             if (e.touches && e.touches.length > 1) {
                 e.preventDefault();
                 return false;
             }
         }
 
-        // Disabilita il menu contestuale (tasto destro)
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             return false;
         });
 
-        // Disabilita lo scroll con la rotellina del mouse
         document.addEventListener('wheel', function(e) {
             if (e.ctrlKey) {
                 e.preventDefault();
@@ -871,15 +1064,12 @@
             }
         }, { passive: false });
 
-        // Disabilita lo scroll touch
         document.addEventListener('touchmove', function(e) {
-            // Permettere lo scroll solo sui controlli slider
             if (!e.target.matches('input[type="range"]')) {
                 e.preventDefault();
             }
         }, { passive: false });
 
-        // Disabilita zoom con doppio tap
         let lastTouchEnd = 0;
         document.addEventListener('touchend', function(e) {
             const now = Date.now();
@@ -889,7 +1079,6 @@
             lastTouchEnd = now;
         }, false);
 
-        // Disabilita gesti di zoom su iOS
         document.addEventListener('gesturestart', function(e) {
             e.preventDefault();
         });
@@ -920,7 +1109,6 @@
             
             startNewRound();
             
-            // Inizializza statistiche
             LEVERAGE_SETTINGS.forEach(settings => {
                 leverageStats[settings.leverage] = { total: 0, wins: 0 };
             });
