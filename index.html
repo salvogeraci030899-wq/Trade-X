@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Minimal</title>
+    <style>
+        /* Reset e stili base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        /* Header con info saldo */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .balance-info {
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+        
+        /* Container principale */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        /* Canvas per il grafico */
+        #chartCanvas {
+            width: 100%;
+            height: 300px;
+            background-color: #000;
+            border: 1px solid #fff;
+            margin-bottom: 30px;
+        }
+        
+        /* Controlli di gioco */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .trade-btn {
+            background: none;
+            border: 1px solid #fff;
+            color: #fff;
+            font-size: 24px;
+            width: 120px;
+            height: 60px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .trade-btn:hover {
+            background-color: #222;
+        }
+        
+        .trade-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        /* Messaggi di stato */
+        .status-message {
+            font-size: 18px;
+            text-align: center;
+            min-height: 27px;
+            margin-bottom: 10px;
+        }
+        
+        /* Game over */
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .game-over h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        
+        .restart-btn {
+            background: none;
+            border: 1px solid #fff;
+            color: #fff;
+            font-size: 18px;
+            padding: 12px 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .restart-btn:hover {
+            background-color: #222;
+        }
+        
+        /* Istruzioni */
+        .instructions {
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: center;
+            color: #777;
+            max-width: 500px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="balance-info">Saldo: <span id="balance">$100</span></div>
+        <div class="balance-info">Record: <span id="bestBalance">$100</span></div>
+    </div>
+    
+    <div class="game-container">
+        <canvas id="chartCanvas"></canvas>
+        
+        <div class="status-message" id="statusMessage">Guardando il grafico...</div>
+        
+        <div class="controls">
+            <button id="longBtn" class="trade-btn" disabled>▲ LONG</button>
+            <button id="shortBtn" class="trade-btn" disabled>▼ SHORT</button>
+        </div>
+        
+        <div class="instructions">
+            Prevedi se il prezzo salirà (LONG) o scenderà (SHORT) dopo che il grafico si ferma.
+            Vince $10 se indovini, perde $10 se sbagli.
+        </div>
+    </div>
+    
+    <div class="game-over" id="gameOverScreen">
+        <h2>GAME OVER</h2>
+        <button id="restartBtn" class="restart-btn">Ricomincia</button>
+    </div>
+
+    <script>
+        // Inizializzazione variabili di gioco
+        let balance = 100;
+        let bestBalance = 100;
+        let chartData = [];
+        let chartStep = 0;
+        let gameActive = true;
+        let isAnimating = true;
+        let animationId = null;
+        let decisionPoint = 0;
+        let userChoice = null;
+        let chartColor = "#ffffff"; // Bianco di default
+        
+        // Elementi DOM
+        const canvas = document.getElementById('chartCanvas');
+        const ctx = canvas.getContext('2d');
+        const balanceElement = document.getElementById('balance');
+        const bestBalanceElement = document.getElementById('bestBalance');
+        const longBtn = document.getElementById('longBtn');
+        const shortBtn = document.getElementById('shortBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const restartBtn = document.getElementById('restartBtn');
+        
+        // Imposta dimensioni canvas
+        function setupCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+        
+        // Carica saldo da localStorage
+        function loadGameState() {
+            const savedBalance = localStorage.getItem('tradingBalance');
+            const savedBestBalance = localStorage.getItem('tradingBestBalance');
+            
+            if (savedBalance) balance = parseInt(savedBalance);
+            if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
+            
+            updateBalanceDisplay();
+        }
+        
+        // Salva saldo in localStorage
+        function saveGameState() {
+            localStorage.setItem('tradingBalance', balance.toString());
+            localStorage.setItem('tradingBestBalance', bestBalance.toString());
+        }
+        
+        // Aggiorna display saldo
+        function updateBalanceDisplay() {
+            balanceElement.textContent = `$${balance}`;
+            bestBalanceElement.textContent = `$${bestBalance}`;
+        }
+        
+        // Genera dati per il grafico (random walk con leggero trend)
+        function generateChartData() {
+            const dataLength = 100;
+            const data = [];
+            
+            // Valore iniziale
+            let value = 50;
+            
+            // Trend casuale (leggermente positivo o negativo)
+            const trend = (Math.random() - 0.5) * 0.2;
+            
+            for (let i = 0; i < dataLength; i++) {
+                // Aggiungi rumore e trend
+                value += (Math.random() - 0.5) * 2 + trend;
+                
+                // Mantieni il valore in un range ragionevole
+                if (value < 10) value = 10;
+                if (value > 90) value = 90;
+                
+                data.push(value);
+            }
+            
+            return data;
+        }
+        
+        // Disegna il grafico
+        function drawChart() {
+            // Pulisci canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (chartData.length === 0) return;
+            
+            // Calcola scale per adattare i dati al canvas
+            const minValue = Math.min(...chartData);
+            const maxValue = Math.max(...chartData);
+            const valueRange = maxValue - minValue;
+            
+            // Aggiungi margine verticale
+            const verticalMargin = 20;
+            const scaleY = (canvas.height - verticalMargin * 2) / valueRange;
+            const stepX = canvas.width / (chartData.length - 1);
+            
+            // Imposta stile linea
+            ctx.strokeStyle = chartColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            // Disegna linea fino al punto corrente
+            for (let i = 0; i < Math.min(chartStep, chartData.length); i++) {
+                const x = i * stepX;
+                const y = canvas.height - ((chartData[i] - minValue) * scaleY + verticalMargin);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // Disegna un punto sul punto decisionale (se abbiamo già scelto)
+            if (userChoice && decisionPoint > 0 && chartStep > decisionPoint) {
+                const decisionX = decisionPoint * stepX;
+                const decisionY = canvas.height - ((chartData[decisionPoint] - minValue) * scaleY + verticalMargin);
+                
+                ctx.fillStyle = chartColor;
+                ctx.beginPath();
+                ctx.arc(decisionX, decisionY, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Anima il grafico
+        function animateChart() {
+            if (chartStep < chartData.length) {
+                chartStep++;
+                drawChart();
+                
+                // Se stiamo ancora nella fase di animazione iniziale
+                if (isAnimating && chartStep <= decisionPoint) {
+                    // Velocità variabile per l'animazione iniziale (5-10 secondi)
+                    const initialSpeed = 10 + Math.random() * 5;
+                    setTimeout(() => {
+                        animationId = requestAnimationFrame(animateChart);
+                    }, initialSpeed);
+                } 
+                // Se l'utente ha fatto una scelta e stiamo mostrando il risultato
+                else if (userChoice && chartStep > decisionPoint) {
+                    // Velocità più veloce per la parte finale (2-3 secondi)
+                    setTimeout(() => {
+                        animationId = requestAnimationFrame(animateChart);
+                    }, 30);
+                } 
+                // Se l'animazione iniziale è completa e stiamo aspettando la scelta
+                else if (chartStep > decisionPoint && !userChoice) {
+                    // Ferma l'animazione e aspetta la scelta
+                    isAnimating = false;
+                    enableTradeButtons();
+                    statusMessage.textContent = "Fai la tua previsione";
+                    return;
+                }
+                else {
+                    animationId = requestAnimationFrame(animateChart);
+                }
+            } else {
+                // Animazione completata
+                if (userChoice) {
+                    // Verifica se la previsione è corretta
+                    const startPrice = chartData[decisionPoint];
+                    const endPrice = chartData[chartData.length - 1];
+                    const isCorrect = (userChoice === 'long' && endPrice > startPrice) || 
+                                     (userChoice === 'short' && endPrice < startPrice);
+                    
+                    // Aggiorna saldo
+                    if (isCorrect) {
+                        balance += 10;
+                        statusMessage.textContent = "Corretto! +$10";
+                    } else {
+                        balance -= 10;
+                        statusMessage.textContent = "Sbagliato! -$10";
+                    }
+                    
+                    // Aggiorna record
+                    if (balance > bestBalance) {
+                        bestBalance = balance;
+                    }
+                    
+                    // Salva stato
+                    saveGameState();
+                    updateBalanceDisplay();
+                    
+                    // Controlla game over
+                    if (balance <= 0) {
+                        gameActive = false;
+                        gameOverScreen.style.display = 'flex';
+                        return;
+                    }
+                    
+                    // Prepara prossimo round dopo una pausa
+                    setTimeout(startNewRound, 2000);
+                }
+            }
+        }
+        
+        // Abilita pulsanti di trading
+        function enableTradeButtons() {
+            longBtn.disabled = false;
+            shortBtn.disabled = false;
+        }
+        
+        // Disabilita pulsanti di trading
+        function disableTradeButtons() {
+            longBtn.disabled = true;
+            shortBtn.disabled = true;
+        }
+        
+        // Inizia un nuovo round
+        function startNewRound() {
+            // Reset stato
+            chartStep = 0;
+            userChoice = null;
+            chartColor = "#ffffff";
+            isAnimating = true;
+            
+            // Genera nuovi dati
+            chartData = generateChartData();
+            
+            // Punto decisionale casuale (tra 30% e 70% del grafico)
+            decisionPoint = Math.floor(chartData.length * (0.3 + Math.random() * 0.4));
+            
+            // Aggiorna messaggio
+            statusMessage.textContent = "Guardando il grafico...";
+            
+            // Disabilita pulsanti
+            disableTradeButtons();
+            
+            // Avvia animazione
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            animateChart();
+        }
+        
+        // Gestisce la scelta LONG
+        function chooseLong() {
+            if (!isAnimating && gameActive && !userChoice) {
+                userChoice = 'long';
+                disableTradeButtons();
+                statusMessage.textContent = "Hai scelto LONG...";
+                
+                // Continua animazione con colore neutro
+                chartColor = "#ffffff";
+                animationId = requestAnimationFrame(animateChart);
+            }
+        }
+        
+        // Gestisce la scelta SHORT
+        function chooseShort() {
+            if (!isAnimating && gameActive && !userChoice) {
+                userChoice = 'short';
+                disableTradeButtons();
+                statusMessage.textContent = "Hai scelto SHORT...";
+                
+                // Continua animazione con colore neutro
+                chartColor = "#ffffff";
+                animationId = requestAnimationFrame(animateChart);
+            }
+        }
+        
+        // Controlla risultato e cambia colore del grafico
+        function checkResultAndColorChart() {
+            if (userChoice && chartStep >= chartData.length) {
+                const startPrice = chartData[decisionPoint];
+                const endPrice = chartData[chartData.length - 1];
+                const isCorrect = (userChoice === 'long' && endPrice > startPrice) || 
+                                 (userChoice === 'short' && endPrice < startPrice);
+                
+                // Cambia colore in base al risultato
+                chartColor = isCorrect ? "#00ff00" : "#ff0000";
+                drawChart();
+            }
+        }
+        
+        // Riavvia il gioco
+        function restartGame() {
+            balance = 100;
+            gameActive = true;
+            gameOverScreen.style.display = 'none';
+            updateBalanceDisplay();
+            saveGameState();
+            startNewRound();
+        }
+        
+        // Inizializzazione gioco
+        function initGame() {
+            // Imposta canvas
+            setupCanvas();
+            
+            // Carica stato salvato
+            loadGameState();
+            
+            // Aggiungi event listener
+            longBtn.addEventListener('click', chooseLong);
+            shortBtn.addEventListener('click', chooseShort);
+            restartBtn.addEventListener('click', restartGame);
+            
+            // Adatta canvas al ridimensionamento finestra
+            window.addEventListener('resize', () => {
+                setupCanvas();
+                drawChart();
+            });
+            
+            // Avvia primo round
+            startNewRound();
+        }
+        
+        // Avvia il gioco quando la pagina è caricata
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
