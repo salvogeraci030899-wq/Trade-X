@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading</title>
+    <title>Trading - Sistema Leva Progressiva</title>
     <style>
         * {
             margin: 0;
@@ -89,7 +89,7 @@
         }
         
         .slider-value {
-            min-width: 80px;
+            min-width: 40px;
             font-size: 14px;
             text-align: right;
         }
@@ -187,14 +187,75 @@
             line-height: 1.4;
         }
         
-        .risk-high { color: #ff4444; }
-        .risk-medium { color: #ffaa00; }
-        .risk-low { color: #44ff44; }
+        .risk-indicator {
+            height: 4px;
+            background: linear-gradient(to right, 
+                #44ff44 0%, 
+                #44ff44 30%, 
+                #ffff44 30%, 
+                #ffff44 50%,
+                #ffaa44 50%,
+                #ffaa44 60%,
+                #ff4444 60%,
+                #ff4444 100%);
+            margin-top: 5px;
+            border-radius: 2px;
+        }
         
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 6px rgba(255, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+        .unlock-info {
+            text-align: center;
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+            height: 16px;
+        }
+        
+        @keyframes pulse-high-risk {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .high-risk {
+            animation: pulse-high-risk 1s infinite;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted #666;
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 300px;
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            padding: 5px;
+            border-radius: 4px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #222;
         }
     </style>
 </head>
@@ -211,22 +272,26 @@
     <div class="controls-container">
         <div class="leverage-controls">
             <div class="control">
-                <label>PUNTATA (% del saldo)</label>
+                <label>PUNTATA (%)</label>
                 <div class="slider-container">
                     <input type="range" min="1" max="100" value="10" id="percentageSlider">
                     <span class="slider-value" id="percentageValue">10%</span>
                 </div>
             </div>
             <div class="control">
-                <label>LEVA (rischio/rendimento)</label>
+                <label>LEVA (RISCHIO)</label>
                 <div class="slider-container">
                     <input type="range" min="0" max="7" value="0" id="leverageSlider">
-                    <span class="slider-value" id="leverageValue">1x (80%)</span>
+                    <span class="slider-value" id="leverageValue">1x</span>
                 </div>
             </div>
         </div>
         
-        <div class="bet-info" id="betInfo">Puntata: 10$ | Se vinci: +10$ | Se perdi: -10$ (80% win)</div>
+        <div class="risk-indicator"></div>
+        
+        <div class="bet-info" id="betInfo">Puntata: 10$ (10%) | Leva: 1x (80% win)</div>
+        
+        <div class="unlock-info" id="unlockInfo"></div>
         
         <div class="trade-buttons">
             <button id="longBtn" class="trade-btn long-btn" disabled>▲ LONG</button>
@@ -234,25 +299,46 @@
         </div>
     </div>
     
+    <div class="stats">
+        <div>Livello: <span id="currentLevel">Novizio</span></div>
+        <div>Leve sbloccate: <span id="unlockedCount">1/8</span></div>
+        <div>Trade totali: <span id="totalTrades">0</span></div>
+    </div>
+    
     <div class="game-over" id="gameOverScreen">
         <h2>GAME OVER</h2>
+        <div style="margin-bottom: 20px; text-align: center;">
+            <div>Record: <span id="finalBestBalance">100</span>$</div>
+            <div>Leva massima raggiunta: <span id="finalMaxLeverage">1x</span></div>
+        </div>
         <button id="restartBtn" class="restart-btn">RIPRENDI</button>
     </div>
 
     <script>
-        // ===== SISTEMA DI LEVA CON PROBABILITÀ =====
-        const LEVERAGE_LEVELS = [
-            { leverage: 1, winProbability: 0.8, unlockThreshold: 100, color: "#44ff44" },    // 80% win
-            { leverage: 2, winProbability: 0.7, unlockThreshold: 150, color: "#88ff44" },    // 70% win
-            { leverage: 3, winProbability: 0.6, unlockThreshold: 200, color: "#ccff44" },    // 60% win
-            { leverage: 5, winProbability: 0.5, unlockThreshold: 300, color: "#ffcc44" },    // 50% win
-            { leverage: 10, winProbability: 0.4, unlockThreshold: 500, color: "#ff8844" },   // 40% win
-            { leverage: 20, winProbability: 0.3, unlockThreshold: 800, color: "#ff4444" },   // 30% win
-            { leverage: 50, winProbability: 0.2, unlockThreshold: 1500, color: "#ff4488" },  // 20% win
-            { leverage: 100, winProbability: 0.1, unlockThreshold: 3000, color: "#ff44cc" }  // 10% win
+        // ==================== SISTEMA LEVE ====================
+        const LEVERAGE_SETTINGS = [
+            { leverage: 1, winChance: 0.80, color: "#44ff44", name: "Novizio" },
+            { leverage: 2, winChance: 0.70, color: "#66ff66", name: "Principiante" },
+            { leverage: 3, winChance: 0.60, color: "#88ff88", name: "Intermedio" },
+            { leverage: 5, winChance: 0.50, color: "#ffff44", name: "Esperto" },
+            { leverage: 10, winChance: 0.40, color: "#ffaa44", name: "Risky" },
+            { leverage: 20, winChance: 0.30, color: "#ff7744", name: "High Risk" },
+            { leverage: 50, winChance: 0.20, color: "#ff4444", name: "Extreme" },
+            { leverage: 100, winChance: 0.10, color: "#ff2244", name: "Insano" }
         ];
 
-        // ===== VARIABILI GLOBALI =====
+        const LEVERAGE_UNLOCKS = [
+            { threshold: 100, maxLeverageIndex: 0 },   // 1x
+            { threshold: 200, maxLeverageIndex: 1 },   // 2x
+            { threshold: 300, maxLeverageIndex: 2 },   // 3x
+            { threshold: 500, maxLeverageIndex: 3 },   // 5x
+            { threshold: 1000, maxLeverageIndex: 4 },  // 10x
+            { threshold: 2000, maxLeverageIndex: 5 },  // 20x
+            { threshold: 5000, maxLeverageIndex: 6 },  // 50x
+            { threshold: 10000, maxLeverageIndex: 7 }  // 100x
+        ];
+
+        // ==================== VARIABILI GLOBALI ====================
         let balance = 100;
         let bestBalance = 100;
         let chartData = [];
@@ -264,12 +350,14 @@
         let userChoice = null;
         let chartColor = "#fff";
         
-        // Variabili per le leve
         let betPercentage = 10;
-        let currentLeverageIndex = 0;
-        let unlockedLeverageLevels = [];
+        let leverageIndex = 0; // Indice nell'array LEVERAGE_SETTINGS
+        let leverage = 1;
         
-        // Elementi DOM
+        let totalTrades = 0;
+        let leverageStats = {};
+        
+        // ==================== ELEMENTI DOM ====================
         const canvas = document.getElementById('chartCanvas');
         const ctx = canvas.getContext('2d', { antialias: false });
         ctx.imageSmoothingEnabled = false;
@@ -286,8 +374,58 @@
         const leverageSlider = document.getElementById('leverageSlider');
         const leverageValue = document.getElementById('leverageValue');
         const betInfo = document.getElementById('betInfo');
-        
-        // ===== INIZIALIZZAZIONE =====
+        const unlockInfo = document.getElementById('unlockInfo');
+        const currentLevelElement = document.getElementById('currentLevel');
+        const unlockedCountElement = document.getElementById('unlockedCount');
+        const totalTradesElement = document.getElementById('totalTrades');
+        const finalBestBalance = document.getElementById('finalBestBalance');
+        const finalMaxLeverage = document.getElementById('finalMaxLeverage');
+
+        // ==================== FUNZIONI HELPER ====================
+        function getCurrentLeverageSettings() {
+            return LEVERAGE_SETTINGS[leverageIndex];
+        }
+
+        function getMaxUnlockedLeverageIndex() {
+            for (let i = LEVERAGE_UNLOCKS.length - 1; i >= 0; i--) {
+                if (balance >= LEVERAGE_UNLOCKS[i].threshold) {
+                    return LEVERAGE_UNLOCKS[i].maxLeverageIndex;
+                }
+            }
+            return 0;
+        }
+
+        function getNextUnlock() {
+            const currentMaxIndex = getMaxUnlockedLeverageIndex();
+            
+            for (let unlock of LEVERAGE_UNLOCKS) {
+                if (unlock.maxLeverageIndex > currentMaxIndex) {
+                    const settings = LEVERAGE_SETTINGS[unlock.maxLeverageIndex];
+                    return {
+                        threshold: unlock.threshold,
+                        leverage: settings.leverage,
+                        winChance: settings.winChance,
+                        remaining: unlock.threshold - balance
+                    };
+                }
+            }
+            return null;
+        }
+
+        function isTradeSuccessful() {
+            const settings = getCurrentLeverageSettings();
+            return Math.random() < settings.winChance;
+        }
+
+        function calculateTradeResult(isWin, betAmount) {
+            if (isWin) {
+                return betAmount * leverage; // Vince: puntata × leva
+            } else {
+                return -betAmount; // Perde: solo la puntata
+            }
+        }
+
+        // ==================== FUNZIONI CORE ====================
         function setupCanvas() {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -299,13 +437,13 @@
             canvas.style.width = `${rect.width}px`;
             canvas.style.height = `${rect.height}px`;
         }
-        
-        // Carica stato del gioco
+
         function loadGameState() {
             const savedBalance = localStorage.getItem('tradingBalance');
             const savedBestBalance = localStorage.getItem('tradingBestBalance');
             const savedPercentage = localStorage.getItem('tradingPercentage');
             const savedLeverageIndex = localStorage.getItem('tradingLeverageIndex');
+            const savedTotalTrades = localStorage.getItem('tradingTotalTrades');
             
             if (savedBalance) balance = parseInt(savedBalance);
             if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
@@ -315,105 +453,108 @@
                 percentageValue.textContent = `${betPercentage}%`;
             }
             if (savedLeverageIndex) {
-                currentLeverageIndex = Math.min(7, parseInt(savedLeverageIndex));
+                leverageIndex = parseInt(savedLeverageIndex);
+                leverageSlider.value = leverageIndex;
+                const settings = LEVERAGE_SETTINGS[leverageIndex];
+                leverage = settings.leverage;
+                leverageValue.textContent = `${leverage}x`;
+            }
+            if (savedTotalTrades) {
+                totalTrades = parseInt(savedTotalTrades);
+                totalTradesElement.textContent = totalTrades;
             }
             
-            updateUnlockedLeverageLevels();
             updateBalanceDisplay();
+            updateLeverageControls();
             updateBetInfo();
+            updateUnlockInfo();
+            updateStats();
         }
-        
-        // Salva stato del gioco
+
         function saveGameState() {
             localStorage.setItem('tradingBalance', balance.toString());
             localStorage.setItem('tradingBestBalance', bestBalance.toString());
             localStorage.setItem('tradingPercentage', betPercentage.toString());
-            localStorage.setItem('tradingLeverageIndex', currentLeverageIndex.toString());
+            localStorage.setItem('tradingLeverageIndex', leverageIndex.toString());
+            localStorage.setItem('tradingTotalTrades', totalTrades.toString());
         }
-        
-        // Aggiorna display saldo
+
         function updateBalanceDisplay() {
             balanceElement.textContent = balance;
             bestBalanceElement.textContent = bestBalance;
-            updateUnlockedLeverageLevels();
-            updateLeverageControls();
         }
-        
-        // Calcola puntata attuale
+
         function calculateBet() {
             return Math.floor(balance * (betPercentage / 100));
         }
-        
-        // Aggiorna le leve sbloccate in base al saldo
-        function updateUnlockedLeverageLevels() {
-            unlockedLeverageLevels = LEVERAGE_LEVELS.filter(level => balance >= level.unlockThreshold);
-            
-            // Se l'indice corrente non è valido, ridimensionalo
-            if (currentLeverageIndex >= unlockedLeverageLevels.length) {
-                currentLeverageIndex = Math.max(0, unlockedLeverageLevels.length - 1);
-            }
-        }
-        
-        // Aggiorna controlli della leva
+
         function updateLeverageControls() {
-            if (unlockedLeverageLevels.length === 0) return;
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             
-            leverageSlider.max = unlockedLeverageLevels.length - 1;
-            leverageSlider.disabled = unlockedLeverageLevels.length <= 1;
-            
-            const currentLevel = unlockedLeverageLevels[currentLeverageIndex];
-            leverageValue.textContent = `${currentLevel.leverage}x (${Math.round(currentLevel.winProbability * 100)}%)`;
-            leverageValue.style.color = currentLevel.color;
-            
-            // Mostra il prossimo sblocco
-            showNextUnlockInfo();
-        }
-        
-        // Mostra informazioni sul prossimo sblocco
-        function showNextUnlockInfo() {
-            const currentMaxLeverage = unlockedLeverageLevels[unlockedLeverageLevels.length - 1].leverage;
-            
-            for (let i = 0; i < LEVERAGE_LEVELS.length; i++) {
-                if (LEVERAGE_LEVELS[i].leverage > currentMaxLeverage) {
-                    const nextLevel = LEVERAGE_LEVELS[i];
-                    const remaining = nextLevel.unlockThreshold - balance;
-                    
-                    if (remaining > 0) {
-                        statusMessage.innerHTML = `Prossimo sblocco: Leva ${nextLevel.leverage}x (${Math.round(nextLevel.winProbability * 100)}% win) a $${nextLevel.unlockThreshold} <span style="color:#888">(+$${remaining})</span>`;
-                    }
-                    return;
-                }
+            // Se la leva corrente è troppo alta, riducila
+            if (leverageIndex > maxUnlockedIndex) {
+                leverageIndex = maxUnlockedIndex;
+                leverageSlider.value = leverageIndex;
+                const settings = LEVERAGE_SETTINGS[leverageIndex];
+                leverage = settings.leverage;
+                leverageValue.textContent = `${leverage}x`;
             }
+            
+            // Aggiorna il massimo dello slider
+            leverageSlider.max = maxUnlockedIndex;
+            
+            // Aggiorna il colore in base al rischio
+            const settings = getCurrentLeverageSettings();
+            leverageValue.style.color = settings.color;
         }
-        
-        // Aggiorna info puntata
+
         function updateBetInfo() {
-            if (unlockedLeverageLevels.length === 0) return;
-            
-            const currentLevel = unlockedLeverageLevels[currentLeverageIndex];
+            const settings = getCurrentLeverageSettings();
             const bet = calculateBet();
-            const potentialWin = bet * currentLevel.leverage;
+            const winChance = Math.round(settings.winChance * 100);
+            const potentialWin = bet * leverage;
             const potentialLoss = bet;
-            const winPercentage = Math.round(currentLevel.winProbability * 100);
             
-            betInfo.innerHTML = `
-                Puntata: <strong>${bet}$</strong> (${betPercentage}% del saldo)<br>
-                Se vinci: <span style="color:#0c0">+${potentialWin}$</span> | 
-                Se perdi: <span style="color:#f00">-${potentialLoss}$</span> | 
-                Probabilità: ${winPercentage}%
-            `;
+            let info = `Puntata: ${bet}$ (${betPercentage}%) | Leva: ${leverage}x`;
+            info += `<br>Probabilità: ${winChance}% | Se vinci: +${potentialWin}$ | Se perdi: -${potentialLoss}$`;
             
-            // Colore in base al rischio
-            if (winPercentage <= 20) {
-                betInfo.className = "bet-info risk-high";
-            } else if (winPercentage <= 50) {
-                betInfo.className = "bet-info risk-medium";
+            betInfo.innerHTML = info;
+            betInfo.style.color = settings.color;
+            
+            // Animazione per alto rischio
+            if (settings.winChance <= 0.3) {
+                betInfo.classList.add('high-risk');
             } else {
-                betInfo.className = "bet-info risk-low";
+                betInfo.classList.remove('high-risk');
             }
         }
-        
-        // ===== GRAFICO =====
+
+        function updateUnlockInfo() {
+            const next = getNextUnlock();
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            if (next) {
+                const winChance = Math.round(next.winChance * 100);
+                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win) a $${next.threshold} (+$${next.remaining})`;
+                unlockInfo.style.color = "#ffaa44";
+            } else {
+                unlockInfo.textContent = "🎉 Tutte le leve sbloccate!";
+                unlockInfo.style.color = "#44ff44";
+            }
+            
+            unlockedCountElement.textContent = `${maxUnlockedIndex + 1}/${LEVERAGE_SETTINGS.length}`;
+        }
+
+        function updateStats() {
+            const settings = getCurrentLeverageSettings();
+            currentLevelElement.textContent = settings.name;
+            
+            // Calcola leve sbloccate
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            currentLevelElement.style.color = settings.color;
+        }
+
+        // ==================== GRAFICO ====================
         function generateChartData() {
             const dataLength = 180;
             const data = [];
@@ -432,8 +573,7 @@
             
             return data;
         }
-        
-        // Disegna grafico HD
+
         function drawChart() {
             const rect = canvas.getBoundingClientRect();
             const width = rect.width;
@@ -473,7 +613,6 @@
             
             ctx.stroke();
             
-            // Punto decisionale
             if (userChoice && decisionPoint > 0 && chartStep > decisionPoint) {
                 const decisionX = decisionPoint * stepX;
                 const decisionY = height - ((chartData[decisionPoint] - minValue) * scaleY);
@@ -484,8 +623,7 @@
                 ctx.fill();
             }
         }
-        
-        // Animazione grafico
+
         function animateChart() {
             if (chartStep < chartData.length) {
                 chartStep++;
@@ -511,31 +649,72 @@
                     animationId = requestAnimationFrame(animateChart);
                 }
             } else {
-                if (userChoice) {
-                    // Risultato già processato in handleTradeChoice
-                    if (balance <= 0) {
-                        gameActive = false;
-                        gameOverScreen.style.display = 'flex';
-                        return;
-                    }
-                    
-                    setTimeout(startNewRound, 2000);
-                }
+                processTradeResult();
             }
         }
-        
-        // ===== LOGICA DI TRADING =====
+
+        function processTradeResult() {
+            const settings = getCurrentLeverageSettings();
+            const bet = calculateBet();
+            const win = isTradeSuccessful();
+            const result = calculateTradeResult(win, bet);
+            
+            // Aggiorna statistiche
+            totalTrades++;
+            totalTradesElement.textContent = totalTrades;
+            
+            if (!leverageStats[leverage]) {
+                leverageStats[leverage] = { total: 0, wins: 0 };
+            }
+            leverageStats[leverage].total++;
+            if (win) leverageStats[leverage].wins++;
+            
+            // Applica risultato
+            balance += result;
+            
+            if (win) {
+                statusMessage.textContent = `VITTORIA! +${bet * leverage}$ (${leverage}x)`;
+                chartColor = "#0c0";
+            } else {
+                statusMessage.textContent = `PERDITA! -${bet}$`;
+                chartColor = "#f00";
+            }
+            
+            if (balance > bestBalance) {
+                bestBalance = balance;
+            }
+            
+            drawChart();
+            
+            saveGameState();
+            updateBalanceDisplay();
+            updateLeverageControls();
+            updateBetInfo();
+            updateUnlockInfo();
+            updateStats();
+            
+            if (balance <= 0) {
+                gameActive = false;
+                finalBestBalance.textContent = bestBalance;
+                finalMaxLeverage.textContent = `${leverage}x`;
+                gameOverScreen.style.display = 'flex';
+                return;
+            }
+            
+            setTimeout(startNewRound, 2000);
+        }
+
+        // ==================== CONTROLLI UI ====================
         function enableTradeButtons() {
             longBtn.disabled = false;
             shortBtn.disabled = false;
         }
-        
+
         function disableTradeButtons() {
             longBtn.disabled = true;
             shortBtn.disabled = true;
         }
-        
-        // Nuovo round
+
         function startNewRound() {
             chartStep = 0;
             userChoice = null;
@@ -545,121 +724,87 @@
             chartData = generateChartData();
             decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
             
-            statusMessage.textContent = "Analisi del mercato...";
+            const settings = getCurrentLeverageSettings();
+            statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${Math.round(settings.winChance * 100)}% win)`;
             disableTradeButtons();
-            
-            // Mostra info sul prossimo sblocco se non c'è scelta utente
-            if (isAnimating && !userChoice) {
-                showNextUnlockInfo();
-            }
             
             if (animationId) {
                 cancelAnimationFrame(animationId);
             }
             animateChart();
         }
-        
-        // Gestisce la scelta di trading (LONG o SHORT)
-        function handleTradeChoice(direction) {
-            if (!isAnimating || userChoice !== null) return;
-            
-            userChoice = direction;
-            disableTradeButtons();
-            
-            // Determina se vince in base alla probabilità della leva
-            const currentLevel = unlockedLeverageLevels[currentLeverageIndex];
-            const win = Math.random() < currentLevel.winProbability;
-            
-            // Calcola risultato
-            const bet = calculateBet();
-            let result;
-            
-            if (win) {
-                result = bet * currentLevel.leverage;
-                balance += result;
-                statusMessage.textContent = `VINTO! +${result}$ (${currentLevel.leverage}x)`;
-                chartColor = "#0c0";
-                
-                // Animazione pulsanti vittoria
-                if (direction === 'long') {
-                    longBtn.style.animation = "pulse-red 0.5s 3";
-                } else {
-                    shortBtn.style.animation = "pulse-red 0.5s 3";
-                }
-            } else {
-                result = -bet;
-                balance += result;
-                statusMessage.textContent = `PERSO! ${result}$`;
-                chartColor = "#f00";
+
+        function chooseLong() {
+            if (!isAnimating && gameActive && !userChoice) {
+                userChoice = 'long';
+                disableTradeButtons();
+                statusMessage.textContent = "LONG selezionato";
+                chartColor = "#fff";
+                animationId = requestAnimationFrame(animateChart);
             }
-            
-            // Aggiorna display e salva
-            if (balance > bestBalance) {
-                bestBalance = balance;
-            }
-            
-            saveGameState();
-            updateBalanceDisplay();
-            updateBetInfo();
-            
-            // Continua animazione per mostrare risultato
-            isAnimating = true;
-            animationId = requestAnimationFrame(animateChart);
         }
-        
-        // Riavvia gioco
+
+        function chooseShort() {
+            if (!isAnimating && gameActive && !userChoice) {
+                userChoice = 'short';
+                disableTradeButtons();
+                statusMessage.textContent = "SHORT selezionato";
+                chartColor = "#fff";
+                animationId = requestAnimationFrame(animateChart);
+            }
+        }
+
         function restartGame() {
             balance = 100;
-            betPercentage = 10;
-            currentLeverageIndex = 0;
             gameActive = true;
+            leverageIndex = 0;
+            leverage = 1;
+            betPercentage = 10;
+            totalTrades = 0;
             
             percentageSlider.value = betPercentage;
             percentageValue.textContent = `${betPercentage}%`;
+            leverageSlider.value = leverageIndex;
+            leverageValue.textContent = `${leverage}x`;
             
             gameOverScreen.style.display = 'none';
+            
             updateBalanceDisplay();
+            updateLeverageControls();
             updateBetInfo();
+            updateUnlockInfo();
+            updateStats();
             saveGameState();
             startNewRound();
         }
-        
-        // ===== GESTIONE EVENTI =====
+
+        // ==================== EVENT HANDLERS ====================
         function handlePercentageChange() {
             betPercentage = parseInt(percentageSlider.value);
             percentageValue.textContent = `${betPercentage}%`;
             updateBetInfo();
             saveGameState();
         }
-        
+
         function handleLeverageChange() {
-            currentLeverageIndex = parseInt(leverageSlider.value);
+            leverageIndex = parseInt(leverageSlider.value);
+            const settings = LEVERAGE_SETTINGS[leverageIndex];
+            leverage = settings.leverage;
+            leverageValue.textContent = `${leverage}x`;
+            leverageValue.style.color = settings.color;
             
-            // Assicurati che l'indice sia valido
-            if (currentLeverageIndex >= unlockedLeverageLevels.length) {
-                currentLeverageIndex = unlockedLeverageLevels.length - 1;
-            }
-            
-            updateLeverageControls();
             updateBetInfo();
+            updateStats();
             saveGameState();
-            
-            // Mostra warning per leve rischiose
-            const currentLevel = unlockedLeverageLevels[currentLeverageIndex];
-            if (currentLevel.winProbability <= 0.3) {
-                const winChance = Math.round(currentLevel.winProbability * 100);
-                statusMessage.textContent = `⚠️ Attenzione! Solo ${winChance}% di probabilità di vincita`;
-                statusMessage.style.color = "#ff4444";
-            }
         }
-        
-        // ===== INIZIALIZZAZIONE GIOCO =====
+
+        // ==================== INIZIALIZZAZIONE ====================
         function initGame() {
             setupCanvas();
             loadGameState();
             
-            longBtn.addEventListener('click', () => handleTradeChoice('long'));
-            shortBtn.addEventListener('click', () => handleTradeChoice('short'));
+            longBtn.addEventListener('click', chooseLong);
+            shortBtn.addEventListener('click', chooseShort);
             restartBtn.addEventListener('click', restartGame);
             percentageSlider.addEventListener('input', handlePercentageChange);
             leverageSlider.addEventListener('input', handleLeverageChange);
@@ -670,8 +815,13 @@
             });
             
             startNewRound();
+            
+            // Inizializza statistiche
+            LEVERAGE_SETTINGS.forEach(settings => {
+                leverageStats[settings.leverage] = { total: 0, wins: 0 };
+            });
         }
-        
+
         window.addEventListener('load', initGame);
     </script>
 </body>
