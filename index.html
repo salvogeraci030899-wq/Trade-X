@@ -43,12 +43,39 @@
             flex-direction: column;
         }
         
-        /* Menu Button - MODIFICATO: allineato verticalmente con il titolo */
+        /* Animazioni fluttuanti */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        @keyframes float-subtle {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-3px);
+            }
+        }
+        
+        @keyframes float-very-subtle {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-2px);
+            }
+        }
+        
+        /* Menu Button - CORRETTO: in alto a destra allineato al titolo */
         .menu-button {
             position: absolute;
-            top: 50%; /* MODIFICATO: usato centramento verticale */
+            top: 10px; /* CORRETTO: stessa altezza del padding del titolo */
             right: 20px;
-            transform: translateY(-50%); /* MODIFICATO: per centrare verticalmente */
             width: 30px;
             height: 30px;
             display: flex;
@@ -61,6 +88,7 @@
             background: transparent;
             border: none;
             padding: 5px;
+            animation: float-very-subtle 3s ease-in-out infinite;
         }
         
         .menu-dot {
@@ -102,6 +130,7 @@
             color: #fff;
             cursor: pointer;
             opacity: 0.7;
+            animation: float-very-subtle 3s ease-in-out infinite;
         }
         
         .menu-close:hover {
@@ -126,11 +155,25 @@
             padding: 10px 20px;
             transition: all 0.3s ease;
             opacity: 0.8;
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .menu-item:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+        
+        .menu-item:nth-child(3) {
+            animation-delay: 1s;
+        }
+        
+        .menu-item:nth-child(4) {
+            animation-delay: 1.5s;
         }
         
         .menu-item:hover {
             opacity: 1;
             transform: scale(1.05);
+            animation-play-state: paused;
         }
         
         /* Pagine Overlay */
@@ -166,6 +209,7 @@
             font-size: 24px;
             font-weight: 300;
             letter-spacing: 2px;
+            animation: float-subtle 5s ease-in-out infinite;
         }
         
         /* MODIFICA: Contenuto pagina Info scorrevole - CORRETTO */
@@ -209,6 +253,15 @@
             font-size: 18px;
             font-weight: 400;
             letter-spacing: 1px;
+            animation: float-very-subtle 6s ease-in-out infinite;
+        }
+        
+        .page-content h2:nth-child(odd) {
+            animation-delay: 0.5s;
+        }
+        
+        .page-content h2:nth-child(even) {
+            animation-delay: 1s;
         }
         
         .page-content p {
@@ -331,7 +384,7 @@
             display: inline-block;
         }
         
-        /* MODIFICATO: titolo cambiato da XTRADE a XTrade */
+        /* MODIFICATO: titolo cambiato da XTRADE a XTrade con animazione */
         .game-title {
             text-align: center;
             font-size: 24px;
@@ -346,6 +399,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            animation: float 6s ease-in-out infinite;
         }
         
         .header {
@@ -523,6 +577,7 @@
             font-weight: 300;
             letter-spacing: 2px;
             color: #ff0000;
+            animation: float 3s ease-in-out infinite;
         }
         
         .restart-btn {
@@ -535,6 +590,7 @@
             transition: all 0.2s;
             font-weight: 300;
             letter-spacing: 1px;
+            animation: float-very-subtle 4s ease-in-out infinite;
         }
         
         .restart-btn:hover {
@@ -604,9 +660,8 @@
         /* Media query per schermi piccoli */
         @media (max-width: 380px) {
             .menu-button {
-                top: 50%; /* MODIFICATO: mantenuto centramento verticale */
+                top: 10px; /* CORRETTO: stessa altezza per schermi piccoli */
                 right: 15px;
-                transform: translateY(-50%);
                 width: 25px;
                 height: 25px;
             }
@@ -671,9 +726,8 @@
         
         @media (max-width: 320px) {
             .menu-button {
-                top: 50%; /* MODIFICATO: mantenuto centramento verticale */
+                top: 10px; /* CORRETTO: stessa altezza per schermi molto piccoli */
                 right: 12px;
-                transform: translateY(-50%);
             }
             
             .menu-item {
