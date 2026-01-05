@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -261,6 +262,11 @@
             color: #888;
             margin-top: 5px;
             height: 16px;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        .unlock-info.fade-out {
+            opacity: 0;
         }
         
         @keyframes pulse-high-risk {
@@ -441,7 +447,7 @@
     
     <div class="game-over" id="gameOverScreen">
         <h2>BANCAROTTA</h2>
-        <button id="restartBtn" class="restart-btn">RIPRENDI</button>
+        <button id="restartBtn" class="restart-btn">RIPROVA</button>
     </div>
 
     <script>
@@ -487,6 +493,7 @@
         
         let totalTrades = 0;
         let leverageStats = {};
+        let unlockMessageTimeout = null;
         
         // ==================== ELEMENTI DOM ====================
         const canvas = document.getElementById('chartCanvas');
@@ -655,16 +662,31 @@
         }
 
         function updateUnlockInfo() {
+            // Cancella il timeout precedente se esiste
+            if (unlockMessageTimeout) {
+                clearTimeout(unlockMessageTimeout);
+                unlockMessageTimeout = null;
+            }
+            
             const next = getNextUnlock();
             const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            // Rimuovi la classe fade-out
+            unlockInfo.classList.remove('fade-out');
             
             if (next) {
                 const winChance = Math.round(next.winChance * 100);
                 unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win) a $${next.threshold} ($${next.remaining} rimanenti)`;
                 unlockInfo.style.color = "#ffaa44";
             } else {
-                unlockInfo.textContent = "🎉 Tutte le leve sbloccate!";
+                // Rimosso l'emoji 🎉
+                unlockInfo.textContent = "Tutte le leve sbloccate!";
                 unlockInfo.style.color = "#44ff44";
+                
+                // Imposta un timeout per far scomparire la scritta dopo 3 secondi
+                unlockMessageTimeout = setTimeout(() => {
+                    unlockInfo.classList.add('fade-out');
+                }, 3000);
             }
             
             unlockedCountElement.textContent = `${maxUnlockedIndex + 1}/${LEVERAGE_SETTINGS.length}`;
@@ -799,6 +821,7 @@
                 chartColor = "#f00";
             }
             
+            // Aggiorna il record SOLO se il saldo attuale è maggiore
             if (balance > bestBalance) {
                 bestBalance = balance;
             }
@@ -815,6 +838,7 @@
             if (balance <= 0) {
                 gameActive = false;
                 gameOverScreen.style.display = 'flex';
+                // Il record NON viene azzerato in caso di bancarotta
                 return;
             }
             
@@ -899,8 +923,8 @@
         }
 
         function restartGame() {
+            // Resetta solo il saldo corrente, NON il record
             balance = 100;
-            bestBalance = 100;
             gameActive = true;
             leverageIndex = 0;
             leverage = 1;
