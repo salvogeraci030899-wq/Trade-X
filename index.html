@@ -132,7 +132,171 @@
             transform: scale(1.05);
         }
         
+        /* Pagine Overlay */
+        .page-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+            padding-top: 60px;
+        }
+        
+        .page-overlay.active {
+            display: flex;
+        }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
+        }
+        
         .page-title {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        
+        .page-content {
+            flex: 1;
+            line-height: 1.6;
+            font-size: 16px;
+            color: #ccc;
+        }
+        
+        .page-content h2 {
+            color: #fff;
+            margin: 20px 0 10px 0;
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        .page-content ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .page-content li {
+            margin: 8px 0;
+        }
+        
+        .back-button {
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .settings-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+        }
+        
+        .settings-label {
+            font-size: 16px;
+            color: #fff;
+        }
+        
+        .settings-description {
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #4CAF50;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .level-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+        }
+        
+        .level-name {
+            font-size: 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .level-description {
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .level-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .game-title {
             text-align: center;
             font-size: 24px;
             font-weight: 300;
@@ -205,7 +369,7 @@
         
         .control {
             flex: 1;
-            min-width: 0; /* Importante: permette al flex di restringersi */
+            min-width: 0;
         }
         
         .control label {
@@ -369,35 +533,6 @@
             animation: pulse-high-risk 1s infinite;
         }
         
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            border-bottom: 1px dotted #666;
-            cursor: help;
-        }
-        
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 300px;
-            background-color: #222;
-            color: #fff;
-            text-align: center;
-            padding: 5px;
-            border-radius: 4px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -150px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-        
         .stats {
             display: flex;
             justify-content: space-around;
@@ -466,6 +601,11 @@
             .balance-label {
                 min-width: 70px;
             }
+            
+            .page-overlay {
+                padding: 15px;
+                padding-top: 50px;
+            }
         }
         
         @media (max-width: 320px) {
@@ -526,7 +666,143 @@
         </div>
     </div>
     
-    <div class="page-title">XTRADE</div>
+    <!-- Info Page Overlay -->
+    <div class="page-overlay" id="infoOverlay">
+        <div class="page-header">
+            <h1 class="page-title">Info</h1>
+            <button class="back-button" id="infoBackBtn">Indietro</button>
+        </div>
+        <div class="page-content">
+            <h2>Benvenuto in XTrade</h2>
+            <p>XTrade è un simulatore di trading con sistema di leva progressiva. Gestisci il tuo capitale, scegli il livello di rischio e cerca di battere il tuo record.</p>
+            
+            <h2>Come Funziona</h2>
+            <ul>
+                <li><strong>Analisi del grafico</strong>: Osserva l'andamento del prezzo e prevedi se salirà (LONG) o scenderà (SHORT)</li>
+                <li><strong>Sistema a livelli</strong>: Sblocca livelli di leva più alti raggiungendo determinati saldi</li>
+                <li><strong>Gestione del rischio</strong>: Maggiore è la leva, maggiore è il potenziale guadagno... e la perdita!</li>
+                <li><strong>Record personale</strong>: Il tuo record massimo viene salvato e non viene azzerato in caso di bancarotta</li>
+            </ul>
+            
+            <h2>Sistema dei Livelli</h2>
+            <p>I livelli rappresentano il tuo progresso nel gioco:</p>
+            <ul>
+                <li><strong>Basso</strong>: Leva 1x - 80% di probabilità di vincita</li>
+                <li><strong>Medio</strong>: Leve 2x-5x - Probabilità dal 70% al 50%</li>
+                <li><strong>Alto</strong>: Leva 10x-20x - Probabilità dal 40% al 30%</li>
+                <li><strong>Estremo</strong>: Leva 50x - 20% di probabilità</li>
+                <li><strong>Insano</strong>: Leva 100x - Solo 10% di probabilità!</li>
+            </ul>
+            
+            <h2>Consigli</h2>
+            <ul>
+                <li>Inizia con leve basse per familiarizzare con il sistema</li>
+                <li>Gestisci sempre la tua puntata in percentuale del capitale</li>
+                <li>Non puntare tutto su un singolo trade</li>
+                <li>Ricorda: il trading reale comporta rischi finanziari reali</li>
+            </ul>
+            
+            <p style="margin-top: 30px; color: #666; font-size: 14px; text-align: center;">
+                XTrade - Simulatore educativo per comprendere i rischi del trading con leva
+            </p>
+        </div>
+    </div>
+    
+    <!-- Settings Page Overlay -->
+    <div class="page-overlay" id="settingsOverlay">
+        <div class="page-header">
+            <h1 class="page-title">Impostazioni</h1>
+            <button class="back-button" id="settingsBackBtn">Indietro</button>
+        </div>
+        <div class="page-content">
+            <div class="settings-option">
+                <div>
+                    <div class="settings-label">Audio</div>
+                    <div class="settings-description">Attiva/disattiva gli effetti sonori del gioco</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="audioToggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <h2 style="margin-top: 30px;">Sistema dei Livelli</h2>
+            <p style="margin-bottom: 20px;">I livelli vengono sbloccati automaticamente raggiungendo determinati saldi. Ogni livello offre leve e rischi diversi.</p>
+            
+            <div class="level-item">
+                <div class="level-name">
+                    <span class="level-color" style="background: #44ff44;"></span>
+                    Basso
+                </div>
+                <div class="level-description">Leva 1x - Probabilità 80% - Sbloccato all'inizio</div>
+            </div>
+            
+            <div class="level-item">
+                <div class="level-name">
+                    <span class="level-color" style="background: #66ff66;"></span>
+                    Medio (2x)
+                </div>
+                <div class="level-description">Leva 2x - Probabilità 70% - Sblocco a $200</div>
+            </div>
+            
+            <div class="level-item">
+                <div class="level-name">
+                    <span class="level-color" style="background: #88ff88;"></span>
+                    Medio (3x)
+                </div>
+                <div class="level-description">Leva 3x - Probabilità 60% - Sblocco a $300</div>
+            </div>
+            
+            <div class="level-item">
+                <div class="level-name">
+                    <span class="level-color" style="background: #ffff44;"></span>
+                    Medio (5x)
+                </div>
+                <div class="level-description">Leva 5x - Probabilità 50% - Sblocco a $500</div>
+            </div>
+            
+            <div class="level-item">
+                <div class="level-name">
+                    <span class="level-color" style="background: #ffaa44;"></span>
+                    Alto (10x)
+                </div>
+                <div class="level-description">Leva 10x - Probabilità 40% - Sblocco a $1000</div>
+            </div>
+            
+            <div class="level-item">
+                <div class="level-name">
+                    <span class="level-color" style="background: #ff7744;"></span>
+                    Alto (20x)
+                </div>
+                <div class="level-description">Leva 20x - Probabilità 30% - Sblocco a $2000</div>
+            </div>
+            
+            <div class="level-item">
+                <div class="level-name">
+                    <span class="level-color" style="background: #ff4444;"></span>
+                    Estremo (50x)
+                </div>
+                <div class="level-description">Leva 50x - Probabilità 20% - Sblocco a $5000</div>
+            </div>
+            
+            <div class="level-item">
+                <div class="level-name">
+                    <span class="level-color" style="background: #ff2244;"></span>
+                    Insano (100x)
+                </div>
+                <div class="level-description">Leva 100x - Probabilità 10% - Sblocco a $10000</div>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 5px;">
+                <div class="settings-label">Reset Dati</div>
+                <div class="settings-description" style="margin-bottom: 15px;">Cancella tutti i dati di gioco salvati e riparti da zero</div>
+                <button class="back-button" id="resetDataBtn" style="width: 100%;">Reset Dati di Gioco</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Game Interface -->
+    <div class="game-title">XTRADE</div>
     
     <div class="header">
         <div class="balance-container">
@@ -587,14 +863,14 @@
     <script>
         // ==================== SISTEMA LEVE ====================
         const LEVERAGE_SETTINGS = [
-            { leverage: 1, winChance: 0.80, color: "#44ff44", name: "Novizio" },
-            { leverage: 2, winChance: 0.70, color: "#66ff66", name: "Principiante" },
-            { leverage: 3, winChance: 0.60, color: "#88ff88", name: "Intermedio" },
-            { leverage: 5, winChance: 0.50, color: "#ffff44", name: "Esperto" },
-            { leverage: 10, winChance: 0.40, color: "#ffaa44", name: "Risky" },
-            { leverage: 20, winChance: 0.30, color: "#ff7744", name: "High Risk" },
-            { leverage: 50, winChance: 0.20, color: "#ff4444", name: "Extreme" },
-            { leverage: 100, winChance: 0.10, color: "#ff2244", name: "Insano" }
+            { leverage: 1, winChance: 0.80, color: "#44ff44", name: "Novizio", level: "Basso" },
+            { leverage: 2, winChance: 0.70, color: "#66ff66", name: "Principiante", level: "Medio" },
+            { leverage: 3, winChance: 0.60, color: "#88ff88", name: "Intermedio", level: "Medio" },
+            { leverage: 5, winChance: 0.50, color: "#ffff44", name: "Esperto", level: "Medio" },
+            { leverage: 10, winChance: 0.40, color: "#ffaa44", name: "Risky", level: "Alto" },
+            { leverage: 20, winChance: 0.30, color: "#ff7744", name: "High Risk", level: "Alto" },
+            { leverage: 50, winChance: 0.20, color: "#ff4444", name: "Extreme", level: "Estremo" },
+            { leverage: 100, winChance: 0.10, color: "#ff2244", name: "Insano", level: "Insano" }
         ];
 
         const LEVERAGE_UNLOCKS = [
@@ -628,7 +904,8 @@
         let totalTrades = 0;
         let leverageStats = {};
         let unlockMessageTimeout = null;
-        
+        let audioEnabled = true;
+
         // ==================== ELEMENTI DOM ====================
         const canvas = document.getElementById('chartCanvas');
         const ctx = canvas.getContext('2d', { antialias: false });
@@ -642,6 +919,14 @@
         const rankBtn = document.getElementById('rankBtn');
         const settingsBtn = document.getElementById('settingsBtn');
         const infoBtn = document.getElementById('infoBtn');
+        
+        // Page overlays
+        const infoOverlay = document.getElementById('infoOverlay');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const infoBackBtn = document.getElementById('infoBackBtn');
+        const settingsBackBtn = document.getElementById('settingsBackBtn');
+        const audioToggle = document.getElementById('audioToggle');
+        const resetDataBtn = document.getElementById('resetDataBtn');
         
         // Game elements
         const balanceElement = document.getElementById('balance');
@@ -664,7 +949,6 @@
         // ==================== FUNZIONI MENU ====================
         function openMenu() {
             menuOverlay.classList.add('active');
-            // Pausa il gioco quando il menu è aperto
             isAnimating = false;
             if (animationId) {
                 cancelAnimationFrame(animationId);
@@ -673,38 +957,49 @@
 
         function closeMenu() {
             menuOverlay.classList.remove('active');
-            // Riprendi il gioco quando il menu è chiuso
             if (gameActive && !userChoice && chartStep <= decisionPoint) {
                 isAnimating = true;
                 animateChart();
             }
         }
 
-        function handleMenuButtonClick() {
-            openMenu();
+        function openPage(pageOverlay) {
+            closeMenu();
+            pageOverlay.classList.add('active');
+            isAnimating = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
         }
 
-        function handleMenuCloseClick() {
-            closeMenu();
+        function closePage(pageOverlay) {
+            pageOverlay.classList.remove('active');
+            if (gameActive && !userChoice && chartStep <= decisionPoint) {
+                isAnimating = true;
+                animateChart();
+            }
         }
 
-        function handleMenuItemClick(item) {
-            // Per ora, mostriamo solo un messaggio in console
-            // In futuro, queste funzioni apriranno le rispettive pagine
-            console.log(`Menu item clicked: ${item}`);
+        // ==================== FUNZIONI AUDIO ====================
+        function playSound(type) {
+            if (!audioEnabled) return;
             
-            // Chiudi il menu dopo la selezione
-            closeMenu();
-            
-            // Mostra un messaggio temporaneo nella status bar
-            const originalMessage = statusMessage.textContent;
-            statusMessage.textContent = `${item} - Funzione in sviluppo`;
-            
-            setTimeout(() => {
-                if (gameActive) {
-                    statusMessage.textContent = originalMessage;
-                }
-            }, 2000);
+            // Questa è una struttura base per i suoni
+            // In un'app completa, qui caricheremmo file audio reali
+            switch(type) {
+                case 'click':
+                    // Suono di click
+                    break;
+                case 'win':
+                    // Suono di vittoria
+                    break;
+                case 'lose':
+                    // Suono di perdita
+                    break;
+                case 'error':
+                    // Suono di errore
+                    break;
+            }
         }
 
         // ==================== FUNZIONI HELPER ====================
@@ -745,9 +1040,9 @@
 
         function calculateTradeResult(isWin, betAmount) {
             if (isWin) {
-                return betAmount * leverage; // Vince: puntata × leva
+                return betAmount * leverage;
             } else {
-                return -betAmount; // Perde: solo la puntata
+                return -betAmount;
             }
         }
 
@@ -770,6 +1065,7 @@
             const savedPercentage = localStorage.getItem('tradingPercentage');
             const savedLeverageIndex = localStorage.getItem('tradingLeverageIndex');
             const savedTotalTrades = localStorage.getItem('tradingTotalTrades');
+            const savedAudioEnabled = localStorage.getItem('tradingAudioEnabled');
             
             if (savedBalance) balance = parseInt(savedBalance);
             if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
@@ -789,6 +1085,10 @@
                 totalTrades = parseInt(savedTotalTrades);
                 totalTradesElement.textContent = totalTrades;
             }
+            if (savedAudioEnabled !== null) {
+                audioEnabled = savedAudioEnabled === 'true';
+                audioToggle.checked = audioEnabled;
+            }
             
             updateBalanceDisplay();
             updateLeverageControls();
@@ -803,6 +1103,46 @@
             localStorage.setItem('tradingPercentage', betPercentage.toString());
             localStorage.setItem('tradingLeverageIndex', leverageIndex.toString());
             localStorage.setItem('tradingTotalTrades', totalTrades.toString());
+            localStorage.setItem('tradingAudioEnabled', audioEnabled.toString());
+        }
+
+        function resetGameData() {
+            if (confirm("Sei sicuro di voler resettare tutti i dati di gioco? Perderai saldo, record e statistiche.")) {
+                localStorage.removeItem('tradingBalance');
+                localStorage.removeItem('tradingBestBalance');
+                localStorage.removeItem('tradingPercentage');
+                localStorage.removeItem('tradingLeverageIndex');
+                localStorage.removeItem('tradingTotalTrades');
+                
+                balance = 100;
+                bestBalance = 100;
+                betPercentage = 10;
+                leverageIndex = 0;
+                leverage = 1;
+                totalTrades = 0;
+                
+                percentageSlider.value = betPercentage;
+                percentageValue.textContent = `${betPercentage}%`;
+                leverageSlider.value = leverageIndex;
+                leverageValue.textContent = `${leverage}x`;
+                
+                updateBalanceDisplay();
+                updateLeverageControls();
+                updateBetInfo();
+                updateUnlockInfo();
+                updateStats();
+                saveGameState();
+                
+                // Chiudi le impostazioni e riavvia il gioco
+                closePage(settingsOverlay);
+                if (gameOverScreen.style.display === 'flex') {
+                    gameOverScreen.style.display = 'none';
+                }
+                gameActive = true;
+                startNewRound();
+                
+                alert("Dati di gioco resettati con successo!");
+            }
         }
 
         function updateBalanceDisplay() {
@@ -852,7 +1192,6 @@
         }
 
         function updateUnlockInfo() {
-            // Cancella il timeout precedente se esiste
             if (unlockMessageTimeout) {
                 clearTimeout(unlockMessageTimeout);
                 unlockMessageTimeout = null;
@@ -861,7 +1200,6 @@
             const next = getNextUnlock();
             const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             
-            // Rimuovi la classe fade-out
             unlockInfo.classList.remove('fade-out');
             
             if (next) {
@@ -869,11 +1207,9 @@
                 unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win) a $${next.threshold} ($${next.remaining} rimanenti)`;
                 unlockInfo.style.color = "#ffaa44";
             } else {
-                // Rimosso l'emoji 🎉
                 unlockInfo.textContent = "Tutte le leve sbloccate!";
                 unlockInfo.style.color = "#44ff44";
                 
-                // Imposta un timeout per far scomparire la scritta dopo 3 secondi
                 unlockMessageTimeout = setTimeout(() => {
                     unlockInfo.classList.add('fade-out');
                 }, 3000);
@@ -884,7 +1220,8 @@
 
         function updateStats() {
             const settings = getCurrentLeverageSettings();
-            currentLevelElement.textContent = settings.name;
+            // Mostra il livello (Basso, Medio, Alto, Estremo, Insano) invece del nome
+            currentLevelElement.textContent = settings.level;
             
             const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             currentLevelElement.style.color = settings.color;
@@ -1006,12 +1343,13 @@
             if (win) {
                 statusMessage.textContent = `VITTORIA! +$${bet * leverage} (${leverage}x)`;
                 chartColor = "#0c0";
+                playSound('win');
             } else {
                 statusMessage.textContent = `PERDITA! -$${bet}`;
                 chartColor = "#f00";
+                playSound('lose');
             }
             
-            // Aggiorna il record SOLO se il saldo attuale è maggiore
             if (balance > bestBalance) {
                 bestBalance = balance;
             }
@@ -1028,7 +1366,7 @@
             if (balance <= 0) {
                 gameActive = false;
                 gameOverScreen.style.display = 'flex';
-                // Il record NON viene azzerato in caso di bancarotta
+                playSound('error');
                 return;
             }
             
@@ -1070,6 +1408,7 @@
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'long';
                 tradeResult = isTradeSuccessful();
+                playSound('click');
                 
                 const trendStrength = tradeResult ? 0.08 : -0.08;
                 const startValue = chartData[decisionPoint];
@@ -1093,6 +1432,7 @@
             if (!isAnimating && gameActive && !userChoice) {
                 userChoice = 'short';
                 tradeResult = isTradeSuccessful();
+                playSound('click');
                 
                 const trendStrength = tradeResult ? -0.08 : 0.08;
                 const startValue = chartData[decisionPoint];
@@ -1113,7 +1453,6 @@
         }
 
         function restartGame() {
-            // Resetta solo il saldo corrente, NON il record
             balance = 100;
             gameActive = true;
             leverageIndex = 0;
@@ -1136,6 +1475,7 @@
             updateStats();
             saveGameState();
             startNewRound();
+            playSound('click');
         }
 
         // ==================== EVENT HANDLERS ====================
@@ -1144,6 +1484,7 @@
             percentageValue.textContent = `${betPercentage}%`;
             updateBetInfo();
             saveGameState();
+            playSound('click');
         }
 
         function handleLeverageChange() {
@@ -1156,6 +1497,13 @@
             updateBetInfo();
             updateStats();
             saveGameState();
+            playSound('click');
+        }
+
+        function handleAudioToggle() {
+            audioEnabled = audioToggle.checked;
+            saveGameState();
+            playSound('click');
         }
 
         // ==================== PREVENZIONE ZOOM/SCROLL ====================
@@ -1216,12 +1564,18 @@
             loadGameState();
             
             // Menu event listeners
-            menuButton.addEventListener('click', handleMenuButtonClick);
-            menuClose.addEventListener('click', handleMenuCloseClick);
-            accountBtn.addEventListener('click', () => handleMenuItemClick('Account'));
-            rankBtn.addEventListener('click', () => handleMenuItemClick('Classifica'));
-            settingsBtn.addEventListener('click', () => handleMenuItemClick('Impostazioni'));
-            infoBtn.addEventListener('click', () => handleMenuItemClick('Info'));
+            menuButton.addEventListener('click', openMenu);
+            menuClose.addEventListener('click', closeMenu);
+            
+            // Page navigation
+            infoBtn.addEventListener('click', () => openPage(infoOverlay));
+            settingsBtn.addEventListener('click', () => openPage(settingsOverlay));
+            infoBackBtn.addEventListener('click', () => closePage(infoOverlay));
+            settingsBackBtn.addEventListener('click', () => closePage(settingsOverlay));
+            
+            // Settings controls
+            audioToggle.addEventListener('change', handleAudioToggle);
+            resetDataBtn.addEventListener('click', resetGameData);
             
             // Game event listeners
             longBtn.addEventListener('click', chooseLong);
@@ -1240,9 +1594,6 @@
             LEVERAGE_SETTINGS.forEach(settings => {
                 leverageStats[settings.leverage] = { total: 0, wins: 0 };
             });
-            
-            // Cambia il titolo da "XTRADE" a "XTrade"
-            document.querySelector('.page-title').textContent = 'XTrade';
         }
 
         window.addEventListener('load', initGame);
