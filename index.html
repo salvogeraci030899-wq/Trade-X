@@ -208,6 +208,7 @@
         /* Sliders con pallini */
         .slider-group {
             margin-bottom: 20px;
+            position: relative;
         }
         
         .slider-header {
@@ -233,7 +234,7 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
         }
         
         .slider-fill {
@@ -251,6 +252,32 @@
         
         .bet-fill {
             background: linear-gradient(to right, #003366, #00a3ff);
+        }
+        
+        /* Thumb per gli slider */
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border-radius: 50%;
+            transform: translateY(-50%) translateX(-12px);
+            z-index: 3;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            border: 2px solid #000000;
+            transition: left 0.2s ease;
+            pointer-events: none;
+        }
+        
+        .leverage-thumb {
+            background: #00ff88;
+            border-color: #000000;
+        }
+        
+        .bet-thumb {
+            background: #00a3ff;
+            border-color: #000000;
         }
         
         /* Pallini per le leve */
@@ -290,7 +317,7 @@
             height: 100%;
             opacity: 0;
             cursor: pointer;
-            z-index: 2;
+            z-index: 4;
         }
         
         .slider-ticks {
@@ -867,11 +894,11 @@
                 <h3>Personal Statistics</h3>
                 <div class="stat-row">
                     <span class="stat-label">Current Balance:</span>
-                    <span class="stat-value" id="accountBalance">$10,000</span>
+                    <span class="stat-value" id="accountBalance">$10k</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Best Balance:</span>
-                    <span class="stat-value" id="accountBestBalance">$10,000</span>
+                    <span class="stat-value" id="accountBestBalance">$10k</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Total Trades:</span>
@@ -976,13 +1003,13 @@
             
             <h2>Unlock Thresholds</h2>
             <ul>
-                <li><strong>Leverage 2x</strong>: Unlocked at $1,500</li>
-                <li><strong>Leverage 3x</strong>: Unlocked at $2,500</li>
-                <li><strong>Leverage 5x</strong>: Unlocked at $5,000</li>
-                <li><strong>Leverage 10x</strong>: Unlocked at $10,000</li>
-                <li><strong>Leverage 20x</strong>: Unlocked at $25,000</li>
-                <li><strong>Leverage 50x</strong>: Unlocked at $50,000</li>
-                <li><strong>Leverage 100x</strong>: Unlocked at $100,000</li>
+                <li><strong>Leverage 2x</strong>: Unlocked at $1.5k</li>
+                <li><strong>Leverage 3x</strong>: Unlocked at $2.5k</li>
+                <li><strong>Leverage 5x</strong>: Unlocked at $5k</li>
+                <li><strong>Leverage 10x</strong>: Unlocked at $10k</li>
+                <li><strong>Leverage 20x</strong>: Unlocked at $25k</li>
+                <li><strong>Leverage 50x</strong>: Unlocked at $50k</li>
+                <li><strong>Leverage 100x</strong>: Unlocked at $100k</li>
             </ul>
             
             <h2>Strategic Advice</h2>
@@ -1039,7 +1066,7 @@
         <!-- Header -->
         <div class="header-section">
             <div class="balance-display">
-                <div class="balance-amount" id="balanceAmount">$10,000</div>
+                <div class="balance-amount" id="balanceAmount">$10k</div>
                 <div class="balance-change change-positive" id="balanceChange">
                     <span id="changeIcon">↑</span>
                     <span id="changeAmount">+$0</span>
@@ -1075,6 +1102,7 @@
                     <div class="slider-fill leverage-fill" id="leverageFill" style="width: 0%"></div>
                     <div class="slider-dots" id="leverageDots"></div>
                     <input type="range" min="0" max="7" value="0" id="leverageSlider">
+                    <div class="slider-thumb leverage-thumb" id="leverageThumb"></div>
                 </div>
             </div>
             
@@ -1086,6 +1114,7 @@
                 <div class="slider-track">
                     <div class="slider-fill bet-fill" id="betFill" style="width: 5%"></div>
                     <input type="range" min="1" max="100" value="5" id="betSlider">
+                    <div class="slider-thumb bet-thumb" id="betThumb"></div>
                 </div>
                 <div class="slider-ticks">
                     <div class="tick">1%</div>
@@ -1107,7 +1136,7 @@
         <div class="stats-bar">
             <div class="stat-item">
                 <div class="stat-label">BEST</div>
-                <div class="stat-value" id="bestBalance">$10,000</div>
+                <div class="stat-value" id="bestBalance">$10k</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">TRADES</div>
@@ -1205,9 +1234,11 @@
             leverageValue: document.getElementById('leverageValue'),
             leverageFill: document.getElementById('leverageFill'),
             leverageDots: document.getElementById('leverageDots'),
+            leverageThumb: document.getElementById('leverageThumb'),
             betSlider: document.getElementById('betSlider'),
             betPercentageValue: document.getElementById('betPercentageValue'),
             betFill: document.getElementById('betFill'),
+            betThumb: document.getElementById('betThumb'),
             tradeInfo: document.getElementById('tradeInfo'),
             unlockInfo: document.getElementById('unlockInfo'),
             
@@ -1271,7 +1302,21 @@
 
         // ==================== UTILITY FUNCTIONS ====================
         function formatCurrency(amount) {
-            return '$' + Math.round(amount).toLocaleString();
+            if (amount >= 1000000) {
+                return '$' + (amount / 1000000).toFixed(1) + 'M';
+            } else if (amount >= 1000) {
+                return '$' + (amount / 1000).toFixed(1) + 'k';
+            }
+            return '$' + Math.round(amount);
+        }
+
+        function formatNumberAbbreviation(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'k';
+            }
+            return num.toString();
         }
 
         // ORIGINAL PROBABILITY SYSTEM
@@ -1329,6 +1374,7 @@
             loadGameState();
             setupEventListeners();
             updateUI();
+            updateSliderThumbs();
             startNewRound();
         }
 
@@ -1398,6 +1444,7 @@
                 if (state.chartData.length > 0) {
                     drawChart();
                 }
+                updateSliderThumbs();
             });
         }
 
@@ -1682,7 +1729,7 @@
         function updateUI() {
             // Update balance
             dom.balanceAmount.textContent = formatCurrency(state.balance);
-            dom.bestBalanceElement.textContent = '$' + Math.round(state.bestBalance).toLocaleString();
+            dom.bestBalanceElement.textContent = formatCurrency(state.bestBalance);
             
             // Update change indicator
             updateChangeIndicator();
@@ -1700,6 +1747,9 @@
             
             // Update unlock info
             updateUnlockInfo();
+            
+            // Update slider thumbs
+            updateSliderThumbs();
         }
 
         function updateChangeIndicator() {
@@ -1754,6 +1804,26 @@
                                            winProb > 30 ? '#ffaa44' : '#ff4444';
         }
 
+        function updateSliderThumbs() {
+            // Update leverage thumb position
+            const leverageSliderWidth = dom.leverageSlider.offsetWidth;
+            const leverageValue = parseInt(dom.leverageSlider.value);
+            const leverageMax = parseInt(dom.leverageSlider.max) || 7;
+            const leveragePercent = (leverageValue / leverageMax) * 100;
+            const leverageThumbPos = (leveragePercent / 100) * leverageSliderWidth;
+            
+            dom.leverageThumb.style.left = `${leverageThumbPos}px`;
+            
+            // Update bet thumb position
+            const betSliderWidth = dom.betSlider.offsetWidth;
+            const betValue = parseInt(dom.betSlider.value);
+            const betMax = parseInt(dom.betSlider.max) || 100;
+            const betPercent = (betValue / betMax) * 100;
+            const betThumbPos = (betPercent / 100) * betSliderWidth;
+            
+            dom.betThumb.style.left = `${betThumbPos}px`;
+        }
+
         function updateTradeInfo() {
             const betAmount = calculateBetAmount();
             const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
@@ -1773,7 +1843,7 @@
             
             if (nextUnlock) {
                 const baseWin = Math.round(nextUnlock.baseWinChance * 100);
-                dom.unlockInfo.textContent = `Next: ${nextUnlock.leverage}x (${baseWin}% win) at $${nextUnlock.threshold.toLocaleString()}`;
+                dom.unlockInfo.textContent = `Next: ${nextUnlock.leverage}x (${baseWin}% win) at ${formatCurrency(nextUnlock.threshold)}`;
                 dom.unlockInfo.style.color = '#ffaa44';
             } else {
                 dom.unlockInfo.textContent = 'All leverages unlocked!';
@@ -1874,7 +1944,7 @@
                         <div class="rank-name">${player.name}</div>
                         <div class="rank-level">${player.level}</div>
                     </div>
-                    <div class="rank-balance">$${player.balance.toLocaleString()}</div>
+                    <div class="rank-balance">${formatCurrency(player.balance)}</div>
                 `;
                 dom.rankList.appendChild(rankItem);
             });
@@ -1985,4 +2055,3 @@
     </script>
 </body>
 </html>
-```
