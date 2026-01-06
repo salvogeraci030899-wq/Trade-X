@@ -1078,15 +1078,15 @@
                     button.classList.remove('pressed');
                 });
                 
-                // Eventi per touch (mobile)
-                button.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
+                // Eventi per touch
+                button.addEventListener('touchstart', () => {
                     button.classList.add('pressed');
-                }, { passive: false });
+                });
                 
-                button.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    button.classList.remove('pressed');
+                button.addEventListener('touchend', () => {
+                    setTimeout(() => {
+                        button.classList.remove('pressed');
+                    }, 150);
                 });
                 
                 button.addEventListener('touchcancel', () => {
