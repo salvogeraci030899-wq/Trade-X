@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>XTrade - Sistema Leva Progressiva</title>
+    <title>XTrade - Sistema Leva Progressiva Dinamico</title>
     <style>
         /* Disabilita tutte le interazioni di selezione e zoom */
         * {
@@ -602,7 +602,7 @@
             font-size: 12px;
             color: #666;
             margin-top: 5px;
-            height: 40px;
+            height: 50px;
             line-height: 1.4;
         }
         
@@ -636,6 +636,15 @@
             font-size: 12px;
             color: #666;
             border-top: 1px solid #222;
+        }
+        
+        .risk-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 5px;
+            vertical-align: middle;
         }
 
         /* Stili per la scrollbar - MODIFICATI: più visibili */
@@ -722,6 +731,11 @@
                 padding: 15px;
                 padding-top: 50px;
             }
+            
+            .bet-info {
+                font-size: 11px;
+                height: 55px;
+            }
         }
         
         @media (max-width: 320px) {
@@ -764,6 +778,11 @@
             .game-title {
                 height: 40px; /* MODIFICATO: ulteriormente ridotto per schermi molto piccoli */
             }
+            
+            .bet-info {
+                font-size: 10px;
+                height: 60px;
+            }
         }
     </style>
 </head>
@@ -794,24 +813,31 @@
         </div>
         <div class="page-content">
             <h2>Benvenuto in XTrade</h2>
-            <p>XTrade è un simulatore di trading con sistema di leva progressiva. Gestisci il tuo capitale, scegli il livello di rischio e cerca di battere il tuo record.</p>
+            <p>XTrade è un simulatore di trading con sistema di leva progressiva dinamica. Gestisci il tuo capitale, scegli il livello di rischio e cerca di battere il tuo record.</p>
             
             <h2>Come Funziona</h2>
             <ul>
                 <li><strong>Analisi del grafico</strong>: Osserva l'andamento del prezzo e prevedi se salirà (LONG) o scenderà (SHORT)</li>
-                <li><strong>Sistema a livelli</strong>: Sblocca livelli di leva più alti raggiungendo determinati saldi</li>
-                <li><strong>Gestione del rischio</strong>: Maggiore è la leva, maggiore è il potenziale guadagno... e la perdita!</li>
+                <li><strong>Sistema dinamico</strong>: La probabilità di vincita dipende da LEVA e PUNTATA</li>
+                <li><strong>Gestione del rischio</strong>: Maggiore è la leva O la puntata, minore è la probabilità di vincita</li>
                 <li><strong>Record personale</strong>: Il tuo record massimo viene salvato e non viene azzerato in caso di bancarotta</li>
             </ul>
             
-            <h2>Sistema dei Livelli</h2>
-            <p>I livelli rappresentano il tuo progresso nel gioco:</p>
+            <h2>Sistema Dinamico delle Probabilità</h2>
+            <p>La probabilità di vincita si calcola così:</p>
             <ul>
-                <li><strong>Basso</strong>: Leva 1x - 80% di probabilità di vincita</li>
-                <li><strong>Medio</strong>: Leve 2x-5x - Probabilità dal 70% al 50%</li>
-                <li><strong>Alto</strong>: Leva 10x-20x - Probabilità dal 40% al 30%</li>
-                <li><strong>Estremo</strong>: Leva 50x - 20% di probabilità</li>
-                <li><strong>Insano</strong>: Leva 100x - 20% di probabilità!</li>
+                <li><strong>Probabilità Base</strong>: Dipende dalla leva scelta (da 80% a 20%)</li>
+                <li><strong>Penalità Puntata</strong>: Ogni 1% di puntata riduce la probabilità dello 0.5%</li>
+                <li><strong>Probabilità Finale</strong>: Probabilità Base × (1 - (Puntata% / 200))</li>
+                <li><strong>Minimo Garantito</strong>: Non scende mai sotto il 5%</li>
+            </ul>
+            
+            <h2>Esempi Pratici</h2>
+            <ul>
+                <li><strong>Prudente</strong>: Leva 1x (80%) + Puntata 5% → 78% di vincita</li>
+                <li><strong>Rischioso</strong>: Leva 10x (40%) + Puntata 20% → 36% di vincita</li>
+                <li><strong>Estremo</strong>: Leva 100x (20%) + Puntata 50% → 15% di vincita</li>
+                <li><strong>Suicida</strong>: Leva 100x (20%) + Puntata 100% → 10% di vincita</li>
             </ul>
             
             <h2>Soglie di Sblocco</h2>
@@ -825,13 +851,13 @@
                 <li><strong>Leva 100x</strong>: Sbloccata a $100,000</li>
             </ul>
             
-            <h2>Consigli</h2>
+            <h2>Consigli Strategici</h2>
             <ul>
-                <li>Inizia con leve basse per familiarizzare con il sistema</li>
-                <li>Gestisci sempre la tua puntata in percentuale del capitale</li>
-                <li>Con leva alta, anche piccole puntate possono causare grandi perdite</li>
-                <li>Non puntare tutto su un singolo trade</li>
-                <li>Ricorda: il trading reale comporta rischi finanziari reali</li>
+                <li>Inizia con leve basse e puntate piccole per familiarizzare</li>
+                <li>Gestisci il rischio: alta leva + alta puntata = probabilità bassissime</li>
+                <li>Per massimizzare il valore atteso, bilancia leva e puntata</li>
+                <li>Non puntare mai più del 20% con leve sopra 10x</li>
+                <li>Ricorda: nel trading reale, la gestione del capitale è tutto!</li>
             </ul>
             
             <p style="margin-top: 30px; color: #666; font-size: 14px; text-align: center;">
@@ -857,8 +883,6 @@
                     <span class="toggle-slider"></span>
                 </label>
             </div>
-            
-            <!-- SEZIONE "Sistema dei Livelli" RIMOSSA -->
             
             <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 5px;">
                 <div class="settings-label">Reset Dati</div>
@@ -891,14 +915,14 @@
     <div class="controls-container">
         <div class="leverage-controls">
             <div class="control">
-                <label>PUNTATA (%)</label>
+                <label>PUNTATA (%) <span class="risk-indicator" id="betRiskIndicator" style="background: #44ff44;"></span></label>
                 <div class="slider-container">
                     <input type="range" min="1" max="100" value="5" id="percentageSlider">
                     <span class="slider-value" id="percentageValue">5%</span>
                 </div>
             </div>
             <div class="control">
-                <label>LEVA (RISCHIO)</label>
+                <label>LEVA (RISCHIO) <span class="risk-indicator" id="leverageRiskIndicator" style="background: #44ff44;"></span></label>
                 <div class="slider-container">
                     <input type="range" min="0" max="7" value="0" id="leverageSlider">
                     <span class="slider-value" id="leverageValue">1x</span>
@@ -906,7 +930,7 @@
             </div>
         </div>
         
-        <div class="bet-info" id="betInfo">Puntata: $50 (5%) | Leva: 1x (80% win)</div>
+        <div class="bet-info" id="betInfo">Puntata: $50 (5%) | Leva: 1x | Probabilità: 78% (base: 80%)</div>
         
         <div class="unlock-info" id="unlockInfo"></div>
         
@@ -929,19 +953,18 @@
 
     <script>
         // ==================== SISTEMA LEVE ====================
-        // MODIFICATO: Probabilità più realistiche per bilanciare il sistema simmetrico
         const LEVERAGE_SETTINGS = [
-            { leverage: 1, winChance: 0.80, color: "#44ff44", name: "Novizio", level: "Basso" },
-            { leverage: 2, winChance: 0.70, color: "#66ff66", name: "Principiante", level: "Medio" },
-            { leverage: 3, winChance: 0.60, color: "#88ff88", name: "Intermedio", level: "Medio" },
-            { leverage: 5, winChance: 0.50, color: "#ffff44", name: "Esperto", level: "Medio" },
-            { leverage: 10, winChance: 0.40, color: "#ffaa44", name: "Risky", level: "Alto" },
-            { leverage: 20, winChance: 0.30, color: "#ff7744", name: "High Risk", level: "Alto" },
-            { leverage: 50, winChance: 0.20, color: "#ff4444", name: "Extreme", level: "Estremo" },
-            { leverage: 100, winChance: 0.20, color: "#ff2244", name: "Insano", level: "Insano" } // MODIFICATO: da 10% a 20%
+            { leverage: 1, baseWinChance: 0.80, color: "#44ff44", name: "Novizio", level: "Basso" },
+            { leverage: 2, baseWinChance: 0.70, color: "#66ff66", name: "Principiante", level: "Medio" },
+            { leverage: 3, baseWinChance: 0.60, color: "#88ff88", name: "Intermedio", level: "Medio" },
+            { leverage: 5, baseWinChance: 0.50, color: "#ffff44", name: "Esperto", level: "Medio" },
+            { leverage: 10, baseWinChance: 0.40, color: "#ffaa44", name: "Risky", level: "Alto" },
+            { leverage: 20, baseWinChance: 0.30, color: "#ff7744", name: "High Risk", level: "Alto" },
+            { leverage: 50, baseWinChance: 0.20, color: "#ff4444", name: "Extreme", level: "Estremo" },
+            { leverage: 100, baseWinChance: 0.20, color: "#ff2244", name: "Insano", level: "Insano" }
         ];
 
-        // ==================== MODIFICA: SOGLIE DI SBLOCCO PIÙ ALTE ====================
+        // ==================== SOGLIE DI SBLOCCO PIÙ ALTE ====================
         const LEVERAGE_UNLOCKS = [
             { threshold: 1000, maxLeverageIndex: 0 },     // 1x (sbloccata all'inizio)
             { threshold: 1500, maxLeverageIndex: 1 },     // 2x
@@ -954,7 +977,6 @@
         ];
 
         // ==================== VARIABILI GLOBALI ====================
-        // MODIFICATO: Saldo iniziale aumentato da 100 a 1000
         let balance = 1000;
         let bestBalance = 1000;
         let chartData = [];
@@ -967,7 +989,6 @@
         let chartColor = "#fff";
         let tradeResult = null;
         
-        // MODIFICATO: Puntata predefinita ridotta da 10% a 5% per gestire meglio il rischio
         let betPercentage = 5;
         let leverageIndex = 0;
         let leverage = 1;
@@ -1016,6 +1037,41 @@
         const currentLevelElement = document.getElementById('currentLevel');
         const unlockedCountElement = document.getElementById('unlockedCount');
         const totalTradesElement = document.getElementById('totalTrades');
+        const betRiskIndicator = document.getElementById('betRiskIndicator');
+        const leverageRiskIndicator = document.getElementById('leverageRiskIndicator');
+
+        // ==================== FUNZIONI DINAMICHE DEL NUOVO SISTEMA ====================
+        
+        // Funzione per calcolare la probabilità dinamica in base a leva e puntata
+        function getDynamicWinChance(baseWinChance, betPercent) {
+            // Ogni 1% di puntata riduce la probabilità dello 0.5%
+            // Formula: Probabilità Finale = Probabilità Base × (1 - (Puntata% / 200))
+            const penalty = betPercent / 200; // Massimo 0.5 (50%) quando puntata = 100%
+            const dynamicChance = baseWinChance * (1 - penalty);
+            
+            // Assicuriamoci che non scenda sotto il 5%
+            return Math.max(0.05, dynamicChance);
+        }
+        
+        // Funzione per calcolare il colore del rischio
+        function getRiskColor(riskLevel) {
+            if (riskLevel <= 0.3) return "#44ff44"; // Basso - Verde
+            if (riskLevel <= 0.5) return "#ffff44"; // Medio - Giallo
+            if (riskLevel <= 0.7) return "#ffaa44"; // Alto - Arancione
+            return "#ff4444"; // Estremo - Rosso
+        }
+        
+        // Funzione per calcolare il livello di rischio totale
+        function calculateTotalRisk(leverageIndex, betPercent) {
+            const settings = LEVERAGE_SETTINGS[leverageIndex];
+            const baseRisk = 1 - settings.baseWinChance; // Rischio base della leva
+            
+            // Rischio aggiuntivo della puntata: più punti, più rischi
+            const betRisk = betPercent / 100; // Da 0 a 1
+            
+            // Combiniamo i rischi (media pesata)
+            return (baseRisk * 0.7) + (betRisk * 0.3); // Da 0 a 1
+        }
 
         // ==================== FUNZIONI MENU ====================
         function openMenu() {
@@ -1042,9 +1098,8 @@
                 cancelAnimationFrame(animationId);
             }
             
-            // MODIFICA: Permetti scroll solo nelle pagine overlay
             if (pageOverlay === infoOverlay || pageOverlay === settingsOverlay) {
-                document.body.style.overflow = 'hidden'; // Mantiene nascosto lo scroll globale
+                document.body.style.overflow = 'hidden';
                 pageOverlay.querySelector('.page-content').style.overflowY = 'auto';
             }
         }
@@ -1056,7 +1111,6 @@
                 animateChart();
             }
             
-            // MODIFICA: Ripristina overflow nascosto
             document.body.style.overflow = 'hidden';
         }
 
@@ -1064,20 +1118,14 @@
         function playSound(type) {
             if (!audioEnabled) return;
             
-            // Questa è una struttura base per i suoni
-            // In un'app completa, qui caricheremmo file audio reali
             switch(type) {
                 case 'click':
-                    // Suono di click
                     break;
                 case 'win':
-                    // Suono di vittoria
                     break;
                 case 'lose':
-                    // Suono di perdita
                     break;
                 case 'error':
-                    // Suono di errore
                     break;
             }
         }
@@ -1105,7 +1153,7 @@
                     return {
                         threshold: unlock.threshold,
                         leverage: settings.leverage,
-                        winChance: settings.winChance,
+                        baseWinChance: settings.baseWinChance,
                         remaining: unlock.threshold - balance
                     };
                 }
@@ -1113,18 +1161,18 @@
             return null;
         }
 
+        // MODIFICATO: Usa la probabilità dinamica
         function isTradeSuccessful() {
             const settings = getCurrentLeverageSettings();
-            return Math.random() < settings.winChance;
+            const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
+            return Math.random() < dynamicChance;
         }
 
-        // ==================== MODIFICA PRINCIPALE: SISTEMA DI PUNTEGGIO SIMETRICO ====================
+        // ==================== SISTEMA DI PUNTEGGIO SIMETRICO ====================
         function calculateTradeResult(isWin, betAmount) {
             if (isWin) {
-                // VITTORIA: puntata * leva
                 return betAmount * leverage;
             } else {
-                // PERDITA: puntata * leva (STESSO MOLTIPLICATORE!)
                 return -betAmount * leverage;
             }
         }
@@ -1173,7 +1221,6 @@
                 audioToggle.checked = audioEnabled;
             }
             
-            // MODIFICA: Se il saldo salvato è inferiore a 1000, impostalo a 1000
             if (balance < 1000) {
                 balance = 1000;
             }
@@ -1184,6 +1231,7 @@
             updateBalanceDisplay();
             updateLeverageControls();
             updateBetInfo();
+            updateRiskIndicators();
             updateUnlockInfo();
             updateStats();
         }
@@ -1205,10 +1253,9 @@
                 localStorage.removeItem('tradingLeverageIndex');
                 localStorage.removeItem('tradingTotalTrades');
                 
-                // MODIFICA: Reset a 1000 invece di 100
                 balance = 1000;
                 bestBalance = 1000;
-                betPercentage = 5; // MODIFICATO: da 10% a 5%
+                betPercentage = 5;
                 leverageIndex = 0;
                 leverage = 1;
                 totalTrades = 0;
@@ -1221,11 +1268,11 @@
                 updateBalanceDisplay();
                 updateLeverageControls();
                 updateBetInfo();
+                updateRiskIndicators();
                 updateUnlockInfo();
                 updateStats();
                 saveGameState();
                 
-                // Chiudi le impostazioni e riavvia il gioco
                 closePage(settingsOverlay);
                 if (gameOverScreen.style.display === 'flex') {
                     gameOverScreen.style.display = 'none';
@@ -1238,7 +1285,6 @@
         }
 
         function updateBalanceDisplay() {
-            // MODIFICA: Formatta i numeri con separatore delle migliaia
             balanceElement.textContent = "$" + balance.toLocaleString();
             bestBalanceElement.textContent = "$" + bestBalance.toLocaleString();
         }
@@ -1264,24 +1310,53 @@
             leverageValue.style.color = settings.color;
         }
 
-        // ==================== MODIFICA: AGGIORNAMENTO INFO PUNTATA ====================
+        // ==================== MODIFICA: AGGIORNAMENTO INFO PUNTATA DINAMICA ====================
         function updateBetInfo() {
             const settings = getCurrentLeverageSettings();
             const bet = calculateBet();
-            const winChance = Math.round(settings.winChance * 100);
+            const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
+            const winChance = Math.round(dynamicChance * 100);
+            const baseWinChance = Math.round(settings.baseWinChance * 100);
             const potentialWin = bet * leverage;
-            const potentialLoss = bet * leverage; // MODIFICATO: stessa formula delle vincite
+            const potentialLoss = bet * leverage;
             
             let info = `Puntata: $${bet.toLocaleString()} (${betPercentage}%) | Leva: ${leverage}x`;
-            info += `<br>Probabilità: ${winChance}% | Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: -$${potentialLoss.toLocaleString()}`;
+            info += `<br>Probabilità: <strong>${winChance}%</strong> (base: ${baseWinChance}%)`;
+            info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: -$${potentialLoss.toLocaleString()}`;
             
             betInfo.innerHTML = info;
             betInfo.style.color = settings.color;
             
-            if (settings.winChance <= 0.3) {
+            if (dynamicChance <= 0.3) {
                 betInfo.classList.add('high-risk');
             } else {
                 betInfo.classList.remove('high-risk');
+            }
+        }
+        
+        // NUOVA FUNZIONE: Aggiorna indicatori di rischio
+        function updateRiskIndicators() {
+            // Calcola rischio per la puntata
+            const betRisk = betPercentage / 100; // Normalizza da 0 a 1
+            betRiskIndicator.style.backgroundColor = getRiskColor(betRisk);
+            
+            // Calcola rischio per la leva
+            const settings = getCurrentLeverageSettings();
+            const leverageRisk = 1 - settings.baseWinChance; // Più alta la leva, più alto il rischio
+            leverageRiskIndicator.style.backgroundColor = getRiskColor(leverageRisk);
+            
+            // Calcola rischio totale
+            const totalRisk = calculateTotalRisk(leverageIndex, betPercentage);
+            
+            // Cambia colore del titolo in base al rischio totale
+            if (totalRisk >= 0.7) {
+                document.querySelector('.game-title').style.color = '#ff4444';
+            } else if (totalRisk >= 0.5) {
+                document.querySelector('.game-title').style.color = '#ffaa44';
+            } else if (totalRisk >= 0.3) {
+                document.querySelector('.game-title').style.color = '#ffff44';
+            } else {
+                document.querySelector('.game-title').style.color = '#44ff44';
             }
         }
 
@@ -1297,8 +1372,8 @@
             unlockInfo.classList.remove('fade-out');
             
             if (next) {
-                const winChance = Math.round(next.winChance * 100);
-                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win) a $${next.threshold.toLocaleString()} ($${(next.remaining).toLocaleString()} rimanenti)`;
+                const baseWinChance = Math.round(next.baseWinChance * 100);
+                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (base: ${baseWinChance}% win) a $${next.threshold.toLocaleString()}`;
                 unlockInfo.style.color = "#ffaa44";
             } else {
                 unlockInfo.textContent = "Tutte le leve sbloccate!";
@@ -1314,7 +1389,6 @@
 
         function updateStats() {
             const settings = getCurrentLeverageSettings();
-            // Mostra il livello (Basso, Medio, Alto, Estremo, Insano) invece del nome
             currentLevelElement.textContent = settings.level;
             
             const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
@@ -1434,13 +1508,16 @@
             
             balance += result;
             
-            // ==================== MODIFICA: MESSAGGI DI RISULTATO ====================
+            // Calcola probabilità dinamica per il messaggio
+            const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
+            const winChance = Math.round(dynamicChance * 100);
+            
             if (win) {
-                statusMessage.textContent = `VITTORIA! +$${(bet * leverage).toLocaleString()} (${leverage}x)`;
+                statusMessage.textContent = `VITTORIA! +$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
                 chartColor = "#0c0";
                 playSound('win');
             } else {
-                statusMessage.textContent = `PERDITA! -$${(bet * leverage).toLocaleString()} (${leverage}x)`; // MODIFICATO
+                statusMessage.textContent = `PERDITA! -$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
                 chartColor = "#f00";
                 playSound('lose');
             }
@@ -1455,6 +1532,7 @@
             updateBalanceDisplay();
             updateLeverageControls();
             updateBetInfo();
+            updateRiskIndicators();
             updateUnlockInfo();
             updateStats();
             
@@ -1490,7 +1568,9 @@
             decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
             
             const settings = getCurrentLeverageSettings();
-            statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${Math.round(settings.winChance * 100)}% win)`;
+            const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
+            const winChance = Math.round(dynamicChance * 100);
+            statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${winChance}% win)`;
             disableTradeButtons();
             
             if (animationId) {
@@ -1548,12 +1628,11 @@
         }
 
         function restartGame() {
-            // MODIFICA: Reset a 1000 invece di 100
             balance = 1000;
             gameActive = true;
             leverageIndex = 0;
             leverage = 1;
-            betPercentage = 5; // MODIFICATO: da 10% a 5%
+            betPercentage = 5;
             totalTrades = 0;
             tradeResult = null;
             
@@ -1567,6 +1646,7 @@
             updateBalanceDisplay();
             updateLeverageControls();
             updateBetInfo();
+            updateRiskIndicators();
             updateUnlockInfo();
             updateStats();
             saveGameState();
@@ -1579,6 +1659,7 @@
             betPercentage = parseInt(percentageSlider.value);
             percentageValue.textContent = `${betPercentage}%`;
             updateBetInfo();
+            updateRiskIndicators();
             saveGameState();
             playSound('click');
         }
@@ -1591,6 +1672,7 @@
             leverageValue.style.color = settings.color;
             
             updateBetInfo();
+            updateRiskIndicators();
             updateStats();
             saveGameState();
             playSound('click');
@@ -1628,9 +1710,8 @@
         }, { passive: false });
 
         document.addEventListener('touchmove', function(e) {
-            // MODIFICA: Permetti scroll solo nei contenuti delle pagine overlay
             if (e.target.closest('.page-content')) {
-                return; // Permetti scroll
+                return;
             }
             if (!e.target.matches('input[type="range"]')) {
                 e.preventDefault();
