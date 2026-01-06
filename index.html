@@ -1322,7 +1322,13 @@
             
             let info = `Puntata: $${bet.toLocaleString()} (${betPercentage}%) | Leva: ${leverage}x`;
             info += `<br>Probabilità: <strong>${winChance}%</strong> (base: ${baseWinChance}%)`;
-            info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: -$${potentialLoss.toLocaleString()}`;
+            
+            // MODIFICA: Controlla se la perdita potenziale supera il saldo disponibile
+            if (potentialLoss > balance) {
+                info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: <strong style="color:#ff4444">BANCAROTTA</strong>`;
+            } else {
+                info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: -$${potentialLoss.toLocaleString()}`;
+            }
             
             betInfo.innerHTML = info;
             betInfo.style.color = settings.color;
