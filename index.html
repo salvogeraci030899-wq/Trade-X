@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>XTrade - Sistema Leva Progressiva Dinamico</title>
+    <title>XTRADE - Dynamic Progressive Leverage System</title>
     <style>
-        /* Disabilita tutte le interazioni di selezione e zoom */
+        /* Disable all selection and zoom interactions */
         * {
             margin: 0;
             padding: 0;
@@ -19,7 +19,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* Disabilita lo scroll su tutti gli elementi */
+        /* Disable scrolling on all elements */
         html, body {
             overflow: hidden;
             touch-action: none;
@@ -28,7 +28,7 @@
             height: 100%;
         }
         
-        /* Prevenire il comportamento di zoom con doppio tap */
+        /* Prevent zoom behavior with double tap */
         * {
             -webkit-user-drag: none;
         }
@@ -43,7 +43,7 @@
             flex-direction: column;
         }
         
-        /* Animazioni fluttuanti */
+        /* Floating animations */
         @keyframes float {
             0%, 100% {
                 transform: translateY(0px);
@@ -71,13 +71,13 @@
             }
         }
         
-        /* === ANIMAZIONI DI PRESSIONE TASTI === */
+        /* === BUTTON PRESS ANIMATIONS === */
         .trade-btn, .back-button, .restart-btn, .menu-item, #resetDataBtn {
             transition: transform 0.1s cubic-bezier(0.22, 0.61, 0.36, 1);
             transform-origin: center;
         }
         
-        /* Stato premuto per tutti i bottoni */
+        /* Pressed state for all buttons */
         .trade-btn:active, .back-button:active, .restart-btn:active, 
         .menu-item:active, #resetDataBtn:active,
         .trade-btn.pressed, .back-button.pressed, .restart-btn.pressed, 
@@ -85,15 +85,15 @@
             transform: scale(0.95);
         }
         
-        /* Disabilita animazione su bottoni disabilitati */
+        /* Disable animation on disabled buttons */
         .trade-btn:disabled:active, .trade-btn:disabled.pressed {
             transform: scale(1);
         }
         
-        /* Menu Button - CORRETTO: in alto a destra allineato al titolo */
+        /* Menu Button - CORRECT: top right aligned with title */
         .menu-button {
             position: absolute;
-            top: 10px; /* CORRETTO: stessa altezza del padding del titolo */
+            top: 10px;
             right: 20px;
             width: 30px;
             height: 30px;
@@ -117,14 +117,14 @@
             background: #fff;
         }
         
-        /* Menu Overlay - MODIFICATO: sfondo completamente nero senza trasparenza */
+        /* Menu Overlay - MODIFIED: completely black background without transparency */
         .menu-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000; /* MODIFICATO: da rgba(0,0,0,0.95) a #000 */
+            background: #000;
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -189,13 +189,17 @@
             animation-delay: 1.5s;
         }
         
+        .menu-item:nth-child(5) {
+            animation-delay: 2s;
+        }
+        
         .menu-item:hover {
             opacity: 1;
             transform: scale(1.05);
             animation-play-state: paused;
         }
         
-        /* Pagine Overlay */
+        /* Page Overlays */
         .page-overlay {
             position: fixed;
             top: 0;
@@ -231,39 +235,20 @@
             animation: float-subtle 5s ease-in-out infinite;
         }
         
-        /* MODIFICA: Contenuto pagina Info scorrevole - CORRETTO */
-        #infoOverlay .page-content {
+        /* MODIFICATION: Scrollable Info page content - CORRECT */
+        #infoOverlay .page-content,
+        #accountOverlay .page-content,
+        #rankOverlay .page-content,
+        #settingsOverlay .page-content {
             flex: 1;
             line-height: 1.6;
             font-size: 16px;
             color: #ccc;
-            overflow-y: auto !important; /* MODIFICATO: forzato auto */
-            -webkit-overflow-scrolling: touch !important; /* MODIFICATO: forzato touch */
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
             padding-right: 10px;
-            touch-action: pan-y !important; /* MODIFICATO: permesso scroll verticale */
+            touch-action: pan-y !important;
             overscroll-behavior: contain;
-        }
-        
-        /* MODIFICA: Contenuto Settings scorrevole */
-        #settingsOverlay .page-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto !important; /* MODIFICATO: forzato auto */
-            -webkit-overflow-scrolling: touch !important; /* MODIFICATO: forzato touch */
-            padding-right: 10px;
-            touch-action: pan-y !important; /* MODIFICATO: permesso scroll verticale */
-            overscroll-behavior: contain;
-        }
-        
-        /* MODIFICA: Contenuto scrollabile specifico per info */
-        #infoOverlay {
-            display: none;
-            flex-direction: column;
-        }
-        
-        #infoOverlay.active {
-            display: flex;
         }
         
         .page-content h2 {
@@ -367,14 +352,14 @@
             border-radius: 50%;
         }
         
-        /* MODIFICATO: toggle audio in bianco e nero */
+        /* MODIFIED: black and white audio toggle */
         input:checked + .toggle-slider {
-            background-color: #fff; /* Bianco invece di verde */
+            background-color: #fff;
         }
         
         input:checked + .toggle-slider:before {
             transform: translateX(26px);
-            background-color: #000; /* Nero invece di bianco */
+            background-color: #000;
         }
         
         .level-item {
@@ -403,7 +388,7 @@
             display: inline-block;
         }
         
-        /* MODIFICATO: titolo cambiato da XTRADE a XTrade con animazione */
+        /* MODIFIED: title changed to XTRADE with animation */
         .game-title {
             text-align: center;
             font-size: 24px;
@@ -414,7 +399,7 @@
             background: #000;
             color: #fff;
             position: relative;
-            height: 44px; /* MODIFICATO: altezza fissa per allineamento */
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -665,8 +650,104 @@
             margin-left: 5px;
             vertical-align: middle;
         }
-
-        /* Stili per la scrollbar - MODIFICATI: più visibili */
+        
+        /* Account page styles */
+        .account-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #222;
+        }
+        
+        .stat-card h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #fff;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #888;
+        }
+        
+        .stat-value {
+            color: #fff;
+        }
+        
+        .global-stats {
+            margin-top: 30px;
+        }
+        
+        .username-section {
+            margin-bottom: 20px;
+        }
+        
+        .username-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .username-input:focus {
+            outline: none;
+            border-color: #fff;
+        }
+        
+        /* Rank page styles */
+        .rank-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+        }
+        
+        .rank-position {
+            font-size: 18px;
+            font-weight: 300;
+            min-width: 40px;
+        }
+        
+        .rank-user {
+            flex: 1;
+            font-size: 16px;
+        }
+        
+        .rank-balance {
+            font-size: 16px;
+            color: #4CAF50;
+        }
+        
+        .rank-level {
+            font-size: 12px;
+            color: #888;
+            margin-top: 3px;
+        }
+        
+        /* Scrollbar styles - MODIFIED: more visible */
         .page-content::-webkit-scrollbar {
             width: 8px;
         }
@@ -685,10 +766,10 @@
             background: rgba(255, 255, 255, 0.4);
         }
 
-        /* Media query per schermi piccoli */
+        /* Media query for small screens */
         @media (max-width: 380px) {
             .menu-button {
-                top: 10px; /* CORRETTO: stessa altezza per schermi piccoli */
+                top: 10px;
                 right: 15px;
                 width: 25px;
                 height: 25px;
@@ -734,7 +815,7 @@
             .game-title {
                 padding: 10px 12px;
                 font-size: 22px;
-                height: 42px; /* MODIFICATO: altezza ridotta per schermi piccoli */
+                height: 42px;
             }
             
             .header {
@@ -759,7 +840,7 @@
         
         @media (max-width: 320px) {
             .menu-button {
-                top: 10px; /* CORRETTO: stessa altezza per schermi molto piccoli */
+                top: 10px;
                 right: 12px;
             }
             
@@ -795,7 +876,7 @@
             }
             
             .game-title {
-                height: 40px; /* MODIFICATO: ulteriormente ridotto per schermi molto piccoli */
+                height: 40px;
             }
             
             .bet-info {
@@ -818,84 +899,201 @@
         <div class="menu-close" id="menuClose">✕</div>
         <div class="menu-items">
             <button class="menu-item" id="accountBtn">Account</button>
-            <button class="menu-item" id="rankBtn">Classifica</button>
-            <button class="menu-item" id="settingsBtn">Impostazioni</button>
+            <button class="menu-item" id="rankBtn">Ranking</button>
+            <button class="menu-item" id="settingsBtn">Settings</button>
             <button class="menu-item" id="infoBtn">Info</button>
         </div>
     </div>
     
-    <!-- Info Page Overlay - MODIFICATO: struttura per scroll corretto -->
+    <!-- Account Page Overlay -->
+    <div class="page-overlay" id="accountOverlay">
+        <div class="page-header">
+            <h1 class="page-title">Account</h1>
+            <button class="back-button" id="accountBackBtn">Back</button>
+        </div>
+        <div class="page-content">
+            <div class="username-section">
+                <h2>Username</h2>
+                <input type="text" class="username-input" id="usernameInput" placeholder="Enter your username" maxlength="20">
+            </div>
+            
+            <div class="account-stats">
+                <div class="stat-card">
+                    <h3>Personal Statistics</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Current Balance:</span>
+                        <span class="stat-value" id="accountBalance">$1,000</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Best Balance:</span>
+                        <span class="stat-value" id="accountBestBalance">$1,000</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Trades:</span>
+                        <span class="stat-value" id="accountTotalTrades">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Current Level:</span>
+                        <span class="stat-value" id="accountCurrentLevel">Novice</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Unlocked Leverages:</span>
+                        <span class="stat-value" id="accountUnlockedCount">1/8</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Leverage Statistics</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">1x Leverage:</span>
+                        <span class="stat-value" id="leverage1Stats">0/0 (0%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">2x Leverage:</span>
+                        <span class="stat-value" id="leverage2Stats">0/0 (0%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">3x Leverage:</span>
+                        <span class="stat-value" id="leverage3Stats">0/0 (0%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">5x Leverage:</span>
+                        <span class="stat-value" id="leverage5Stats">0/0 (0%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">10x Leverage:</span>
+                        <span class="stat-value" id="leverage10Stats">0/0 (0%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">20x Leverage:</span>
+                        <span class="stat-value" id="leverage20Stats">0/0 (0%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">50x Leverage:</span>
+                        <span class="stat-value" id="leverage50Stats">0/0 (0%)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">100x Leverage:</span>
+                        <span class="stat-value" id="leverage100Stats">0/0 (0%)</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card global-stats">
+                    <h3>Global Statistics</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Players:</span>
+                        <span class="stat-value" id="globalPlayers">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Global Best Balance:</span>
+                        <span class="stat-value" id="globalBestBalance">$1,000</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Trades (All):</span>
+                        <span class="stat-value" id="globalTotalTrades">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Most Used Leverage:</span>
+                        <span class="stat-value" id="globalMostUsedLeverage">1x</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rank Page Overlay -->
+    <div class="page-overlay" id="rankOverlay">
+        <div class="page-header">
+            <h1 class="page-title">Ranking</h1>
+            <button class="back-button" id="rankBackBtn">Back</button>
+        </div>
+        <div class="page-content">
+            <h2>Top Players</h2>
+            <div id="rankList">
+                <div class="rank-item">
+                    <div class="rank-position">1</div>
+                    <div class="rank-user">
+                        <div>Player</div>
+                        <div class="rank-level">Novice</div>
+                    </div>
+                    <div class="rank-balance">$1,000</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Page Overlay -->
     <div class="page-overlay" id="infoOverlay">
         <div class="page-header">
             <h1 class="page-title">Info</h1>
-            <button class="back-button" id="infoBackBtn">Indietro</button>
+            <button class="back-button" id="infoBackBtn">Back</button>
         </div>
         <div class="page-content">
-            <h2>Benvenuto in XTrade</h2>
-            <p>XTrade è un simulatore di trading con sistema di leva progressiva dinamica. Gestisci il tuo capitale, scegli il livello di rischio e cerca di battere il tuo record.</p>
+            <h2>Welcome to XTRADE</h2>
+            <p>XTRADE is a trading simulator with a dynamic progressive leverage system. Manage your capital, choose your risk level, and try to beat your record.</p>
             
-            <h2>Come Funziona</h2>
+            <h2>How It Works</h2>
             <ul>
-                <li><strong>Analisi del grafico</strong>: Osserva l'andamento del prezzo e prevedi se salirà (LONG) o scenderà (SHORT)</li>
-                <li><strong>Sistema dinamico</strong>: La probabilità di vincita dipende da LEVA e PUNTATA</li>
-                <li><strong>Gestione del rischio</strong>: Maggiore è la leva O la puntata, minore è la probabilità di vincita</li>
-                <li><strong>Record personale</strong>: Il tuo record massimo viene salvato e non viene azzerato in caso di bancarotta</li>
+                <li><strong>Chart Analysis</strong>: Observe price trends and predict if it will rise (LONG) or fall (SHORT)</li>
+                <li><strong>Dynamic System</strong>: Win probability depends on LEVERAGE and BET</li>
+                <li><strong>Risk Management</strong>: Higher leverage OR bet means lower win probability</li>
+                <li><strong>Personal Record</strong>: Your maximum record is saved and not reset in case of bankruptcy</li>
             </ul>
             
-            <h2>Sistema Dinamico delle Probabilità</h2>
-            <p>La probabilità di vincita si calcola così:</p>
+            <h2>Dynamic Probability System</h2>
+            <p>Win probability is calculated as follows:</p>
             <ul>
-                <li><strong>Probabilità Base</strong>: Dipende dalla leva scelta (da 80% a 20%)</li>
-                <li><strong>Penalità Puntata</strong>: Ogni 1% di puntata riduce la probabilità dello 0.5%</li>
-                <li><strong>Probabilità Finale</strong>: Probabilità Base × (1 - (Puntata% / 200))</li>
-                <li><strong>Minimo Garantito</strong>: Non scende mai sotto il 5%</li>
+                <li><strong>Base Probability</strong>: Depends on chosen leverage (from 80% to 20%)</li>
+                <li><strong>Bet Penalty</strong>: Every 1% of bet reduces probability by 0.5%</li>
+                <li><strong>Final Probability</strong>: Base Probability × (1 - (Bet% / 200))</li>
+                <li><strong>Minimum Guaranteed</strong>: Never goes below 5%</li>
             </ul>
             
-            <h2>Esempi Pratici</h2>
+            <h2>Practical Examples</h2>
             <ul>
-                <li><strong>Prudente</strong>: Leva 1x (80%) + Puntata 5% → 78% di vincita</li>
-                <li><strong>Rischioso</strong>: Leva 10x (40%) + Puntata 20% → 36% di vincita</li>
-                <li><strong>Estremo</strong>: Leva 100x (20%) + Puntata 50% → 15% di vincita</li>
-                <li><strong>Suicida</strong>: Leva 100x (20%) + Puntata 100% → 10% di vincita</li>
+                <li><strong>Prudent</strong>: Leverage 1x (80%) + Bet 5% → 78% win chance</li>
+                <li><strong>Risky</strong>: Leverage 10x (40%) + Bet 20% → 36% win chance</li>
+                <li><strong>Extreme</strong>: Leverage 100x (20%) + Bet 50% → 15% win chance</li>
+                <li><strong>Suicidal</strong>: Leverage 100x (20%) + Bet 100% → 10% win chance</li>
             </ul>
             
-            <h2>Soglie di Sblocco</h2>
+            <h2>Unlock Thresholds</h2>
             <ul>
-                <li><strong>Leva 2x</strong>: Sbloccata a $1,500</li>
-                <li><strong>Leva 3x</strong>: Sbloccata a $2,500</li>
-                <li><strong>Leva 5x</strong>: Sbloccata a $5,000</li>
-                <li><strong>Leva 10x</strong>: Sbloccata a $10,000</li>
-                <li><strong>Leva 20x</strong>: Sbloccata a $25,000</li>
-                <li><strong>Leva 50x</strong>: Sbloccata a $50,000</li>
-                <li><strong>Leva 100x</strong>: Sbloccata a $100,000</li>
+                <li><strong>Leverage 2x</strong>: Unlocked at $1,500</li>
+                <li><strong>Leverage 3x</strong>: Unlocked at $2,500</li>
+                <li><strong>Leverage 5x</strong>: Unlocked at $5,000</li>
+                <li><strong>Leverage 10x</strong>: Unlocked at $10,000</li>
+                <li><strong>Leverage 20x</strong>: Unlocked at $25,000</li>
+                <li><strong>Leverage 50x</strong>: Unlocked at $50,000</li>
+                <li><strong>Leverage 100x</strong>: Unlocked at $100,000</li>
             </ul>
             
-            <h2>Consigli Strategici</h2>
+            <h2>Strategic Advice</h2>
             <ul>
-                <li>Inizia con leve basse e puntate piccole per familiarizzare</li>
-                <li>Gestisci il rischio: alta leva + alta puntata = probabilità bassissime</li>
-                <li>Per massimizzare il valore atteso, bilancia leva e puntata</li>
-                <li>Non puntare mai più del 20% con leve sopra 10x</li>
-                <li>Ricorda: nel trading reale, la gestione del capitale è tutto!</li>
+                <li>Start with low leverages and small bets to get familiar</li>
+                <li>Manage risk: high leverage + high bet = very low probabilities</li>
+                <li>To maximize expected value, balance leverage and bet</li>
+                <li>Never bet more than 20% with leverages above 10x</li>
+                <li>Remember: in real trading, capital management is everything!</li>
             </ul>
             
             <p style="margin-top: 30px; color: #666; font-size: 14px; text-align: center;">
-                XTrade - Simulatore educativo per comprendere i rischi del trading con leva
+                XTRADE - Educational simulator to understand the risks of leverage trading
             </p>
         </div>
     </div>
     
-    <!-- Settings Page Overlay - MODIFICATO: rimossa sezione "Sistema dei livelli" -->
+    <!-- Settings Page Overlay -->
     <div class="page-overlay" id="settingsOverlay">
         <div class="page-header">
-            <h1 class="page-title">Impostazioni</h1>
-            <button class="back-button" id="settingsBackBtn">Indietro</button>
+            <h1 class="page-title">Settings</h1>
+            <button class="back-button" id="settingsBackBtn">Back</button>
         </div>
         <div class="page-content">
             <div class="settings-option">
                 <div>
                     <div class="settings-label">Audio</div>
-                    <div class="settings-description">Attiva/disattiva gli effetti sonori del gioco</div>
+                    <div class="settings-description">Enable/disable game sound effects</div>
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" id="audioToggle" checked>
@@ -904,15 +1102,15 @@
             </div>
             
             <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 5px;">
-                <div class="settings-label">Reset Dati</div>
-                <div class="settings-description" style="margin-bottom: 15px;">Cancella tutti i dati di gioco salvati e riparti da zero</div>
-                <button class="back-button" id="resetDataBtn" style="width: 100%;">Reset Dati di Gioco</button>
+                <div class="settings-label">Reset Data</div>
+                <div class="settings-description" style="margin-bottom: 15px;">Delete all saved game data and start from zero</div>
+                <button class="back-button" id="resetDataBtn" style="width: 100%;">Reset Game Data</button>
             </div>
         </div>
     </div>
     
-    <!-- Main Game Interface - MODIFICATO: titolo cambiato da XTRADE a XTrade -->
-    <div class="game-title">XTrade</div>
+    <!-- Main Game Interface - MODIFIED: title changed to XTRADE -->
+    <div class="game-title">XTRADE</div>
     
     <div class="header">
         <div class="balance-container">
@@ -921,7 +1119,7 @@
                 <div class="balance-value" id="bestBalance">$1,000</div>
             </div>
             <div class="balance-row">
-                <div class="balance-label">Saldo:</div>
+                <div class="balance-label">Balance:</div>
                 <div class="balance-value" id="balance">$1,000</div>
             </div>
         </div>
@@ -929,19 +1127,19 @@
     
     <canvas id="chartCanvas"></canvas>
     
-    <div class="status" id="statusMessage">Analisi del mercato...</div>
+    <div class="status" id="statusMessage">Market analysis...</div>
     
     <div class="controls-container">
         <div class="leverage-controls">
             <div class="control">
-                <label>PUNTATA (%) <span class="risk-indicator" id="betRiskIndicator" style="background: #44ff44;"></span></label>
+                <label>BET (%) <span class="risk-indicator" id="betRiskIndicator" style="background: #44ff44;"></span></label>
                 <div class="slider-container">
                     <input type="range" min="1" max="100" value="5" id="percentageSlider">
                     <span class="slider-value" id="percentageValue">5%</span>
                 </div>
             </div>
             <div class="control">
-                <label>LEVA (RISCHIO) <span class="risk-indicator" id="leverageRiskIndicator" style="background: #44ff44;"></span></label>
+                <label>LEVERAGE (RISK) <span class="risk-indicator" id="leverageRiskIndicator" style="background: #44ff44;"></span></label>
                 <div class="slider-container">
                     <input type="range" min="0" max="7" value="0" id="leverageSlider">
                     <span class="slider-value" id="leverageValue">1x</span>
@@ -949,7 +1147,7 @@
             </div>
         </div>
         
-        <div class="bet-info" id="betInfo">Puntata: $50 (5%) | Leva: 1x | Probabilità: 78% (base: 80%)</div>
+        <div class="bet-info" id="betInfo">Bet: $50 (5%) | Leverage: 1x | Probability: 78% (base: 80%)</div>
         
         <div class="unlock-info" id="unlockInfo"></div>
         
@@ -960,32 +1158,32 @@
     </div>
     
     <div class="stats">
-        <div>Livello: <span id="currentLevel">Novizio</span></div>
-        <div>Leve sbloccate: <span id="unlockedCount">1/8</span></div>
-        <div>Trade totali: <span id="totalTrades">0</span></div>
+        <div>Level: <span id="currentLevel">Novice</span></div>
+        <div>Unlocked leverages: <span id="unlockedCount">1/8</span></div>
+        <div>Total trades: <span id="totalTrades">0</span></div>
     </div>
     
     <div class="game-over" id="gameOverScreen">
-        <h2>BANCAROTTA</h2>
-        <button id="restartBtn" class="restart-btn">RIPROVA</button>
+        <h2>BANKRUPTCY</h2>
+        <button id="restartBtn" class="restart-btn">TRY AGAIN</button>
     </div>
 
     <script>
-        // ==================== SISTEMA LEVE ====================
+        // ==================== LEVERAGE SYSTEM ====================
         const LEVERAGE_SETTINGS = [
-            { leverage: 1, baseWinChance: 0.80, color: "#44ff44", name: "Novizio", level: "Basso" },
-            { leverage: 2, baseWinChance: 0.70, color: "#66ff66", name: "Principiante", level: "Medio" },
-            { leverage: 3, baseWinChance: 0.60, color: "#88ff88", name: "Intermedio", level: "Medio" },
-            { leverage: 5, baseWinChance: 0.50, color: "#ffff44", name: "Esperto", level: "Medio" },
-            { leverage: 10, baseWinChance: 0.40, color: "#ffaa44", name: "Risky", level: "Alto" },
-            { leverage: 20, baseWinChance: 0.30, color: "#ff7744", name: "High Risk", level: "Alto" },
-            { leverage: 50, baseWinChance: 0.20, color: "#ff4444", name: "Extreme", level: "Estremo" },
-            { leverage: 100, baseWinChance: 0.20, color: "#ff2244", name: "Insano", level: "Insano" }
+            { leverage: 1, baseWinChance: 0.80, color: "#44ff44", name: "Novice", level: "Low" },
+            { leverage: 2, baseWinChance: 0.70, color: "#66ff66", name: "Beginner", level: "Medium" },
+            { leverage: 3, baseWinChance: 0.60, color: "#88ff88", name: "Intermediate", level: "Medium" },
+            { leverage: 5, baseWinChance: 0.50, color: "#ffff44", name: "Expert", level: "Medium" },
+            { leverage: 10, baseWinChance: 0.40, color: "#ffaa44", name: "Risky", level: "High" },
+            { leverage: 20, baseWinChance: 0.30, color: "#ff7744", name: "High Risk", level: "High" },
+            { leverage: 50, baseWinChance: 0.20, color: "#ff4444", name: "Extreme", level: "Extreme" },
+            { leverage: 100, baseWinChance: 0.20, color: "#ff2244", name: "Insane", level: "Insane" }
         ];
 
-        // ==================== SOGLIE DI SBLOCCO PIÙ ALTE ====================
+        // ==================== HIGHER UNLOCK THRESHOLDS ====================
         const LEVERAGE_UNLOCKS = [
-            { threshold: 1000, maxLeverageIndex: 0 },     // 1x (sbloccata all'inizio)
+            { threshold: 1000, maxLeverageIndex: 0 },     // 1x (unlocked at start)
             { threshold: 1500, maxLeverageIndex: 1 },     // 2x
             { threshold: 2500, maxLeverageIndex: 2 },     // 3x
             { threshold: 5000, maxLeverageIndex: 3 },     // 5x
@@ -995,7 +1193,7 @@
             { threshold: 100000, maxLeverageIndex: 7 }    // 100x
         ];
 
-        // ==================== VARIABILI GLOBALI ====================
+        // ==================== GLOBAL VARIABLES ====================
         let balance = 1000;
         let bestBalance = 1000;
         let chartData = [];
@@ -1016,8 +1214,17 @@
         let leverageStats = {};
         let unlockMessageTimeout = null;
         let audioEnabled = true;
+        let username = "Player";
+        
+        // Global statistics simulation
+        let globalStats = {
+            totalPlayers: 1,
+            globalBestBalance: 1000,
+            globalTotalTrades: 0,
+            mostUsedLeverage: 1
+        };
 
-        // ==================== ELEMENTI DOM ====================
+        // ==================== DOM ELEMENTS ====================
         const canvas = document.getElementById('chartCanvas');
         const ctx = canvas.getContext('2d', { antialias: false });
         ctx.imageSmoothingEnabled = false;
@@ -1032,12 +1239,41 @@
         const infoBtn = document.getElementById('infoBtn');
         
         // Page overlays
+        const accountOverlay = document.getElementById('accountOverlay');
+        const rankOverlay = document.getElementById('rankOverlay');
         const infoOverlay = document.getElementById('infoOverlay');
         const settingsOverlay = document.getElementById('settingsOverlay');
+        const accountBackBtn = document.getElementById('accountBackBtn');
+        const rankBackBtn = document.getElementById('rankBackBtn');
         const infoBackBtn = document.getElementById('infoBackBtn');
         const settingsBackBtn = document.getElementById('settingsBackBtn');
         const audioToggle = document.getElementById('audioToggle');
         const resetDataBtn = document.getElementById('resetDataBtn');
+        
+        // Account elements
+        const usernameInput = document.getElementById('usernameInput');
+        const accountBalance = document.getElementById('accountBalance');
+        const accountBestBalance = document.getElementById('accountBestBalance');
+        const accountTotalTrades = document.getElementById('accountTotalTrades');
+        const accountCurrentLevel = document.getElementById('accountCurrentLevel');
+        const accountUnlockedCount = document.getElementById('accountUnlockedCount');
+        const globalPlayers = document.getElementById('globalPlayers');
+        const globalBestBalance = document.getElementById('globalBestBalance');
+        const globalTotalTrades = document.getElementById('globalTotalTrades');
+        const globalMostUsedLeverage = document.getElementById('globalMostUsedLeverage');
+        
+        // Leverage stat elements
+        const leverage1Stats = document.getElementById('leverage1Stats');
+        const leverage2Stats = document.getElementById('leverage2Stats');
+        const leverage3Stats = document.getElementById('leverage3Stats');
+        const leverage5Stats = document.getElementById('leverage5Stats');
+        const leverage10Stats = document.getElementById('leverage10Stats');
+        const leverage20Stats = document.getElementById('leverage20Stats');
+        const leverage50Stats = document.getElementById('leverage50Stats');
+        const leverage100Stats = document.getElementById('leverage100Stats');
+        
+        // Rank elements
+        const rankList = document.getElementById('rankList');
         
         // Game elements
         const balanceElement = document.getElementById('balance');
@@ -1059,13 +1295,11 @@
         const betRiskIndicator = document.getElementById('betRiskIndicator');
         const leverageRiskIndicator = document.getElementById('leverageRiskIndicator');
 
-        // ==================== GESTIONE ANIMAZIONI PULSANTI ====================
+        // ==================== BUTTON ANIMATION MANAGEMENT ====================
         function setupButtonAnimations() {
-            // Seleziona tutti i bottoni che vogliamo animare
             const buttons = document.querySelectorAll('.trade-btn, .back-button, #restartBtn, #resetDataBtn, .menu-item');
             
             buttons.forEach(button => {
-                // Eventi per mouse
                 button.addEventListener('mousedown', () => {
                     button.classList.add('pressed');
                 });
@@ -1078,7 +1312,6 @@
                     button.classList.remove('pressed');
                 });
                 
-                // Eventi per touch
                 button.addEventListener('touchstart', () => {
                     button.classList.add('pressed');
                 });
@@ -1095,40 +1328,32 @@
             });
         }
 
-        // ==================== FUNZIONI DINAMICHE DEL NUOVO SISTEMA ====================
+        // ==================== NEW SYSTEM DYNAMIC FUNCTIONS ====================
         
-        // Funzione per calcolare la probabilità dinamica in base a leva e puntata
+        // Function to calculate dynamic probability based on leverage and bet
         function getDynamicWinChance(baseWinChance, betPercent) {
-            // Ogni 1% di puntata riduce la probabilità dello 0.5%
-            // Formula: Probabilità Finale = Probabilità Base × (1 - (Puntata% / 200))
-            const penalty = betPercent / 200; // Massimo 0.5 (50%) quando puntata = 100%
+            const penalty = betPercent / 200;
             const dynamicChance = baseWinChance * (1 - penalty);
-            
-            // Assicuriamoci che non scenda sotto il 5%
             return Math.max(0.05, dynamicChance);
         }
         
-        // Funzione per calcolare il colore del rischio
+        // Function to calculate risk color
         function getRiskColor(riskLevel) {
-            if (riskLevel <= 0.3) return "#44ff44"; // Basso - Verde
-            if (riskLevel <= 0.5) return "#ffff44"; // Medio - Giallo
-            if (riskLevel <= 0.7) return "#ffaa44"; // Alto - Arancione
-            return "#ff4444"; // Estremo - Rosso
+            if (riskLevel <= 0.3) return "#44ff44";
+            if (riskLevel <= 0.5) return "#ffff44";
+            if (riskLevel <= 0.7) return "#ffaa44";
+            return "#ff4444";
         }
         
-        // Funzione per calcolare il livello di rischio totale
+        // Function to calculate total risk level
         function calculateTotalRisk(leverageIndex, betPercent) {
             const settings = LEVERAGE_SETTINGS[leverageIndex];
-            const baseRisk = 1 - settings.baseWinChance; // Rischio base della leva
-            
-            // Rischio aggiuntivo della puntata: più punti, più rischi
-            const betRisk = betPercent / 100; // Da 0 a 1
-            
-            // Combiniamo i rischi (media pesata)
-            return (baseRisk * 0.7) + (betRisk * 0.3); // Da 0 a 1
+            const baseRisk = 1 - settings.baseWinChance;
+            const betRisk = betPercent / 100;
+            return (baseRisk * 0.7) + (betRisk * 0.3);
         }
 
-        // ==================== FUNZIONI MENU ====================
+        // ==================== MENU FUNCTIONS ====================
         function openMenu() {
             menuOverlay.classList.add('active');
             isAnimating = false;
@@ -1153,7 +1378,14 @@
                 cancelAnimationFrame(animationId);
             }
             
-            if (pageOverlay === infoOverlay || pageOverlay === settingsOverlay) {
+            if (pageOverlay === accountOverlay) {
+                updateAccountPage();
+            } else if (pageOverlay === rankOverlay) {
+                updateRankPage();
+            }
+            
+            if (pageOverlay === infoOverlay || pageOverlay === settingsOverlay || 
+                pageOverlay === accountOverlay || pageOverlay === rankOverlay) {
                 document.body.style.overflow = 'hidden';
                 pageOverlay.querySelector('.page-content').style.overflowY = 'auto';
             }
@@ -1169,7 +1401,91 @@
             document.body.style.overflow = 'hidden';
         }
 
-        // ==================== FUNZIONI AUDIO ====================
+        // ==================== ACCOUNT PAGE FUNCTIONS ====================
+        function updateAccountPage() {
+            // Update personal stats
+            accountBalance.textContent = "$" + balance.toLocaleString();
+            accountBestBalance.textContent = "$" + bestBalance.toLocaleString();
+            accountTotalTrades.textContent = totalTrades;
+            
+            const settings = getCurrentLeverageSettings();
+            accountCurrentLevel.textContent = settings.name;
+            accountCurrentLevel.style.color = settings.color;
+            
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            accountUnlockedCount.textContent = `${maxUnlockedIndex + 1}/${LEVERAGE_SETTINGS.length}`;
+            
+            // Update leverage statistics
+            LEVERAGE_SETTINGS.forEach(settings => {
+                const stats = leverageStats[settings.leverage];
+                const elementId = `leverage${settings.leverage}Stats`;
+                const element = document.getElementById(elementId);
+                
+                if (element && stats) {
+                    const winRate = stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
+                    element.textContent = `${stats.wins}/${stats.total} (${winRate}%)`;
+                }
+            });
+            
+            // Update global statistics
+            updateGlobalStats();
+        }
+        
+        function updateGlobalStats() {
+            // For demo purposes, we'll simulate some global stats
+            // In a real app, this would come from a server
+            globalStats.globalBestBalance = Math.max(globalStats.globalBestBalance, bestBalance);
+            globalStats.globalTotalTrades += totalTrades;
+            
+            // Find most used leverage
+            let mostUsed = 1;
+            let maxTrades = 0;
+            for (const leverage in leverageStats) {
+                if (leverageStats[leverage].total > maxTrades) {
+                    maxTrades = leverageStats[leverage].total;
+                    mostUsed = leverage;
+                }
+            }
+            globalStats.mostUsedLeverage = `${mostUsed}x`;
+            
+            // Update display
+            globalPlayers.textContent = globalStats.totalPlayers;
+            globalBestBalance.textContent = "$" + globalStats.globalBestBalance.toLocaleString();
+            globalTotalTrades.textContent = globalStats.globalTotalTrades;
+            globalMostUsedLeverage.textContent = globalStats.mostUsedLeverage;
+        }
+        
+        function updateRankPage() {
+            // For demo purposes, create a simple rank list
+            // In a real app, this would come from a server
+            const ranks = [
+                { name: username, balance: bestBalance, level: getCurrentLeverageSettings().name },
+                { name: "TraderPro", balance: 50000, level: "Expert" },
+                { name: "RiskMaster", balance: 25000, level: "High Risk" },
+                { name: "CryptoKing", balance: 15000, level: "Intermediate" },
+                { name: "LeverageLord", balance: 8000, level: "Beginner" }
+            ];
+            
+            // Sort by balance descending
+            ranks.sort((a, b) => b.balance - a.balance);
+            
+            rankList.innerHTML = '';
+            ranks.forEach((player, index) => {
+                const rankItem = document.createElement('div');
+                rankItem.className = 'rank-item';
+                rankItem.innerHTML = `
+                    <div class="rank-position">${index + 1}</div>
+                    <div class="rank-user">
+                        <div>${player.name}</div>
+                        <div class="rank-level">${player.level}</div>
+                    </div>
+                    <div class="rank-balance">$${player.balance.toLocaleString()}</div>
+                `;
+                rankList.appendChild(rankItem);
+            });
+        }
+
+        // ==================== AUDIO FUNCTIONS ====================
         function playSound(type) {
             if (!audioEnabled) return;
             
@@ -1185,7 +1501,7 @@
             }
         }
 
-        // ==================== FUNZIONI HELPER ====================
+        // ==================== HELPER FUNCTIONS ====================
         function getCurrentLeverageSettings() {
             return LEVERAGE_SETTINGS[leverageIndex];
         }
@@ -1216,14 +1532,14 @@
             return null;
         }
 
-        // MODIFICATO: Usa la probabilità dinamica
+        // MODIFIED: Use dynamic probability
         function isTradeSuccessful() {
             const settings = getCurrentLeverageSettings();
             const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
             return Math.random() < dynamicChance;
         }
 
-        // ==================== SISTEMA DI PUNTEGGIO SIMETRICO ====================
+        // ==================== SYMMETRIC SCORING SYSTEM ====================
         function calculateTradeResult(isWin, betAmount) {
             if (isWin) {
                 return betAmount * leverage;
@@ -1232,7 +1548,7 @@
             }
         }
 
-        // ==================== FUNZIONI CORE ====================
+        // ==================== CORE FUNCTIONS ====================
         function setupCanvas() {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -1252,6 +1568,7 @@
             const savedLeverageIndex = localStorage.getItem('tradingLeverageIndex');
             const savedTotalTrades = localStorage.getItem('tradingTotalTrades');
             const savedAudioEnabled = localStorage.getItem('tradingAudioEnabled');
+            const savedUsername = localStorage.getItem('tradingUsername');
             
             if (savedBalance) balance = parseInt(savedBalance);
             if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
@@ -1275,6 +1592,20 @@
                 audioEnabled = savedAudioEnabled === 'true';
                 audioToggle.checked = audioEnabled;
             }
+            if (savedUsername) {
+                username = savedUsername;
+                usernameInput.value = username;
+            }
+            
+            // Load leverage statistics
+            LEVERAGE_SETTINGS.forEach(settings => {
+                const savedStats = localStorage.getItem(`tradingLeverageStats_${settings.leverage}`);
+                if (savedStats) {
+                    leverageStats[settings.leverage] = JSON.parse(savedStats);
+                } else {
+                    leverageStats[settings.leverage] = { total: 0, wins: 0 };
+                }
+            });
             
             if (balance < 1000) {
                 balance = 1000;
@@ -1298,15 +1629,28 @@
             localStorage.setItem('tradingLeverageIndex', leverageIndex.toString());
             localStorage.setItem('tradingTotalTrades', totalTrades.toString());
             localStorage.setItem('tradingAudioEnabled', audioEnabled.toString());
+            localStorage.setItem('tradingUsername', username);
+            
+            // Save leverage statistics
+            LEVERAGE_SETTINGS.forEach(settings => {
+                localStorage.setItem(`tradingLeverageStats_${settings.leverage}`, 
+                    JSON.stringify(leverageStats[settings.leverage]));
+            });
         }
 
         function resetGameData() {
-            if (confirm("Sei sicuro di voler resettare tutti i dati di gioco? Perderai saldo, record e statistiche.")) {
+            if (confirm("Are you sure you want to reset all game data? You will lose balance, record, and statistics.")) {
                 localStorage.removeItem('tradingBalance');
                 localStorage.removeItem('tradingBestBalance');
                 localStorage.removeItem('tradingPercentage');
                 localStorage.removeItem('tradingLeverageIndex');
                 localStorage.removeItem('tradingTotalTrades');
+                localStorage.removeItem('tradingUsername');
+                
+                // Remove leverage statistics
+                LEVERAGE_SETTINGS.forEach(settings => {
+                    localStorage.removeItem(`tradingLeverageStats_${settings.leverage}`);
+                });
                 
                 balance = 1000;
                 bestBalance = 1000;
@@ -1314,11 +1658,18 @@
                 leverageIndex = 0;
                 leverage = 1;
                 totalTrades = 0;
+                username = "Player";
                 
                 percentageSlider.value = betPercentage;
                 percentageValue.textContent = `${betPercentage}%`;
                 leverageSlider.value = leverageIndex;
                 leverageValue.textContent = `${leverage}x`;
+                usernameInput.value = username;
+                
+                // Reset leverage statistics
+                LEVERAGE_SETTINGS.forEach(settings => {
+                    leverageStats[settings.leverage] = { total: 0, wins: 0 };
+                });
                 
                 updateBalanceDisplay();
                 updateLeverageControls();
@@ -1335,7 +1686,7 @@
                 gameActive = true;
                 startNewRound();
                 
-                alert("Dati di gioco resettati con successo!");
+                alert("Game data reset successfully!");
             }
         }
 
@@ -1365,7 +1716,7 @@
             leverageValue.style.color = settings.color;
         }
 
-        // ==================== MODIFICA: AGGIORNAMENTO INFO PUNTATA DINAMICA ====================
+        // ==================== MODIFICATION: DYNAMIC BET INFO UPDATE ====================
         function updateBetInfo() {
             const settings = getCurrentLeverageSettings();
             const bet = calculateBet();
@@ -1375,14 +1726,14 @@
             const potentialWin = bet * leverage;
             const potentialLoss = bet * leverage;
             
-            let info = `Puntata: $${bet.toLocaleString()} (${betPercentage}%) | Leva: ${leverage}x`;
-            info += `<br>Probabilità: <strong>${winChance}%</strong> (base: ${baseWinChance}%)`;
+            let info = `Bet: $${bet.toLocaleString()} (${betPercentage}%) | Leverage: ${leverage}x`;
+            info += `<br>Probability: <strong>${winChance}%</strong> (base: ${baseWinChance}%)`;
             
-            // MODIFICA: Controlla se la perdita potenziale è maggiore o uguale al saldo disponibile
+            // MODIFICATION: Check if potential loss is greater than or equal to available balance
             if (potentialLoss >= balance) {
-                info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: <span style="color:#ff4444">BANCAROTTA</span>`;
+                info += `<br>If win: +$${potentialWin.toLocaleString()} | If lose: <span style="color:#ff4444">BANKRUPTCY</span>`;
             } else {
-                info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: -$${potentialLoss.toLocaleString()}`;
+                info += `<br>If win: +$${potentialWin.toLocaleString()} | If lose: -$${potentialLoss.toLocaleString()}`;
             }
             
             betInfo.innerHTML = info;
@@ -1395,21 +1746,21 @@
             }
         }
         
-        // NUOVA FUNZIONE: Aggiorna indicatori di rischio
+        // NEW FUNCTION: Update risk indicators
         function updateRiskIndicators() {
-            // Calcola rischio per la puntata
-            const betRisk = betPercentage / 100; // Normalizza da 0 a 1
+            // Calculate risk for bet
+            const betRisk = betPercentage / 100;
             betRiskIndicator.style.backgroundColor = getRiskColor(betRisk);
             
-            // Calcola rischio per la leva
+            // Calculate risk for leverage
             const settings = getCurrentLeverageSettings();
-            const leverageRisk = 1 - settings.baseWinChance; // Più alta la leva, più alto il rischio
+            const leverageRisk = 1 - settings.baseWinChance;
             leverageRiskIndicator.style.backgroundColor = getRiskColor(leverageRisk);
             
-            // Calcola rischio totale
+            // Calculate total risk
             const totalRisk = calculateTotalRisk(leverageIndex, betPercentage);
             
-            // Cambia colore del titolo in base al rischio totale
+            // Change title color based on total risk
             if (totalRisk >= 0.7) {
                 document.querySelector('.game-title').style.color = '#ff4444';
             } else if (totalRisk >= 0.5) {
@@ -1434,10 +1785,10 @@
             
             if (next) {
                 const baseWinChance = Math.round(next.baseWinChance * 100);
-                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (base: ${baseWinChance}% win) a $${next.threshold.toLocaleString()}`;
+                unlockInfo.textContent = `Next unlock: ${next.leverage}x (base: ${baseWinChance}% win) at $${next.threshold.toLocaleString()}`;
                 unlockInfo.style.color = "#ffaa44";
             } else {
-                unlockInfo.textContent = "Tutte le leve sbloccate!";
+                unlockInfo.textContent = "All leverages unlocked!";
                 unlockInfo.style.color = "#44ff44";
                 
                 unlockMessageTimeout = setTimeout(() => {
@@ -1456,7 +1807,7 @@
             currentLevelElement.style.color = settings.color;
         }
 
-        // ==================== GRAFICO ====================
+        // ==================== CHART ====================
         function generateChartData(length, startValue, trendStrength = 0) {
             const data = [];
             let value = startValue || 50;
@@ -1541,7 +1892,7 @@
                 else if (chartStep > decisionPoint && !userChoice) {
                     isAnimating = false;
                     enableTradeButtons();
-                    statusMessage.textContent = "Previsione?";
+                    statusMessage.textContent = "Prediction?";
                     return;
                 }
                 else {
@@ -1569,16 +1920,16 @@
             
             balance += result;
             
-            // Calcola probabilità dinamica per il messaggio
+            // Calculate dynamic probability for message
             const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
             const winChance = Math.round(dynamicChance * 100);
             
             if (win) {
-                statusMessage.textContent = `VITTORIA! +$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
+                statusMessage.textContent = `WIN! +$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
                 chartColor = "#0c0";
                 playSound('win');
             } else {
-                statusMessage.textContent = `PERDITA! -$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
+                statusMessage.textContent = `LOSS! -$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
                 chartColor = "#f00";
                 playSound('lose');
             }
@@ -1607,7 +1958,7 @@
             setTimeout(startNewRound, 2000);
         }
 
-        // ==================== CONTROLLI UI ====================
+        // ==================== UI CONTROLS ====================
         function enableTradeButtons() {
             longBtn.disabled = false;
             shortBtn.disabled = false;
@@ -1631,7 +1982,7 @@
             const settings = getCurrentLeverageSettings();
             const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
             const winChance = Math.round(dynamicChance * 100);
-            statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${winChance}% win)`;
+            statusMessage.textContent = `Market analysis... (Leverage ${leverage}x - ${winChance}% win)`;
             disableTradeButtons();
             
             if (animationId) {
@@ -1657,7 +2008,7 @@
                 }
                 
                 disableTradeButtons();
-                statusMessage.textContent = "LONG selezionato";
+                statusMessage.textContent = "LONG selected";
                 chartColor = "#fff";
                 isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
@@ -1681,7 +2032,7 @@
                 }
                 
                 disableTradeButtons();
-                statusMessage.textContent = "SHORT selezionato";
+                statusMessage.textContent = "SHORT selected";
                 chartColor = "#fff";
                 isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
@@ -1745,7 +2096,12 @@
             playSound('click');
         }
 
-        // ==================== PREVENZIONE ZOOM/SCROLL ====================
+        function handleUsernameChange() {
+            username = usernameInput.value.trim() || "Player";
+            saveGameState();
+        }
+
+        // ==================== PREVENT ZOOM/SCROLL ====================
         function preventZoomAndScroll(e) {
             if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
@@ -1800,25 +2156,31 @@
             e.preventDefault();
         });
 
-        // ==================== INIZIALIZZAZIONE ====================
+        // ==================== INITIALIZATION ====================
         function initGame() {
             setupCanvas();
             loadGameState();
-            setupButtonAnimations(); // <-- AGGIUNTA: animazioni pressione tasti
+            setupButtonAnimations();
             
             // Menu event listeners
             menuButton.addEventListener('click', openMenu);
             menuClose.addEventListener('click', closeMenu);
             
             // Page navigation
+            accountBtn.addEventListener('click', () => openPage(accountOverlay));
+            rankBtn.addEventListener('click', () => openPage(rankOverlay));
             infoBtn.addEventListener('click', () => openPage(infoOverlay));
             settingsBtn.addEventListener('click', () => openPage(settingsOverlay));
+            
+            accountBackBtn.addEventListener('click', () => closePage(accountOverlay));
+            rankBackBtn.addEventListener('click', () => closePage(rankOverlay));
             infoBackBtn.addEventListener('click', () => closePage(infoOverlay));
             settingsBackBtn.addEventListener('click', () => closePage(settingsOverlay));
             
             // Settings controls
             audioToggle.addEventListener('change', handleAudioToggle);
             resetDataBtn.addEventListener('click', resetGameData);
+            usernameInput.addEventListener('input', handleUsernameChange);
             
             // Game event listeners
             longBtn.addEventListener('click', chooseLong);
@@ -1835,7 +2197,9 @@
             startNewRound();
             
             LEVERAGE_SETTINGS.forEach(settings => {
-                leverageStats[settings.leverage] = { total: 0, wins: 0 };
+                if (!leverageStats[settings.leverage]) {
+                    leverageStats[settings.leverage] = { total: 0, wins: 0 };
+                }
             });
         }
 
