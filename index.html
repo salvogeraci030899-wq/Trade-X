@@ -26,7 +26,6 @@
             position: fixed;
             width: 100%;
             height: 100%;
-            background: #0C0D12;
         }
         
         /* Prevenire il comportamento di zoom con doppio tap */
@@ -35,9 +34,9 @@
         }
         
         body {
-            background: #0C0D12;
-            color: #FFFFFF;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
             height: 100vh;
             overflow: hidden;
             display: flex;
@@ -72,25 +71,13 @@
             }
         }
         
-        /* Gradiente Phantom */
-        .phantom-gradient {
-            background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .phantom-gradient-bg {
-            background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
-        }
-        
-        /* Menu Button - Stile Phantom */
+        /* Menu Button - CORRETTO: in alto a destra allineato al titolo */
         .menu-button {
             position: absolute;
-            top: 10px;
+            top: 10px; /* CORRETTO: stessa altezza del padding del titolo */
             right: 20px;
-            width: 44px;
-            height: 44px;
+            width: 30px;
+            height: 30px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -98,37 +85,27 @@
             gap: 4px;
             cursor: pointer;
             z-index: 100;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 0;
+            background: transparent;
+            border: none;
+            padding: 5px;
             animation: float-very-subtle 3s ease-in-out infinite;
-            transition: all 0.3s ease;
-        }
-        
-        .menu-button:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
         }
         
         .menu-dot {
             width: 4px;
             height: 4px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
+            background: #fff;
         }
         
-        /* Menu Overlay - Stile Phantom */
+        /* Menu Overlay - MODIFICATO: sfondo completamente nero senza trasparenza */
         .menu-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(12, 13, 18, 0.95);
-            backdrop-filter: blur(20px);
+            background: #000; /* MODIFICATO: da rgba(0,0,0,0.95) a #000 */
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -142,51 +119,42 @@
         
         .menu-close {
             position: absolute;
-            top: 24px;
-            right: 24px;
-            width: 44px;
-            height: 44px;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            color: #FFFFFF;
+            font-size: 24px;
+            color: #fff;
             cursor: pointer;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            transition: all 0.3s ease;
+            opacity: 0.7;
             animation: float-very-subtle 3s ease-in-out infinite;
         }
         
         .menu-close:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
+            opacity: 1;
         }
         
         .menu-items {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 25px;
             text-align: center;
-            width: 280px;
         }
         
         .menu-item {
-            font-size: 18px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            color: #FFFFFF;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #fff;
+            background: none;
+            border: none;
             cursor: pointer;
-            padding: 18px 24px;
+            padding: 10px 20px;
             transition: all 0.3s ease;
-            opacity: 0.9;
+            opacity: 0.8;
             animation: float 4s ease-in-out infinite;
         }
         
@@ -204,20 +172,18 @@
         
         .menu-item:hover {
             opacity: 1;
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
             animation-play-state: paused;
         }
         
-        /* Pagine Overlay - Stile Phantom */
+        /* Pagine Overlay */
         .page-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #0C0D12;
+            background: #000;
             display: none;
             flex-direction: column;
             z-index: 1000;
@@ -234,48 +200,44 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
             flex-shrink: 0;
         }
         
         .page-title {
             font-size: 24px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            font-weight: 300;
+            letter-spacing: 2px;
             animation: float-subtle 5s ease-in-out infinite;
-            background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
         
-        /* Contenuto pagina Info scorrevole */
+        /* MODIFICA: Contenuto pagina Info scorrevole - CORRETTO */
         #infoOverlay .page-content {
             flex: 1;
             line-height: 1.6;
             font-size: 16px;
-            color: rgba(255, 255, 255, 0.8);
-            overflow-y: auto !important;
-            -webkit-overflow-scrolling: touch !important;
+            color: #ccc;
+            overflow-y: auto !important; /* MODIFICATO: forzato auto */
+            -webkit-overflow-scrolling: touch !important; /* MODIFICATO: forzato touch */
             padding-right: 10px;
-            touch-action: pan-y !important;
+            touch-action: pan-y !important; /* MODIFICATO: permesso scroll verticale */
             overscroll-behavior: contain;
         }
         
-        /* Contenuto Settings scorrevole */
+        /* MODIFICA: Contenuto Settings scorrevole */
         #settingsOverlay .page-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow-y: auto !important;
-            -webkit-overflow-scrolling: touch !important;
+            overflow-y: auto !important; /* MODIFICATO: forzato auto */
+            -webkit-overflow-scrolling: touch !important; /* MODIFICATO: forzato touch */
             padding-right: 10px;
-            touch-action: pan-y !important;
+            touch-action: pan-y !important; /* MODIFICATO: permesso scroll verticale */
             overscroll-behavior: contain;
         }
         
-        /* Contenuto scrollabile specifico per info */
+        /* MODIFICA: Contenuto scrollabile specifico per info */
         #infoOverlay {
             display: none;
             flex-direction: column;
@@ -286,11 +248,11 @@
         }
         
         .page-content h2 {
-            color: #FFFFFF;
-            margin: 24px 0 12px 0;
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            color: #fff;
+            margin: 20px 0 10px 0;
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: 1px;
             animation: float-very-subtle 6s ease-in-out infinite;
         }
         
@@ -303,73 +265,57 @@
         }
         
         .page-content p {
-            margin: 12px 0 24px 0;
-            color: rgba(255, 255, 255, 0.7);
+            margin: 10px 0 20px 0;
         }
         
         .page-content ul {
             padding-left: 20px;
-            margin: 12px 0 24px 0;
+            margin: 10px 0 20px 0;
         }
         
         .page-content li {
-            margin: 10px 0;
-            color: rgba(255, 255, 255, 0.7);
+            margin: 8px 0;
         }
         
         .back-button {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #FFFFFF;
-            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 8px 20px;
             font-size: 14px;
-            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 12px;
-            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            font-weight: 300;
+            letter-spacing: 1px;
         }
         
         .back-button:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.1);
         }
         
         .settings-option {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            margin-bottom: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        .settings-option:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.12);
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
         }
         
         .settings-label {
             font-size: 16px;
-            font-weight: 500;
-            color: #FFFFFF;
+            color: #fff;
         }
         
         .settings-description {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 4px;
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
         }
         
         .toggle-switch {
             position: relative;
-            width: 60px;
-            height: 32px;
+            width: 50px;
+            height: 24px;
         }
         
         .toggle-switch input {
@@ -385,119 +331,115 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.1);
+            background-color: #333;
             transition: .4s;
-            border-radius: 34px;
+            border-radius: 24px;
         }
         
         .toggle-slider:before {
             position: absolute;
             content: "";
-            height: 24px;
-            width: 24px;
+            height: 16px;
+            width: 16px;
             left: 4px;
             bottom: 4px;
-            background: #FFFFFF;
+            background-color: white;
             transition: .4s;
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
-        /* Toggle audio con gradiente Phantom */
+        /* MODIFICATO: toggle audio in bianco e nero */
         input:checked + .toggle-slider {
-            background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
+            background-color: #fff; /* Bianco invece di verde */
         }
         
         input:checked + .toggle-slider:before {
-            transform: translateX(28px);
+            transform: translateX(26px);
+            background-color: #000; /* Nero invece di bianco */
         }
         
-        /* Titolo del gioco - Stile Phantom */
+        .level-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+        }
+        
+        .level-name {
+            font-size: 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .level-description {
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .level-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        /* MODIFICATO: titolo cambiato da XTRADE a XTrade con animazione */
         .game-title {
             text-align: center;
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: #FFFFFF;
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            padding: 10px 20px;
+            border-bottom: 1px solid #222;
+            background: #000;
+            color: #fff;
             position: relative;
-            height: 68px;
+            height: 44px; /* MODIFICATO: altezza fissa per allineamento */
             display: flex;
             align-items: center;
             justify-content: center;
             animation: float 6s ease-in-out infinite;
         }
         
-        .game-title::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #9945FF, #14F195, transparent);
-            opacity: 0.5;
-        }
-        
         .header {
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             flex-direction: column;
             font-size: 18px;
-            font-weight: 500;
+            font-weight: 400;
             letter-spacing: 0.5px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #222;
         }
         
         .balance-container {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 8px;
         }
         
         .balance-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .balance-row:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.12);
-            transform: translateY(-1px);
+            gap: 10px;
         }
         
         .balance-label {
-            color: rgba(255, 255, 255, 0.6);
-            font-weight: 500;
-            font-size: 14px;
+            color: #888;
+            font-weight: 300;
+            min-width: 80px;
         }
         
         .balance-value {
-            font-weight: 600;
-            font-size: 22px;
-            letter-spacing: 0.5px;
+            font-weight: 400;
         }
         
         #bestBalance {
-            background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #4CAF50;
         }
         
         #balance {
-            color: #FFFFFF;
+            color: #fff;
         }
         
         #chartCanvas {
@@ -505,17 +447,13 @@
             width: 100%;
             display: block;
             touch-action: none;
-            background: rgba(255, 255, 255, 0.02);
         }
         
         .controls-container {
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 15px;
         }
         
         .leverage-controls {
@@ -530,10 +468,9 @@
         
         .control label {
             display: block;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 12px;
-            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #888;
             letter-spacing: 0.3px;
             white-space: nowrap;
             overflow: hidden;
@@ -543,128 +480,81 @@
         .slider-container {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .slider-container:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.12);
+            gap: 10px;
         }
         
         input[type="range"] {
             flex: 1;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
+            height: 2px;
+            background: #333;
             -webkit-appearance: none;
             outline: none;
             touch-action: pan-y;
             min-width: 0;
-            border-radius: 2px;
         }
         
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 24px;
-            height: 24px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
+            background: #fff;
             cursor: pointer;
-            border: 3px solid #0C0D12;
-            box-shadow: 0 2px 8px rgba(153, 69, 255, 0.4);
-            transition: all 0.3s ease;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(153, 69, 255, 0.6);
+            border: none;
         }
         
         .slider-value {
-            min-width: 60px;
-            font-size: 16px;
-            font-weight: 600;
+            min-width: 45px;
+            font-size: 14px;
             text-align: right;
             white-space: nowrap;
-            color: #FFFFFF;
         }
         
         .trade-buttons {
             display: flex;
-            gap: 16px;
-            margin-top: 8px;
+            gap: 15px;
+            margin-top: 5px;
         }
         
         .trade-btn {
             flex: 1;
-            height: 56px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #FFFFFF;
+            height: 50px;
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 300;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             letter-spacing: 1px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
         
         .trade-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.1);
         }
         
         .trade-btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
-            transform: none !important;
         }
         
         .long-btn {
-            background: linear-gradient(135deg, rgba(20, 241, 149, 0.15) 0%, rgba(20, 241, 149, 0.05) 100%);
-            border-color: rgba(20, 241, 149, 0.3);
-            color: #14F195;
-        }
-        
-        .long-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, rgba(20, 241, 149, 0.25) 0%, rgba(20, 241, 149, 0.15) 100%);
-            border-color: rgba(20, 241, 149, 0.5);
+            border-color: #0c0;
+            color: #0c0;
         }
         
         .short-btn {
-            background: linear-gradient(135deg, rgba(255, 69, 105, 0.15) 0%, rgba(255, 69, 105, 0.05) 100%);
-            border-color: rgba(255, 69, 105, 0.3);
-            color: #FF4569;
-        }
-        
-        .short-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, rgba(255, 69, 105, 0.25) 0%, rgba(255, 69, 105, 0.15) 100%);
-            border-color: rgba(255, 69, 105, 0.5);
+            border-color: #f00;
+            color: #f00;
         }
         
         .status {
             text-align: center;
-            padding: 16px;
+            padding: 10px;
             font-size: 14px;
-            font-weight: 500;
-            height: 52px;
-            color: rgba(255, 255, 255, 0.7);
+            height: 36px;
+            color: #888;
             letter-spacing: 0.3px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            margin-top: 4px;
         }
         
         .game-over {
@@ -673,8 +563,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(12, 13, 18, 0.95);
-            backdrop-filter: blur(20px);
+            background: #000;
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -683,69 +572,47 @@
         }
         
         .game-over h2 {
-            font-size: 48px;
-            margin-bottom: 32px;
-            font-weight: 700;
+            font-size: 40px;
+            margin-bottom: 20px;
+            font-weight: 300;
             letter-spacing: 2px;
-            background: linear-gradient(135deg, #FF4569 0%, #FF6B9D 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #ff0000;
             animation: float 3s ease-in-out infinite;
         }
         
         .restart-btn {
-            background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
-            border: none;
-            color: #0C0D12;
-            padding: 18px 40px;
-            font-size: 18px;
-            font-weight: 600;
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 12px 30px;
+            font-size: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
+            font-weight: 300;
             letter-spacing: 1px;
-            border-radius: 16px;
             animation: float-very-subtle 4s ease-in-out infinite;
-            box-shadow: 0 8px 32px rgba(153, 69, 255, 0.3);
         }
         
         .restart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(153, 69, 255, 0.4);
+            background: rgba(255, 255, 255, 0.1);
         }
         
         .bet-info {
             text-align: center;
-            font-size: 14px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 8px;
-            height: 60px;
-            line-height: 1.5;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .bet-info:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.12);
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            height: 50px;
+            line-height: 1.4;
         }
         
         .unlock-info {
             text-align: center;
-            font-size: 13px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 8px;
-            height: 20px;
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+            height: 16px;
             transition: opacity 0.5s ease-out;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .unlock-info.fade-out {
@@ -765,42 +632,22 @@
         .stats {
             display: flex;
             justify-content: space-around;
-            padding: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.7);
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .stats > div {
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            min-width: 100px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .stats > div:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.12);
-            transform: translateY(-1px);
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #222;
         }
         
         .risk-indicator {
             display: inline-block;
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            margin-left: 8px;
+            margin-left: 5px;
             vertical-align: middle;
-            box-shadow: 0 0 8px currentColor;
         }
 
-        /* Stili per la scrollbar - Phantom style */
+        /* Stili per la scrollbar - MODIFICATI: più visibili */
         .page-content::-webkit-scrollbar {
             width: 8px;
         }
@@ -811,110 +658,94 @@
         }
         
         .page-content::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 4px;
         }
         
         .page-content::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #8A3AE8 0%, #12D987 100%);
+            background: rgba(255, 255, 255, 0.4);
         }
 
         /* Media query per schermi piccoli */
         @media (max-width: 380px) {
             .menu-button {
-                top: 10px;
-                right: 16px;
-                width: 40px;
-                height: 40px;
+                top: 10px; /* CORRETTO: stessa altezza per schermi piccoli */
+                right: 15px;
+                width: 25px;
+                height: 25px;
+            }
+            
+            .menu-dot {
+                width: 3px;
+                height: 3px;
             }
             
             .menu-item {
-                font-size: 16px;
-                padding: 16px 20px;
+                font-size: 20px;
+                padding: 8px 16px;
             }
             
             .controls-container {
-                padding: 16px;
+                padding: 15px 12px;
             }
             
             .leverage-controls {
                 gap: 12px;
-                flex-direction: column;
             }
             
             .slider-value {
-                min-width: 50px;
-                font-size: 14px;
+                min-width: 40px;
+                font-size: 12px;
             }
             
             .control label {
-                font-size: 13px;
+                font-size: 11px;
             }
             
             .trade-btn {
                 font-size: 16px;
-                height: 52px;
+                height: 45px;
             }
             
             .stats {
-                padding: 16px;
-                font-size: 13px;
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .stats > div {
-                min-width: auto;
-                width: 100%;
+                padding: 10px 12px;
+                font-size: 11px;
             }
             
             .game-title {
-                padding: 16px;
-                font-size: 24px;
-                height: 60px;
+                padding: 10px 12px;
+                font-size: 22px;
+                height: 42px; /* MODIFICATO: altezza ridotta per schermi piccoli */
             }
             
             .header {
-                padding: 16px;
+                padding: 12px;
                 font-size: 16px;
             }
             
-            .balance-value {
-                font-size: 20px;
+            .balance-label {
+                min-width: 70px;
             }
             
             .page-overlay {
-                padding: 16px;
-                padding-top: 56px;
+                padding: 15px;
+                padding-top: 50px;
             }
             
             .bet-info {
-                font-size: 13px;
-                height: 70px;
-            }
-            
-            .restart-btn {
-                padding: 16px 32px;
-                font-size: 16px;
-            }
-            
-            .game-over h2 {
-                font-size: 36px;
-                margin-bottom: 24px;
+                font-size: 11px;
+                height: 55px;
             }
         }
         
         @media (max-width: 320px) {
             .menu-button {
-                top: 8px;
+                top: 10px; /* CORRETTO: stessa altezza per schermi molto piccoli */
                 right: 12px;
-                width: 36px;
-                height: 36px;
             }
             
             .menu-item {
-                font-size: 15px;
-                padding: 14px 18px;
+                font-size: 18px;
             }
             
             .leverage-controls {
@@ -922,37 +753,35 @@
             }
             
             .slider-container {
-                padding: 12px 16px;
-                gap: 12px;
+                gap: 5px;
             }
             
             .slider-value {
-                min-width: 45px;
-                font-size: 13px;
+                min-width: 35px;
+                font-size: 11px;
             }
             
             .control label {
-                font-size: 12px;
+                font-size: 10px;
             }
             
             .trade-btn {
-                font-size: 15px;
-                height: 48px;
+                font-size: 14px;
+                height: 40px;
                 letter-spacing: 0.5px;
             }
             
             .stats {
-                font-size: 12px;
+                font-size: 10px;
             }
             
             .game-title {
-                height: 56px;
-                font-size: 22px;
+                height: 40px; /* MODIFICATO: ulteriormente ridotto per schermi molto piccoli */
             }
             
             .bet-info {
-                font-size: 12px;
-                height: 75px;
+                font-size: 10px;
+                height: 60px;
             }
         }
     </style>
@@ -976,7 +805,7 @@
         </div>
     </div>
     
-    <!-- Info Page Overlay -->
+    <!-- Info Page Overlay - MODIFICATO: struttura per scroll corretto -->
     <div class="page-overlay" id="infoOverlay">
         <div class="page-header">
             <h1 class="page-title">Info</h1>
@@ -1031,13 +860,13 @@
                 <li>Ricorda: nel trading reale, la gestione del capitale è tutto!</li>
             </ul>
             
-            <p style="margin-top: 30px; color: rgba(255, 255, 255, 0.5); font-size: 14px; text-align: center;">
+            <p style="margin-top: 30px; color: #666; font-size: 14px; text-align: center;">
                 XTrade - Simulatore educativo per comprendere i rischi del trading con leva
             </p>
         </div>
     </div>
     
-    <!-- Settings Page Overlay -->
+    <!-- Settings Page Overlay - MODIFICATO: rimossa sezione "Sistema dei livelli" -->
     <div class="page-overlay" id="settingsOverlay">
         <div class="page-header">
             <h1 class="page-title">Impostazioni</h1>
@@ -1055,15 +884,15 @@
                 </label>
             </div>
             
-            <div style="margin-top: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px;">
+            <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 5px;">
                 <div class="settings-label">Reset Dati</div>
-                <div class="settings-description" style="margin-bottom: 20px; color: rgba(255, 255, 255, 0.5);">Cancella tutti i dati di gioco salvati e riparti da zero</div>
-                <button class="back-button" id="resetDataBtn" style="width: 100%; background: linear-gradient(135deg, rgba(255, 69, 105, 0.2) 0%, rgba(255, 69, 105, 0.1) 100%); border-color: rgba(255, 69, 105, 0.3); color: #FF4569;">Reset Dati di Gioco</button>
+                <div class="settings-description" style="margin-bottom: 15px;">Cancella tutti i dati di gioco salvati e riparti da zero</div>
+                <button class="back-button" id="resetDataBtn" style="width: 100%;">Reset Dati di Gioco</button>
             </div>
         </div>
     </div>
     
-    <!-- Main Game Interface -->
+    <!-- Main Game Interface - MODIFICATO: titolo cambiato da XTRADE a XTrade -->
     <div class="game-title">XTrade</div>
     
     <div class="header">
@@ -1086,14 +915,14 @@
     <div class="controls-container">
         <div class="leverage-controls">
             <div class="control">
-                <label>PUNTATA (%) <span class="risk-indicator" id="betRiskIndicator" style="background: #14F195;"></span></label>
+                <label>PUNTATA (%) <span class="risk-indicator" id="betRiskIndicator" style="background: #44ff44;"></span></label>
                 <div class="slider-container">
                     <input type="range" min="1" max="100" value="5" id="percentageSlider">
                     <span class="slider-value" id="percentageValue">5%</span>
                 </div>
             </div>
             <div class="control">
-                <label>LEVA (RISCHIO) <span class="risk-indicator" id="leverageRiskIndicator" style="background: #14F195;"></span></label>
+                <label>LEVA (RISCHIO) <span class="risk-indicator" id="leverageRiskIndicator" style="background: #44ff44;"></span></label>
                 <div class="slider-container">
                     <input type="range" min="0" max="7" value="0" id="leverageSlider">
                     <span class="slider-value" id="leverageValue">1x</span>
@@ -1125,14 +954,14 @@
     <script>
         // ==================== SISTEMA LEVE ====================
         const LEVERAGE_SETTINGS = [
-            { leverage: 1, baseWinChance: 0.80, color: "#14F195", name: "Novizio", level: "Basso" },
-            { leverage: 2, baseWinChance: 0.70, color: "#12D987", name: "Principiante", level: "Medio" },
-            { leverage: 3, baseWinChance: 0.60, color: "#FFD166", name: "Intermedio", level: "Medio" },
-            { leverage: 5, baseWinChance: 0.50, color: "#FFD166", name: "Esperto", level: "Medio" },
-            { leverage: 10, baseWinChance: 0.40, color: "#FF9A5C", name: "Risky", level: "Alto" },
-            { leverage: 20, baseWinChance: 0.30, color: "#FF6B9D", name: "High Risk", level: "Alto" },
-            { leverage: 50, baseWinChance: 0.20, color: "#FF4569", name: "Extreme", level: "Estremo" },
-            { leverage: 100, baseWinChance: 0.20, color: "#FF2255", name: "Insano", level: "Insano" }
+            { leverage: 1, baseWinChance: 0.80, color: "#44ff44", name: "Novizio", level: "Basso" },
+            { leverage: 2, baseWinChance: 0.70, color: "#66ff66", name: "Principiante", level: "Medio" },
+            { leverage: 3, baseWinChance: 0.60, color: "#88ff88", name: "Intermedio", level: "Medio" },
+            { leverage: 5, baseWinChance: 0.50, color: "#ffff44", name: "Esperto", level: "Medio" },
+            { leverage: 10, baseWinChance: 0.40, color: "#ffaa44", name: "Risky", level: "Alto" },
+            { leverage: 20, baseWinChance: 0.30, color: "#ff7744", name: "High Risk", level: "Alto" },
+            { leverage: 50, baseWinChance: 0.20, color: "#ff4444", name: "Extreme", level: "Estremo" },
+            { leverage: 100, baseWinChance: 0.20, color: "#ff2244", name: "Insano", level: "Insano" }
         ];
 
         // ==================== SOGLIE DI SBLOCCO PIÙ ALTE ====================
@@ -1157,7 +986,7 @@
         let animationId = null;
         let decisionPoint = 0;
         let userChoice = null;
-        let chartColor = "#FFFFFF";
+        let chartColor = "#fff";
         let tradeResult = null;
         
         let betPercentage = 5;
@@ -1171,8 +1000,8 @@
 
         // ==================== ELEMENTI DOM ====================
         const canvas = document.getElementById('chartCanvas');
-        const ctx = canvas.getContext('2d', { antialias: true });
-        ctx.imageSmoothingEnabled = true;
+        const ctx = canvas.getContext('2d', { antialias: false });
+        ctx.imageSmoothingEnabled = false;
         
         // Menu elements
         const menuButton = document.getElementById('menuButton');
@@ -1226,10 +1055,10 @@
         
         // Funzione per calcolare il colore del rischio
         function getRiskColor(riskLevel) {
-            if (riskLevel <= 0.3) return "#14F195"; // Basso - Verde Phantom
-            if (riskLevel <= 0.5) return "#FFD166"; // Medio - Giallo
-            if (riskLevel <= 0.7) return "#FF9A5C"; // Alto - Arancione
-            return "#FF4569"; // Estremo - Rosso
+            if (riskLevel <= 0.3) return "#44ff44"; // Basso - Verde
+            if (riskLevel <= 0.5) return "#ffff44"; // Medio - Giallo
+            if (riskLevel <= 0.7) return "#ffaa44"; // Alto - Arancione
+            return "#ff4444"; // Estremo - Rosso
         }
         
         // Funzione per calcolare il livello di rischio totale
@@ -1492,16 +1321,17 @@
             const potentialLoss = bet * leverage;
             
             let info = `Puntata: $${bet.toLocaleString()} (${betPercentage}%) | Leva: ${leverage}x`;
-            info += `<br>Probabilità: <strong style="background: linear-gradient(135deg, #9945FF 0%, #14F195 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${winChance}%</strong> (base: ${baseWinChance}%)`;
+            info += `<br>Probabilità: <strong>${winChance}%</strong> (base: ${baseWinChance}%)`;
             
             // MODIFICA: Controlla se la perdita potenziale è maggiore o uguale al saldo disponibile
             if (potentialLoss >= balance) {
-                info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: <span style="background: linear-gradient(135deg, #FF4569 0%, #FF6B9D 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">BANCAROTTA</span>`;
+                info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: <span style="color:#ff4444">BANCAROTTA</span>`;
             } else {
                 info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: -$${potentialLoss.toLocaleString()}`;
             }
             
             betInfo.innerHTML = info;
+            betInfo.style.color = settings.color;
             
             if (dynamicChance <= 0.3) {
                 betInfo.classList.add('high-risk');
@@ -1514,29 +1344,25 @@
         function updateRiskIndicators() {
             // Calcola rischio per la puntata
             const betRisk = betPercentage / 100; // Normalizza da 0 a 1
-            const betColor = getRiskColor(betRisk);
-            betRiskIndicator.style.backgroundColor = betColor;
-            betRiskIndicator.style.boxShadow = `0 0 12px ${betColor}`;
+            betRiskIndicator.style.backgroundColor = getRiskColor(betRisk);
             
             // Calcola rischio per la leva
             const settings = getCurrentLeverageSettings();
             const leverageRisk = 1 - settings.baseWinChance; // Più alta la leva, più alto il rischio
-            const leverageColor = getRiskColor(leverageRisk);
-            leverageRiskIndicator.style.backgroundColor = leverageColor;
-            leverageRiskIndicator.style.boxShadow = `0 0 12px ${leverageColor}`;
+            leverageRiskIndicator.style.backgroundColor = getRiskColor(leverageRisk);
             
             // Calcola rischio totale
             const totalRisk = calculateTotalRisk(leverageIndex, betPercentage);
             
             // Cambia colore del titolo in base al rischio totale
             if (totalRisk >= 0.7) {
-                document.querySelector('.game-title').style.background = 'linear-gradient(135deg, #FF4569 0%, #FF6B9D 100%)';
+                document.querySelector('.game-title').style.color = '#ff4444';
             } else if (totalRisk >= 0.5) {
-                document.querySelector('.game-title').style.background = 'linear-gradient(135deg, #FF9A5C 0%, #FFD166 100%)';
+                document.querySelector('.game-title').style.color = '#ffaa44';
             } else if (totalRisk >= 0.3) {
-                document.querySelector('.game-title').style.background = 'linear-gradient(135deg, #FFD166 0%, #12D987 100%)';
+                document.querySelector('.game-title').style.color = '#ffff44';
             } else {
-                document.querySelector('.game-title').style.background = 'linear-gradient(135deg, #9945FF 0%, #14F195 100%)';
+                document.querySelector('.game-title').style.color = '#44ff44';
             }
         }
 
@@ -1554,14 +1380,10 @@
             if (next) {
                 const baseWinChance = Math.round(next.baseWinChance * 100);
                 unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (base: ${baseWinChance}% win) a $${next.threshold.toLocaleString()}`;
-                unlockInfo.style.background = 'linear-gradient(135deg, rgba(255, 154, 92, 0.1) 0%, rgba(255, 209, 102, 0.1) 100%)';
-                unlockInfo.style.borderColor = 'rgba(255, 209, 102, 0.2)';
-                unlockInfo.style.color = '#FFD166';
+                unlockInfo.style.color = "#ffaa44";
             } else {
                 unlockInfo.textContent = "Tutte le leve sbloccate!";
-                unlockInfo.style.background = 'linear-gradient(135deg, rgba(20, 241, 149, 0.1) 0%, rgba(153, 69, 255, 0.1) 100%)';
-                unlockInfo.style.borderColor = 'rgba(20, 241, 149, 0.2)';
-                unlockInfo.style.color = '#14F195';
+                unlockInfo.style.color = "#44ff44";
                 
                 unlockMessageTimeout = setTimeout(() => {
                     unlockInfo.classList.add('fade-out');
@@ -1574,9 +1396,9 @@
         function updateStats() {
             const settings = getCurrentLeverageSettings();
             currentLevelElement.textContent = settings.level;
+            
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
             currentLevelElement.style.color = settings.color;
-            currentLevelElement.parentElement.style.borderColor = settings.color + '30';
-            currentLevelElement.parentElement.style.background = `linear-gradient(135deg, ${settings.color}10, ${settings.color}05)`;
         }
 
         // ==================== GRAFICO ====================
@@ -1601,13 +1423,7 @@
             const width = rect.width;
             const height = rect.height;
             
-            // Sfondo con gradiente Phantom
-            const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
-            bgGradient.addColorStop(0, 'rgba(153, 69, 255, 0.03)');
-            bgGradient.addColorStop(1, 'rgba(20, 241, 149, 0.03)');
-            
-            ctx.fillStyle = bgGradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             if (chartData.length === 0) return;
             
@@ -1622,23 +1438,8 @@
             const scaleY = height / valueRange;
             const stepX = width / (chartData.length - 1);
             
-            // Linea del grafico con gradiente
-            const lineGradient = ctx.createLinearGradient(0, 0, width, 0);
-            
-            if (chartColor === "#0c0") {
-                lineGradient.addColorStop(0, '#14F195');
-                lineGradient.addColorStop(1, '#12D987');
-            } else if (chartColor === "#f00") {
-                lineGradient.addColorStop(0, '#FF4569');
-                lineGradient.addColorStop(1, '#FF6B9D');
-            } else {
-                lineGradient.addColorStop(0, '#9945FF');
-                lineGradient.addColorStop(0.5, '#14F195');
-                lineGradient.addColorStop(1, '#12D987');
-            }
-            
-            ctx.strokeStyle = lineGradient;
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = chartColor;
+            ctx.lineWidth = 1.5;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             ctx.beginPath();
@@ -1656,25 +1457,13 @@
             
             ctx.stroke();
             
-            // Punto di decisione con effetto glow
             if (userChoice && decisionPoint > 0 && chartStep > decisionPoint) {
                 const decisionX = decisionPoint * stepX;
                 const decisionY = height - ((chartData[decisionPoint] - minValue) * scaleY);
                 
-                // Effetto glow
+                ctx.fillStyle = chartColor;
                 ctx.beginPath();
-                ctx.arc(decisionX, decisionY, 10, 0, Math.PI * 2);
-                ctx.fillStyle = chartColor === "#0c0" ? 'rgba(20, 241, 149, 0.3)' : 
-                               chartColor === "#f00" ? 'rgba(255, 69, 105, 0.3)' : 
-                               'rgba(153, 69, 255, 0.3)';
-                ctx.fill();
-                
-                // Punto centrale
-                ctx.beginPath();
-                ctx.arc(decisionX, decisionY, 6, 0, Math.PI * 2);
-                ctx.fillStyle = chartColor === "#0c0" ? '#14F195' : 
-                               chartColor === "#f00" ? '#FF4569' : 
-                               '#FFFFFF';
+                ctx.arc(decisionX, decisionY, 4, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
@@ -1698,8 +1487,6 @@
                     isAnimating = false;
                     enableTradeButtons();
                     statusMessage.textContent = "Previsione?";
-                    statusMessage.style.background = 'linear-gradient(135deg, rgba(153, 69, 255, 0.1) 0%, rgba(20, 241, 149, 0.1) 100%)';
-                    statusMessage.style.borderColor = 'rgba(153, 69, 255, 0.2)';
                     return;
                 }
                 else {
@@ -1733,16 +1520,10 @@
             
             if (win) {
                 statusMessage.textContent = `VITTORIA! +$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
-                statusMessage.style.background = 'linear-gradient(135deg, rgba(20, 241, 149, 0.2) 0%, rgba(12, 211, 135, 0.2) 100%)';
-                statusMessage.style.borderColor = 'rgba(20, 241, 149, 0.4)';
-                statusMessage.style.color = '#14F195';
                 chartColor = "#0c0";
                 playSound('win');
             } else {
                 statusMessage.textContent = `PERDITA! -$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
-                statusMessage.style.background = 'linear-gradient(135deg, rgba(255, 69, 105, 0.2) 0%, rgba(255, 107, 157, 0.2) 100%)';
-                statusMessage.style.borderColor = 'rgba(255, 69, 105, 0.4)';
-                statusMessage.style.color = '#FF4569';
                 chartColor = "#f00";
                 playSound('lose');
             }
@@ -1786,7 +1567,7 @@
             chartStep = 0;
             userChoice = null;
             tradeResult = null;
-            chartColor = "#FFFFFF";
+            chartColor = "#fff";
             isAnimating = true;
             
             chartData = generateChartData(180);
@@ -1796,9 +1577,6 @@
             const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
             const winChance = Math.round(dynamicChance * 100);
             statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${winChance}% win)`;
-            statusMessage.style.background = 'rgba(255, 255, 255, 0.03)';
-            statusMessage.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-            statusMessage.style.color = 'rgba(255, 255, 255, 0.7)';
             disableTradeButtons();
             
             if (animationId) {
@@ -1825,9 +1603,7 @@
                 
                 disableTradeButtons();
                 statusMessage.textContent = "LONG selezionato";
-                statusMessage.style.background = 'linear-gradient(135deg, rgba(20, 241, 149, 0.2) 0%, rgba(12, 211, 135, 0.2) 100%)';
-                statusMessage.style.borderColor = 'rgba(20, 241, 149, 0.4)';
-                chartColor = "#FFFFFF";
+                chartColor = "#fff";
                 isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
             }
@@ -1851,9 +1627,7 @@
                 
                 disableTradeButtons();
                 statusMessage.textContent = "SHORT selezionato";
-                statusMessage.style.background = 'linear-gradient(135deg, rgba(255, 69, 105, 0.2) 0%, rgba(255, 107, 157, 0.2) 100%)';
-                statusMessage.style.borderColor = 'rgba(255, 69, 105, 0.4)';
-                chartColor = "#FFFFFF";
+                chartColor = "#fff";
                 isAnimating = true;
                 animationId = requestAnimationFrame(animateChart);
             }
