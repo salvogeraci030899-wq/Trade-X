@@ -1059,39 +1059,6 @@
         const betRiskIndicator = document.getElementById('betRiskIndicator');
         const leverageRiskIndicator = document.getElementById('leverageRiskIndicator');
 
-        // ==================== FUNZIONI DINAMICHE DEL NUOVO SISTEMA ====================
-        
-        // Funzione per calcolare la probabilità dinamica in base a leva e puntata
-        function getDynamicWinChance(baseWinChance, betPercent) {
-            // Ogni 1% di puntata riduce la probabilità dello 0.5%
-            // Formula: Probabilità Finale = Probabilità Base × (1 - (Puntata% / 200))
-            const penalty = betPercent / 200; // Massimo 0.5 (50%) quando puntata = 100%
-            const dynamicChance = baseWinChance * (1 - penalty);
-            
-            // Assicuriamoci che non scenda sotto il 5%
-            return Math.max(0.05, dynamicChance);
-        }
-        
-        // Funzione per calcolare il colore del rischio
-        function getRiskColor(riskLevel) {
-            if (riskLevel <= 0.3) return "#44ff44"; // Basso - Verde
-            if (riskLevel <= 0.5) return "#ffff44"; // Medio - Giallo
-            if (riskLevel <= 0.7) return "#ffaa44"; // Alto - Arancione
-            return "#ff4444"; // Estremo - Rosso
-        }
-        
-        // Funzione per calcolare il livello di rischio totale
-        function calculateTotalRisk(leverageIndex, betPercent) {
-            const settings = LEVERAGE_SETTINGS[leverageIndex];
-            const baseRisk = 1 - settings.baseWinChance; // Rischio base della leva
-            
-            // Rischio aggiuntivo della puntata: più punti, più rischi
-            const betRisk = betPercent / 100; // Da 0 a 1
-            
-            // Combiniamo i rischi (media pesata)
-            return (baseRisk * 0.7) + (betRisk * 0.3); // Da 0 a 1
-        }
-
         // ==================== GESTIONE ANIMAZIONI PULSANTI ====================
         function setupButtonAnimations() {
             // Seleziona tutti i bottoni che vogliamo animare
@@ -1126,6 +1093,39 @@
                     button.classList.remove('pressed');
                 });
             });
+        }
+
+        // ==================== FUNZIONI DINAMICHE DEL NUOVO SISTEMA ====================
+        
+        // Funzione per calcolare la probabilità dinamica in base a leva e puntata
+        function getDynamicWinChance(baseWinChance, betPercent) {
+            // Ogni 1% di puntata riduce la probabilità dello 0.5%
+            // Formula: Probabilità Finale = Probabilità Base × (1 - (Puntata% / 200))
+            const penalty = betPercent / 200; // Massimo 0.5 (50%) quando puntata = 100%
+            const dynamicChance = baseWinChance * (1 - penalty);
+            
+            // Assicuriamoci che non scenda sotto il 5%
+            return Math.max(0.05, dynamicChance);
+        }
+        
+        // Funzione per calcolare il colore del rischio
+        function getRiskColor(riskLevel) {
+            if (riskLevel <= 0.3) return "#44ff44"; // Basso - Verde
+            if (riskLevel <= 0.5) return "#ffff44"; // Medio - Giallo
+            if (riskLevel <= 0.7) return "#ffaa44"; // Alto - Arancione
+            return "#ff4444"; // Estremo - Rosso
+        }
+        
+        // Funzione per calcolare il livello di rischio totale
+        function calculateTotalRisk(leverageIndex, betPercent) {
+            const settings = LEVERAGE_SETTINGS[leverageIndex];
+            const baseRisk = 1 - settings.baseWinChance; // Rischio base della leva
+            
+            // Rischio aggiuntivo della puntata: più punti, più rischi
+            const betRisk = betPercent / 100; // Da 0 a 1
+            
+            // Combiniamo i rischi (media pesata)
+            return (baseRisk * 0.7) + (betRisk * 0.3); // Da 0 a 1
         }
 
         // ==================== FUNZIONI MENU ====================
@@ -1804,7 +1804,7 @@
         function initGame() {
             setupCanvas();
             loadGameState();
-            setupButtonAnimations(); // <-- AGGIUNTA: animazioni pulsanti
+            setupButtonAnimations(); // <-- AGGIUNTA: animazioni pressione tasti
             
             // Menu event listeners
             menuButton.addEventListener('click', openMenu);
