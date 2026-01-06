@@ -71,6 +71,25 @@
             }
         }
         
+        /* === ANIMAZIONI DI PRESSIONE TASTI === */
+        .trade-btn, .back-button, .restart-btn, .menu-item, #resetDataBtn {
+            transition: transform 0.1s cubic-bezier(0.22, 0.61, 0.36, 1);
+            transform-origin: center;
+        }
+        
+        /* Stato premuto per tutti i bottoni */
+        .trade-btn:active, .back-button:active, .restart-btn:active, 
+        .menu-item:active, #resetDataBtn:active,
+        .trade-btn.pressed, .back-button.pressed, .restart-btn.pressed, 
+        .menu-item.pressed, #resetDataBtn.pressed {
+            transform: scale(0.95);
+        }
+        
+        /* Disabilita animazione su bottoni disabilitati */
+        .trade-btn:disabled:active, .trade-btn:disabled.pressed {
+            transform: scale(1);
+        }
+        
         /* Menu Button - CORRETTO: in alto a destra allineato al titolo */
         .menu-button {
             position: absolute;
@@ -1073,6 +1092,42 @@
             return (baseRisk * 0.7) + (betRisk * 0.3); // Da 0 a 1
         }
 
+        // ==================== GESTIONE ANIMAZIONI PULSANTI ====================
+        function setupButtonAnimations() {
+            // Seleziona tutti i bottoni che vogliamo animare
+            const buttons = document.querySelectorAll('.trade-btn, .back-button, #restartBtn, #resetDataBtn, .menu-item');
+            
+            buttons.forEach(button => {
+                // Eventi per mouse
+                button.addEventListener('mousedown', () => {
+                    button.classList.add('pressed');
+                });
+                
+                button.addEventListener('mouseup', () => {
+                    button.classList.remove('pressed');
+                });
+                
+                button.addEventListener('mouseleave', () => {
+                    button.classList.remove('pressed');
+                });
+                
+                // Eventi per touch (mobile)
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    button.classList.add('pressed');
+                }, { passive: false });
+                
+                button.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    button.classList.remove('pressed');
+                });
+                
+                button.addEventListener('touchcancel', () => {
+                    button.classList.remove('pressed');
+                });
+            });
+        }
+
         // ==================== FUNZIONI MENU ====================
         function openMenu() {
             menuOverlay.classList.add('active');
@@ -1749,6 +1804,7 @@
         function initGame() {
             setupCanvas();
             loadGameState();
+            setupButtonAnimations(); // <-- AGGIUNTA: animazioni pulsanti
             
             // Menu event listeners
             menuButton.addEventListener('click', openMenu);
