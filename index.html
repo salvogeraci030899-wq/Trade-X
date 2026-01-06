@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,7 +52,7 @@
         }
         
         .balance-display {
-            text-align: center;
+            text-align: left;
             margin-bottom: 8px;
         }
         
@@ -277,6 +278,11 @@
         .slider-dot.active {
             background: #ffffff;
             box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+        
+        .slider-dot.disabled {
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0.3;
         }
         
         input[type="range"] {
@@ -759,16 +765,6 @@
             transform: translateY(0);
         }
         
-        /* ===== ANIMATIONS ===== */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        
-        .pulse {
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
         /* ===== SCROLLBAR ===== */
         .page-content::-webkit-scrollbar {
             width: 5px;
@@ -872,11 +868,11 @@
                 <h3>Personal Statistics</h3>
                 <div class="stat-row">
                     <span class="stat-label">Current Balance:</span>
-                    <span class="stat-value" id="accountBalance">$10,000.00</span>
+                    <span class="stat-value" id="accountBalance">$10,000</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Best Balance:</span>
-                    <span class="stat-value" id="accountBestBalance">$10,000.00</span>
+                    <span class="stat-value" id="accountBestBalance">$10,000</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Total Trades:</span>
@@ -1044,10 +1040,10 @@
         <!-- Header -->
         <div class="header-section">
             <div class="balance-display">
-                <div class="balance-amount" id="balanceAmount">$10,000.00</div>
+                <div class="balance-amount" id="balanceAmount">$10,000</div>
                 <div class="balance-change change-positive" id="balanceChange">
                     <span id="changeIcon">↑</span>
-                    <span id="changeAmount">+$0.00</span>
+                    <span id="changeAmount">+$0</span>
                     <span id="changePercent">0.00%</span>
                 </div>
                 <div class="balance-label">TOTAL BALANCE</div>
@@ -1059,7 +1055,6 @@
             <div class="chart-wrapper">
                 <canvas id="chartCanvas"></canvas>
                 <div class="chart-overlay">
-                    <div class="chart-badge" id="chartStatus">LIVE</div>
                     <div class="chart-badge" id="winProbability">80% WIN</div>
                 </div>
             </div>
@@ -1082,16 +1077,6 @@
                     <div class="slider-dots" id="leverageDots"></div>
                     <input type="range" min="0" max="7" value="0" id="leverageSlider">
                 </div>
-                <div class="slider-ticks">
-                    <div class="tick">1x</div>
-                    <div class="tick">2x</div>
-                    <div class="tick">3x</div>
-                    <div class="tick">5x</div>
-                    <div class="tick">10x</div>
-                    <div class="tick">20x</div>
-                    <div class="tick">50x</div>
-                    <div class="tick">100x</div>
-                </div>
             </div>
             
             <div class="slider-group">
@@ -1113,7 +1098,7 @@
             </div>
             
             <div class="trade-info" id="tradeInfo">
-                Bet: $500.00 | Probability: 78% (base: 80%)
+                Bet: $500 | Probability: 78% (base: 80%)
             </div>
             
             <div class="unlock-info" id="unlockInfo"></div>
@@ -1212,7 +1197,6 @@
             // Chart
             chartCanvas: document.getElementById('chartCanvas'),
             chartCtx: null,
-            chartStatus: document.getElementById('chartStatus'),
             winProbability: document.getElementById('winProbability'),
             
             // Controls
@@ -1288,7 +1272,7 @@
 
         // ==================== UTILITY FUNCTIONS ====================
         function formatCurrency(amount) {
-            return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return '$' + Math.round(amount).toLocaleString();
         }
 
         // ORIGINAL PROBABILITY SYSTEM
@@ -1438,7 +1422,6 @@
         function executeTrade() {
             dom.longBtn.disabled = true;
             dom.shortBtn.disabled = true;
-            dom.chartStatus.textContent = state.tradeResult ? 'WINNING' : 'LOSING';
             
             // Modify chart trend based on result
             const trend = (state.userChoice === 'long' ? 1 : -1) * (state.tradeResult ? 0.08 : -0.08);
@@ -1670,8 +1653,6 @@
                     state.isAnimating = false;
                     dom.longBtn.disabled = false;
                     dom.shortBtn.disabled = false;
-                    dom.chartStatus.textContent = 'DECIDE';
-                    dom.chartStatus.classList.add('pulse');
                 }
                 
                 if (state.isAnimating || state.userChoice) {
@@ -1692,8 +1673,6 @@
             state.decisionPoint = Math.floor(state.chartData.length * 0.6);
             state.isAnimating = true;
             
-            dom.chartStatus.textContent = 'LIVE';
-            dom.chartStatus.classList.remove('pulse');
             dom.longBtn.disabled = true;
             dom.shortBtn.disabled = true;
             
@@ -1782,7 +1761,7 @@
             const baseProb = CONFIG.LEVERAGES[state.leverageIndex].baseWin * 100;
             const winProb = Math.round(calculateWinProbability() * 100);
             
-            // ORIGINAL FORMAT: Bet: $500.00 | Probability: 78% (base: 80%)
+            // ORIGINAL FORMAT: Bet: $500 | Probability: 78% (base: 80%)
             dom.tradeInfo.innerHTML = `
                 Bet: <strong>${formatCurrency(betAmount)}</strong> | 
                 Probability: <strong>${winProb}%</strong> (base: ${Math.round(baseProb)}%)
@@ -2007,3 +1986,4 @@
     </script>
 </body>
 </html>
+```
