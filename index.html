@@ -814,10 +814,22 @@
                 <li><strong>Insano</strong>: Leva 100x - 20% di probabilità!</li>
             </ul>
             
+            <h2>Soglie di Sblocco</h2>
+            <ul>
+                <li><strong>Leva 2x</strong>: Sbloccata a $1,500</li>
+                <li><strong>Leva 3x</strong>: Sbloccata a $2,500</li>
+                <li><strong>Leva 5x</strong>: Sbloccata a $5,000</li>
+                <li><strong>Leva 10x</strong>: Sbloccata a $10,000</li>
+                <li><strong>Leva 20x</strong>: Sbloccata a $25,000</li>
+                <li><strong>Leva 50x</strong>: Sbloccata a $50,000</li>
+                <li><strong>Leva 100x</strong>: Sbloccata a $100,000</li>
+            </ul>
+            
             <h2>Consigli</h2>
             <ul>
                 <li>Inizia con leve basse per familiarizzare con il sistema</li>
                 <li>Gestisci sempre la tua puntata in percentuale del capitale</li>
+                <li>Con leva alta, anche piccole puntate possono causare grandi perdite</li>
                 <li>Non puntare tutto su un singolo trade</li>
                 <li>Ricorda: il trading reale comporta rischi finanziari reali</li>
             </ul>
@@ -863,11 +875,11 @@
         <div class="balance-container">
             <div class="balance-row">
                 <div class="balance-label">Record:</div>
-                <div class="balance-value" id="bestBalance">$100</div>
+                <div class="balance-value" id="bestBalance">$1,000</div>
             </div>
             <div class="balance-row">
                 <div class="balance-label">Saldo:</div>
-                <div class="balance-value" id="balance">$100</div>
+                <div class="balance-value" id="balance">$1,000</div>
             </div>
         </div>
     </div>
@@ -881,8 +893,8 @@
             <div class="control">
                 <label>PUNTATA (%)</label>
                 <div class="slider-container">
-                    <input type="range" min="1" max="100" value="10" id="percentageSlider">
-                    <span class="slider-value" id="percentageValue">10%</span>
+                    <input type="range" min="1" max="100" value="5" id="percentageSlider">
+                    <span class="slider-value" id="percentageValue">5%</span>
                 </div>
             </div>
             <div class="control">
@@ -894,7 +906,7 @@
             </div>
         </div>
         
-        <div class="bet-info" id="betInfo">Puntata: $10 (10%) | Leva: 1x (80% win)</div>
+        <div class="bet-info" id="betInfo">Puntata: $50 (5%) | Leva: 1x (80% win)</div>
         
         <div class="unlock-info" id="unlockInfo"></div>
         
@@ -929,20 +941,22 @@
             { leverage: 100, winChance: 0.20, color: "#ff2244", name: "Insano", level: "Insano" } // MODIFICATO: da 10% a 20%
         ];
 
+        // ==================== MODIFICA: SOGLIE DI SBLOCCO PIÙ ALTE ====================
         const LEVERAGE_UNLOCKS = [
-            { threshold: 100, maxLeverageIndex: 0 },   // 1x
-            { threshold: 200, maxLeverageIndex: 1 },   // 2x
-            { threshold: 300, maxLeverageIndex: 2 },   // 3x
-            { threshold: 500, maxLeverageIndex: 3 },   // 5x
-            { threshold: 1000, maxLeverageIndex: 4 },  // 10x
-            { threshold: 2000, maxLeverageIndex: 5 },  // 20x
-            { threshold: 5000, maxLeverageIndex: 6 },  // 50x
-            { threshold: 10000, maxLeverageIndex: 7 }  // 100x
+            { threshold: 1000, maxLeverageIndex: 0 },     // 1x (sbloccata all'inizio)
+            { threshold: 1500, maxLeverageIndex: 1 },     // 2x
+            { threshold: 2500, maxLeverageIndex: 2 },     // 3x
+            { threshold: 5000, maxLeverageIndex: 3 },     // 5x
+            { threshold: 10000, maxLeverageIndex: 4 },    // 10x
+            { threshold: 25000, maxLeverageIndex: 5 },    // 20x
+            { threshold: 50000, maxLeverageIndex: 6 },    // 50x
+            { threshold: 100000, maxLeverageIndex: 7 }    // 100x
         ];
 
         // ==================== VARIABILI GLOBALI ====================
-        let balance = 100;
-        let bestBalance = 100;
+        // MODIFICATO: Saldo iniziale aumentato da 100 a 1000
+        let balance = 1000;
+        let bestBalance = 1000;
         let chartData = [];
         let chartStep = 0;
         let gameActive = true;
@@ -953,7 +967,8 @@
         let chartColor = "#fff";
         let tradeResult = null;
         
-        let betPercentage = 10;
+        // MODIFICATO: Puntata predefinita ridotta da 10% a 5% per gestire meglio il rischio
+        let betPercentage = 5;
         let leverageIndex = 0;
         let leverage = 1;
         
@@ -1158,6 +1173,14 @@
                 audioToggle.checked = audioEnabled;
             }
             
+            // MODIFICA: Se il saldo salvato è inferiore a 1000, impostalo a 1000
+            if (balance < 1000) {
+                balance = 1000;
+            }
+            if (bestBalance < 1000) {
+                bestBalance = 1000;
+            }
+            
             updateBalanceDisplay();
             updateLeverageControls();
             updateBetInfo();
@@ -1182,9 +1205,10 @@
                 localStorage.removeItem('tradingLeverageIndex');
                 localStorage.removeItem('tradingTotalTrades');
                 
-                balance = 100;
-                bestBalance = 100;
-                betPercentage = 10;
+                // MODIFICA: Reset a 1000 invece di 100
+                balance = 1000;
+                bestBalance = 1000;
+                betPercentage = 5; // MODIFICATO: da 10% a 5%
                 leverageIndex = 0;
                 leverage = 1;
                 totalTrades = 0;
@@ -1214,8 +1238,9 @@
         }
 
         function updateBalanceDisplay() {
-            balanceElement.textContent = "$" + balance;
-            bestBalanceElement.textContent = "$" + bestBalance;
+            // MODIFICA: Formatta i numeri con separatore delle migliaia
+            balanceElement.textContent = "$" + balance.toLocaleString();
+            bestBalanceElement.textContent = "$" + bestBalance.toLocaleString();
         }
 
         function calculateBet() {
@@ -1247,8 +1272,8 @@
             const potentialWin = bet * leverage;
             const potentialLoss = bet * leverage; // MODIFICATO: stessa formula delle vincite
             
-            let info = `Puntata: $${bet} (${betPercentage}%) | Leva: ${leverage}x`;
-            info += `<br>Probabilità: ${winChance}% | Se vinci: +$${potentialWin} | Se perdi: -$${potentialLoss}`;
+            let info = `Puntata: $${bet.toLocaleString()} (${betPercentage}%) | Leva: ${leverage}x`;
+            info += `<br>Probabilità: ${winChance}% | Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: -$${potentialLoss.toLocaleString()}`;
             
             betInfo.innerHTML = info;
             betInfo.style.color = settings.color;
@@ -1273,7 +1298,7 @@
             
             if (next) {
                 const winChance = Math.round(next.winChance * 100);
-                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win) a $${next.threshold} ($${next.remaining} rimanenti)`;
+                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (${winChance}% win) a $${next.threshold.toLocaleString()} ($${(next.remaining).toLocaleString()} rimanenti)`;
                 unlockInfo.style.color = "#ffaa44";
             } else {
                 unlockInfo.textContent = "Tutte le leve sbloccate!";
@@ -1411,11 +1436,11 @@
             
             // ==================== MODIFICA: MESSAGGI DI RISULTATO ====================
             if (win) {
-                statusMessage.textContent = `VITTORIA! +$${bet * leverage} (${leverage}x)`;
+                statusMessage.textContent = `VITTORIA! +$${(bet * leverage).toLocaleString()} (${leverage}x)`;
                 chartColor = "#0c0";
                 playSound('win');
             } else {
-                statusMessage.textContent = `PERDITA! -$${bet * leverage} (${leverage}x)`; // MODIFICATO
+                statusMessage.textContent = `PERDITA! -$${(bet * leverage).toLocaleString()} (${leverage}x)`; // MODIFICATO
                 chartColor = "#f00";
                 playSound('lose');
             }
@@ -1523,11 +1548,12 @@
         }
 
         function restartGame() {
-            balance = 100;
+            // MODIFICA: Reset a 1000 invece di 100
+            balance = 1000;
             gameActive = true;
             leverageIndex = 0;
             leverage = 1;
-            betPercentage = 10;
+            betPercentage = 5; // MODIFICATO: da 10% a 5%
             totalTrades = 0;
             tradeResult = null;
             
