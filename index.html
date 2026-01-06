@@ -40,7 +40,6 @@
             display: flex;
             flex-direction: column;
             background: #000000;
-            padding-bottom: 70px; /* Space for dock */
         }
         
         /* ===== DOCK ===== */
@@ -96,6 +95,54 @@
         
         .dock-item.active .dock-label {
             color: #ffffff;
+        }
+        
+        /* ===== TRADE BUTTONS ABOVE DOCK ===== */
+        .trade-buttons-above-dock {
+            position: fixed;
+            bottom: 70px; /* Align above dock */
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            margin-bottom: 0;
+            z-index: 99;
+        }
+        
+        .trade-btn {
+            flex: 1;
+            height: 64px;
+            border: none;
+            border-radius: 16px;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .trade-btn:active {
+            transform: scale(0.97);
+        }
+        
+        .trade-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .long-btn {
+            background: linear-gradient(135deg, #00cc6a 0%, #00ff88 100%);
+            color: #000000;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.25);
+        }
+        
+        .short-btn {
+            background: linear-gradient(135deg, #cc3636 0%, #ff4444 100%);
+            color: #000000;
+            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.25);
         }
         
         /* ===== HEADER/BALANCE ===== */
@@ -210,55 +257,15 @@
             background: rgba(255, 255, 255, 0.05);
         }
         
-        /* ===== CONTROLS ===== */
+        /* ===== CONTROLS SECTION (Sotto il chart) ===== */
         .controls-section {
+            flex-shrink: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             padding: 20px;
             background: #0a0a0a;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            flex-shrink: 0;
-        }
-        
-        /* Trade Buttons */
-        .trade-buttons {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-        
-        .trade-btn {
-            flex: 1;
-            height: 64px;
-            border: none;
-            border-radius: 16px;
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .trade-btn:active {
-            transform: scale(0.97);
-        }
-        
-        .trade-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        .long-btn {
-            background: linear-gradient(135deg, #00cc6a 0%, #00ff88 100%);
-            color: #000000;
-            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.25);
-        }
-        
-        .short-btn {
-            background: linear-gradient(135deg, #cc3636 0%, #ff4444 100%);
-            color: #000000;
-            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.25);
+            max-height: 40vh; /* Limit height to ensure space for trade buttons */
         }
         
         /* Sliders con pallini */
@@ -476,23 +483,6 @@
         
         .page-content li {
             margin-bottom: 10px;
-        }
-        
-        .back-button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        
-        .back-button:active {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(0.98);
         }
         
         /* Settings specific */
@@ -721,10 +711,11 @@
             
             .controls-section {
                 padding: 16px;
+                max-height: 35vh;
             }
             
-            .app-container {
-                padding-bottom: 65px;
+            .trade-buttons-above-dock {
+                bottom: 65px;
             }
         }
         
@@ -753,6 +744,11 @@
             
             .dock-icon {
                 font-size: 20px;
+            }
+            
+            .trade-buttons-above-dock {
+                left: 15px;
+                right: 15px;
             }
         }
         
@@ -835,6 +831,12 @@
         </div>
     </div>
     
+    <!-- Trade Buttons Above Dock -->
+    <div class="trade-buttons-above-dock">
+        <button class="trade-btn long-btn" id="longBtn">LONG</button>
+        <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
+    </div>
+    
     <!-- Game Over -->
     <div class="game-over" id="gameOverScreen">
         <h2>BANKRUPTCY</h2>
@@ -846,7 +848,6 @@
     <div class="page-overlay" id="accountPage">
         <div class="page-header">
             <h1 class="page-title">Account</h1>
-            <button class="back-button" id="accountBackBtn">Back</button>
         </div>
         <div class="page-content">
             <div class="account-stats">
@@ -915,7 +916,6 @@
     <div class="page-overlay" id="rankPage">
         <div class="page-header">
             <h1 class="page-title">Ranking</h1>
-            <button class="back-button" id="rankBackBtn">Back</button>
         </div>
         <div class="page-content">
             <h2>Top Players</h2>
@@ -929,7 +929,6 @@
     <div class="page-overlay" id="infoPage">
         <div class="page-header">
             <h1 class="page-title">Info</h1>
-            <button class="back-button" id="infoBackBtn">Back</button>
         </div>
         <div class="page-content">
             <h2>Welcome to XTRADE</h2>
@@ -986,7 +985,6 @@
     <div class="page-overlay" id="settingsPage">
         <div class="page-header">
             <h1 class="page-title">Settings</h1>
-            <button class="back-button" id="settingsBackBtn">Back</button>
         </div>
         <div class="page-content">
             <div class="settings-option">
@@ -1044,11 +1042,6 @@
         
         <!-- Controls -->
         <div class="controls-section">
-            <div class="trade-buttons">
-                <button class="trade-btn long-btn" id="longBtn">LONG</button>
-                <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
-            </div>
-            
             <div class="slider-group">
                 <div class="slider-header">
                     <div class="slider-label">LEVERAGE</div>
@@ -1170,9 +1163,11 @@
             chartCtx: null,
             winProbability: document.getElementById('winProbability'),
             
-            // Controls
+            // Trade buttons (now above dock)
             longBtn: document.getElementById('longBtn'),
             shortBtn: document.getElementById('shortBtn'),
+            
+            // Controls
             leverageSlider: document.getElementById('leverageSlider'),
             leverageValue: document.getElementById('leverageValue'),
             leverageFill: document.getElementById('leverageFill'),
@@ -1226,13 +1221,7 @@
             accountPage: document.getElementById('accountPage'),
             rankPage: document.getElementById('rankPage'),
             infoPage: document.getElementById('infoPage'),
-            settingsPage: document.getElementById('settingsPage'),
-            
-            // Back buttons
-            accountBackBtn: document.getElementById('accountBackBtn'),
-            rankBackBtn: document.getElementById('rankBackBtn'),
-            infoBackBtn: document.getElementById('infoBackBtn'),
-            settingsBackBtn: document.getElementById('settingsBackBtn')
+            settingsPage: document.getElementById('settingsPage')
         };
 
         // ==================== UTILITY FUNCTIONS ====================
@@ -1356,12 +1345,6 @@
             dom.dockSettings.addEventListener('click', () => openPage(dom.settingsPage, 'settings'));
             dom.dockInfo.addEventListener('click', () => openPage(dom.infoPage, 'info'));
             
-            // Back buttons
-            dom.accountBackBtn.addEventListener('click', () => showTradingPage());
-            dom.rankBackBtn.addEventListener('click', () => showTradingPage());
-            dom.infoBackBtn.addEventListener('click', () => showTradingPage());
-            dom.settingsBackBtn.addEventListener('click', () => showTradingPage());
-            
             // Settings
             dom.soundToggle.addEventListener('change', handleSoundToggle);
             dom.hapticToggle.addEventListener('change', handleHapticToggle);
@@ -1432,10 +1415,8 @@
             if (state.tradeResult) {
                 state.wins++;
                 state.leverageStats[leverage].wins++;
-                // Removed status message display
                 if (state.soundEnabled) playSound('win');
             } else {
-                // Removed status message display
                 if (state.soundEnabled) playSound('lose');
             }
             
