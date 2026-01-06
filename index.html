@@ -4,119 +4,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>XTRADE - Trading Simulator</title>
+    <title>XTRADE</title>
     <style>
-        /* RESET & BASE STYLES */
+        /* ===== RESET & BASE ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
             -webkit-tap-highlight-color: transparent;
         }
         
         html, body {
-            overflow: hidden;
-            touch-action: none;
-            position: fixed;
             width: 100%;
             height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
             background: #000000;
             color: #ffffff;
+            touch-action: none;
         }
         
-        /* MAIN CONTAINER */
-        .container {
+        /* ===== LAYOUT ===== */
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            max-height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
             background: #000000;
         }
         
-        /* TOP BALANCE SECTION - NEW DESIGN */
-        .balance-section {
-            background: #1a1a1a;
-            padding: 30px 20px 25px;
-            border-radius: 0 0 30px 30px;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-            position: relative;
-            z-index: 10;
+        /* ===== HEADER/BALANCE ===== */
+        .header-section {
+            padding: 20px 20px 25px;
+            background: #0a0a0a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+        
+        .balance-display {
+            text-align: center;
+            margin-bottom: 8px;
         }
         
         .balance-amount {
-            font-size: 56px;
+            font-size: 48px;
             font-weight: 700;
             letter-spacing: -0.5px;
-            text-align: center;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #ffffff, #cccccc);
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            line-height: 1;
+            margin-bottom: 4px;
         }
         
         .balance-change {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 18px;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 15px;
             font-weight: 600;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         
         .change-positive {
+            background: rgba(0, 255, 136, 0.15);
             color: #00ff88;
-            background: rgba(0, 255, 136, 0.1);
-            padding: 4px 12px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
         
         .change-negative {
+            background: rgba(255, 68, 68, 0.15);
             color: #ff4444;
-            background: rgba(255, 68, 68, 0.1);
-            padding: 4px 12px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .change-icon {
-            font-size: 16px;
         }
         
         .balance-label {
-            text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             color: #888888;
-            letter-spacing: 0.5px;
-            margin-top: 5px;
+            letter-spacing: 0.3px;
         }
         
-        /* CHART SECTION */
+        /* ===== CHART ===== */
         .chart-section {
             flex: 1;
+            min-height: 0;
             position: relative;
-            padding: 15px 20px;
+            padding: 15px;
         }
         
-        .chart-container {
+        .chart-wrapper {
             width: 100%;
             height: 100%;
-            position: relative;
-            overflow: hidden;
-            border-radius: 20px;
             background: #0a0a0a;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
         }
         
         #chartCanvas {
@@ -127,49 +111,49 @@
         
         .chart-overlay {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
+            top: 12px;
+            left: 12px;
+            right: 12px;
             display: flex;
             justify-content: space-between;
-            z-index: 2;
+            pointer-events: none;
         }
         
-        .chart-indicator {
-            background: rgba(26, 26, 26, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
+        .chart-badge {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* CONTROLS SECTION - NEW DESIGN */
+        /* ===== CONTROLS ===== */
         .controls-section {
             padding: 20px;
-            background: #1a1a1a;
-            border-radius: 30px 30px 0 0;
-            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+            background: #0a0a0a;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
         }
         
-        /* TRADE BUTTONS - NEW DESIGN */
+        /* Trade Buttons */
         .trade-buttons {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 25px;
         }
         
         .trade-btn {
             flex: 1;
-            height: 70px;
+            height: 64px;
             border: none;
-            border-radius: 18px;
-            font-size: 24px;
+            border-radius: 16px;
+            font-size: 22px;
             font-weight: 700;
             letter-spacing: 0.5px;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.15s ease;
             position: relative;
             overflow: hidden;
         }
@@ -179,92 +163,69 @@
         }
         
         .trade-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
-            transform: scale(1) !important;
-        }
-        
-        .trade-btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(rgba(255,255,255,0.1), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .trade-btn:active::after {
-            opacity: 1;
+            transform: none !important;
         }
         
         .long-btn {
-            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            background: linear-gradient(135deg, #00cc6a 0%, #00ff88 100%);
             color: #000000;
-            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.25);
         }
         
         .short-btn {
-            background: linear-gradient(135deg, #ff4444, #cc3636);
+            background: linear-gradient(135deg, #cc3636 0%, #ff4444 100%);
             color: #000000;
-            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.25);
         }
         
-        /* SLIDERS - NEW DESIGN */
+        /* Sliders */
         .slider-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         
         .slider-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         
         .slider-label {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             color: #ffffff;
         }
         
         .slider-value {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
-            color: #ffffff;
         }
         
-        .leverage-value {
-            color: #00ff88;
-        }
-        
-        .percentage-value {
-            color: #00a3ff;
-        }
-        
-        .slider-container {
-            position: relative;
-            height: 12px;
+        .slider-track {
+            height: 8px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
+            border-radius: 4px;
+            position: relative;
             overflow: hidden;
         }
         
         .slider-fill {
-            position: absolute;
             height: 100%;
-            border-radius: 6px;
-            transition: width 0.3s ease;
+            border-radius: 4px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: width 0.2s ease;
         }
         
         .leverage-fill {
-            background: linear-gradient(to right, #00ff88, #00cc6a);
+            background: linear-gradient(to right, #006633, #00ff88);
         }
         
-        .percentage-fill {
-            background: linear-gradient(to right, #00a3ff, #0066cc);
+        .bet-fill {
+            background: linear-gradient(to right, #003366, #00a3ff);
         }
         
         input[type="range"] {
@@ -280,73 +241,78 @@
             display: flex;
             justify-content: space-between;
             margin-top: 8px;
-            padding: 0 2px;
         }
         
         .tick {
-            font-size: 11px;
+            font-size: 10px;
             color: #666666;
             font-weight: 500;
         }
         
-        /* STATS BAR */
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 20px;
-            background: #0a0a0a;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        /* Info */
+        .trade-info {
             font-size: 13px;
             color: #888888;
+            text-align: center;
+            line-height: 1.4;
+            margin-top: 15px;
+        }
+        
+        /* ===== STATS BAR ===== */
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 20px;
+            background: #000000;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            flex-shrink: 0;
         }
         
         .stat-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+        }
+        
+        .stat-label {
+            color: #888888;
+            margin-bottom: 4px;
         }
         
         .stat-value {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #ffffff;
         }
         
-        /* MENU BUTTON */
+        /* ===== MENU ===== */
         .menu-button {
             position: fixed;
             top: 20px;
             right: 20px;
-            width: 44px;
-            height: 44px;
-            background: rgba(26, 26, 26, 0.8);
-            backdrop-filter: blur(10px);
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 3px;
             cursor: pointer;
-            z-index: 100;
-            transition: all 0.2s;
-        }
-        
-        .menu-button:active {
-            transform: scale(0.95);
-            background: rgba(40, 40, 40, 0.9);
+            z-index: 50;
         }
         
         .menu-dot {
-            width: 4px;
-            height: 4px;
+            width: 3px;
+            height: 3px;
             border-radius: 50%;
             background: #ffffff;
         }
         
-        /* MENU OVERLAY */
         .menu-overlay {
             position: fixed;
             top: 0;
@@ -369,16 +335,16 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            width: 44px;
-            height: 44px;
-            background: rgba(26, 26, 26, 0.8);
-            backdrop-filter: blur(10px);
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 18px;
             color: #ffffff;
             cursor: pointer;
         }
@@ -386,31 +352,30 @@
         .menu-items {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
             width: 80%;
-            max-width: 280px;
+            max-width: 260px;
         }
         
         .menu-item {
-            padding: 20px;
-            background: rgba(26, 26, 26, 0.8);
-            backdrop-filter: blur(10px);
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
+            border-radius: 14px;
             color: #ffffff;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
         
         .menu-item:active {
-            transform: scale(0.95);
-            background: rgba(40, 40, 40, 0.9);
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.98);
         }
         
-        /* GAME OVER SCREEN */
+        /* ===== GAME OVER ===== */
         .game-over {
             position: fixed;
             top: 0;
@@ -426,67 +391,58 @@
         }
         
         .game-over h2 {
-            font-size: 48px;
+            font-size: 42px;
             font-weight: 700;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #ff4444, #ff0000);
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ff4444 0%, #ff0000 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         
         .game-over p {
-            font-size: 18px;
+            font-size: 16px;
             color: #888888;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             text-align: center;
-            max-width: 300px;
+            max-width: 280px;
         }
         
         .restart-btn {
-            padding: 20px 40px;
-            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #00cc6a 0%, #00ff88 100%);
             border: none;
-            border-radius: 18px;
+            border-radius: 16px;
             color: #000000;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
         
         .restart-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.97);
         }
         
-        /* INFO TEXT */
-        .info-text {
-            text-align: center;
-            font-size: 13px;
-            color: #666666;
-            margin-top: 15px;
-            padding: 0 20px;
-            line-height: 1.4;
-        }
-        
-        /* STATUS MESSAGE */
+        /* ===== STATUS MESSAGE ===== */
         .status-message {
-            position: absolute;
-            bottom: 100px;
+            position: fixed;
+            bottom: 120px;
             left: 20px;
             right: 20px;
-            background: rgba(26, 26, 26, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            padding: 14px 20px;
             border-radius: 12px;
             text-align: center;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 3;
+            z-index: 40;
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.3s;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
         }
         
         .status-message.show {
@@ -494,81 +450,80 @@
             transform: translateY(0);
         }
         
-        /* ANIMATIONS */
+        /* ===== ANIMATIONS ===== */
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.6; }
         }
         
         .pulse {
-            animation: pulse 2s infinite;
+            animation: pulse 2s ease-in-out infinite;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        
-        .float {
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        /* RESPONSIVE */
-        @media (max-width: 380px) {
-            .balance-amount {
-                font-size: 48px;
-            }
-            
-            .trade-btn {
-                height: 65px;
-                font-size: 22px;
-            }
-            
-            .controls-section {
-                padding: 15px;
-            }
-        }
-        
-        @media (max-width: 320px) {
+        /* ===== RESPONSIVE ===== */
+        @media (max-height: 700px) {
             .balance-amount {
                 font-size: 42px;
             }
             
             .trade-btn {
-                height: 60px;
+                height: 58px;
                 font-size: 20px;
             }
             
-            .slider-label {
-                font-size: 14px;
+            .chart-section {
+                padding: 12px;
+            }
+            
+            .controls-section {
+                padding: 16px;
+            }
+        }
+        
+        @media (max-width: 350px) {
+            .balance-amount {
+                font-size: 40px;
+            }
+            
+            .trade-btn {
+                height: 56px;
+                font-size: 19px;
             }
             
             .slider-value {
-                font-size: 18px;
+                font-size: 16px;
             }
         }
         
-        /* PREVENT ZOOM/SCROLL */
-        * {
-            -webkit-user-drag: none;
+        /* ===== PERFORMANCE OPTIMIZATIONS ===== */
+        .app-container * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
-        body {
-            -webkit-touch-callout: none;
-            -webkit-text-size-adjust: none;
+        /* Prevent text selection */
+        .app-container {
             -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Optimize canvas rendering */
+        #chartCanvas {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
     </style>
 </head>
 <body>
-    <!-- Menu Button -->
+    <!-- Menu -->
     <div class="menu-button" id="menuButton">
         <div class="menu-dot"></div>
         <div class="menu-dot"></div>
         <div class="menu-dot"></div>
     </div>
     
-    <!-- Menu Overlay -->
     <div class="menu-overlay" id="menuOverlay">
         <div class="menu-close" id="menuClose">✕</div>
         <div class="menu-items">
@@ -579,57 +534,55 @@
         </div>
     </div>
     
-    <!-- Game Over Screen -->
+    <!-- Game Over -->
     <div class="game-over" id="gameOverScreen">
         <h2>BANKRUPTCY</h2>
-        <p>Your balance reached zero</p>
+        <p>Balance reached zero</p>
         <button class="restart-btn" id="restartBtn">TRY AGAIN</button>
     </div>
     
-    <!-- Main Container -->
-    <div class="container">
-        <!-- Top Balance Section -->
-        <div class="balance-section">
-            <div class="balance-amount" id="balanceAmount">$9,241.82</div>
-            <div class="balance-change">
-                <div class="change-positive" id="balanceChange">
-                    <span class="change-icon">↑</span>
-                    <span id="changeAmount">+$3.00</span>
-                    <span id="changePercent">1.29%</span>
+    <!-- Status Message -->
+    <div class="status-message" id="statusMessage"></div>
+    
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <div class="header-section">
+            <div class="balance-display">
+                <div class="balance-amount" id="balanceAmount">$10,000.00</div>
+                <div class="balance-change change-positive" id="balanceChange">
+                    <span id="changeIcon">↑</span>
+                    <span id="changeAmount">+$300.00</span>
+                    <span id="changePercent">3.00%</span>
                 </div>
+                <div class="balance-label">TOTAL BALANCE</div>
             </div>
-            <div class="balance-label" id="balanceLabel">TOTAL BALANCE</div>
         </div>
         
-        <!-- Chart Section -->
+        <!-- Chart -->
         <div class="chart-section">
-            <div class="chart-container">
+            <div class="chart-wrapper">
                 <canvas id="chartCanvas"></canvas>
                 <div class="chart-overlay">
-                    <div class="chart-indicator" id="chartIndicator">LIVE</div>
-                    <div class="chart-indicator" id="probabilityIndicator">78% WIN</div>
+                    <div class="chart-badge" id="chartStatus">LIVE</div>
+                    <div class="chart-badge" id="winProbability">85% WIN</div>
                 </div>
             </div>
         </div>
         
-        <!-- Status Message -->
-        <div class="status-message" id="statusMessage">Trade successful! +$150.00</div>
-        
-        <!-- Controls Section -->
+        <!-- Controls -->
         <div class="controls-section">
-            <!-- Trade Buttons -->
             <div class="trade-buttons">
                 <button class="trade-btn long-btn" id="longBtn">LONG</button>
                 <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
             </div>
             
-            <!-- Leverage Slider -->
             <div class="slider-group">
                 <div class="slider-header">
                     <div class="slider-label">LEVERAGE</div>
-                    <div class="slider-value leverage-value" id="leverageValue">1x</div>
+                    <div class="slider-value" id="leverageValue" style="color: #00ff88">1x</div>
                 </div>
-                <div class="slider-container">
+                <div class="slider-track">
                     <div class="slider-fill leverage-fill" id="leverageFill" style="width: 0%"></div>
                     <input type="range" min="0" max="7" value="0" id="leverageSlider">
                 </div>
@@ -645,15 +598,14 @@
                 </div>
             </div>
             
-            <!-- Bet Percentage Slider -->
             <div class="slider-group">
                 <div class="slider-header">
                     <div class="slider-label">BET AMOUNT</div>
-                    <div class="slider-value percentage-value" id="percentageValue">5%</div>
+                    <div class="slider-value" id="betPercentageValue" style="color: #00a3ff">5%</div>
                 </div>
-                <div class="slider-container">
-                    <div class="slider-fill percentage-fill" id="percentageFill" style="width: 5%"></div>
-                    <input type="range" min="1" max="100" value="5" id="percentageSlider">
+                <div class="slider-track">
+                    <div class="slider-fill bet-fill" id="betFill" style="width: 5%"></div>
+                    <input type="range" min="1" max="100" value="5" id="betSlider">
                 </div>
                 <div class="slider-ticks">
                     <div class="tick">1%</div>
@@ -664,275 +616,268 @@
                 </div>
             </div>
             
-            <!-- Info Text -->
-            <div class="info-text" id="infoText">
-                Bet: $462.09 | Potential Win: $462.09 | Potential Loss: $462.09
+            <div class="trade-info" id="tradeInfo">
+                Bet: $500.00 | Win: $500.00 | Loss: $500.00
             </div>
         </div>
         
-        <!-- Stats Bar -->
+        <!-- Stats -->
         <div class="stats-bar">
             <div class="stat-item">
                 <div class="stat-label">BEST</div>
-                <div class="stat-value" id="bestBalance">$12,450.00</div>
+                <div class="stat-value" id="bestBalance">$12,450</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">TRADES</div>
-                <div class="stat-value" id="totalTrades">42</div>
+                <div class="stat-value" id="totalTrades">0</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">WIN RATE</div>
-                <div class="stat-value" id="winRate">78%</div>
+                <div class="stat-value" id="winRate">0%</div>
             </div>
         </div>
     </div>
 
     <script>
-        // ==================== GAME CONFIGURATION ====================
-        const LEVERAGE_SETTINGS = [
-            { leverage: 1, baseWinChance: 0.80, color: "#00ff88", name: "Novice" },
-            { leverage: 2, baseWinChance: 0.70, color: "#66ffaa", name: "Beginner" },
-            { leverage: 3, baseWinChance: 0.60, color: "#99ffcc", name: "Intermediate" },
-            { leverage: 5, baseWinChance: 0.50, color: "#ffff44", name: "Expert" },
-            { leverage: 10, baseWinChance: 0.40, color: "#ffaa44", name: "Risky" },
-            { leverage: 20, baseWinChance: 0.30, color: "#ff7744", name: "High Risk" },
-            { leverage: 50, baseWinChance: 0.20, color: "#ff4444", name: "Extreme" },
-            { leverage: 100, baseWinChance: 0.20, color: "#ff2244", name: "Insane" }
-        ];
+        // ==================== CONFIGURATION ====================
+        const CONFIG = {
+            LEVERAGES: [
+                { value: 1, baseWin: 0.85, color: "#00ff88", name: "Novice" },
+                { value: 2, baseWin: 0.75, color: "#66ffaa", name: "Beginner" },
+                { value: 3, baseWin: 0.65, color: "#99ffcc", name: "Intermediate" },
+                { value: 5, baseWin: 0.55, color: "#ffff44", name: "Expert" },
+                { value: 10, baseWin: 0.45, color: "#ffaa44", name: "Risky" },
+                { value: 20, baseWin: 0.35, color: "#ff7744", name: "High Risk" },
+                { value: 50, baseWin: 0.25, color: "#ff4444", name: "Extreme" },
+                { value: 100, baseWin: 0.15, color: "#ff2244", name: "Insane" }
+            ],
+            UNLOCKS: [
+                { threshold: 1000, maxIndex: 0 },
+                { threshold: 1500, maxIndex: 1 },
+                { threshold: 2500, maxIndex: 2 },
+                { threshold: 5000, maxIndex: 3 },
+                { threshold: 10000, maxIndex: 4 },
+                { threshold: 25000, maxIndex: 5 },
+                { threshold: 50000, maxIndex: 6 },
+                { threshold: 100000, maxIndex: 7 }
+            ],
+            INITIAL_BALANCE: 10000,
+            MIN_BALANCE: 1000,
+            MAX_BET: 100,
+            MIN_BET: 1
+        };
 
-        const LEVERAGE_UNLOCKS = [
-            { threshold: 1000, maxLeverageIndex: 0 },
-            { threshold: 1500, maxLeverageIndex: 1 },
-            { threshold: 2500, maxLeverageIndex: 2 },
-            { threshold: 5000, maxLeverageIndex: 3 },
-            { threshold: 10000, maxLeverageIndex: 4 },
-            { threshold: 25000, maxLeverageIndex: 5 },
-            { threshold: 50000, maxLeverageIndex: 6 },
-            { threshold: 100000, maxLeverageIndex: 7 }
-        ];
+        // ==================== STATE ====================
+        let state = {
+            balance: CONFIG.INITIAL_BALANCE,
+            bestBalance: CONFIG.INITIAL_BALANCE,
+            totalTrades: 0,
+            wins: 0,
+            currentTrade: null,
+            gameActive: true,
+            isAnimating: false,
+            chartData: [],
+            chartStep: 0,
+            decisionPoint: 0,
+            userChoice: null,
+            tradeResult: null,
+            
+            leverageIndex: 0,
+            betPercentage: 5,
+            
+            lastBalance: CONFIG.INITIAL_BALANCE
+        };
 
-        // ==================== GAME STATE ====================
-        let balance = 9241.82;
-        let bestBalance = 12450.00;
-        let totalTrades = 42;
-        let wins = 33;
-        
-        let betPercentage = 5;
-        let leverageIndex = 0;
-        let leverage = 1;
-        
-        let gameActive = true;
-        let chartData = [];
-        let chartStep = 0;
-        let isAnimating = true;
-        let userChoice = null;
-        let tradeResult = null;
-        let decisionPoint = 0;
-        
-        // ==================== DOM ELEMENTS ====================
-        const canvas = document.getElementById('chartCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Balance elements
-        const balanceAmount = document.getElementById('balanceAmount');
-        const balanceChange = document.getElementById('balanceChange');
-        const changeAmount = document.getElementById('changeAmount');
-        const changePercent = document.getElementById('changePercent');
-        const balanceLabel = document.getElementById('balanceLabel');
-        
-        // Control elements
-        const longBtn = document.getElementById('longBtn');
-        const shortBtn = document.getElementById('shortBtn');
-        const leverageSlider = document.getElementById('leverageSlider');
-        const leverageValue = document.getElementById('leverageValue');
-        const leverageFill = document.getElementById('leverageFill');
-        const percentageSlider = document.getElementById('percentageSlider');
-        const percentageValue = document.getElementById('percentageValue');
-        const percentageFill = document.getElementById('percentageFill');
-        const infoText = document.getElementById('infoText');
-        
-        // Stats elements
-        const bestBalanceElement = document.getElementById('bestBalance');
-        const totalTradesElement = document.getElementById('totalTrades');
-        const winRateElement = document.getElementById('winRate');
-        
-        // Status elements
-        const statusMessage = document.getElementById('statusMessage');
-        const probabilityIndicator = document.getElementById('probabilityIndicator');
-        const chartIndicator = document.getElementById('chartIndicator');
-        
-        // Menu elements
-        const menuButton = document.getElementById('menuButton');
-        const menuOverlay = document.getElementById('menuOverlay');
-        const menuClose = document.getElementById('menuClose');
-        
-        // Game over elements
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const restartBtn = document.getElementById('restartBtn');
+        // ==================== DOM REFERENCES ====================
+        const dom = {
+            // Balance
+            balanceAmount: document.getElementById('balanceAmount'),
+            balanceChange: document.getElementById('balanceChange'),
+            changeIcon: document.getElementById('changeIcon'),
+            changeAmount: document.getElementById('changeAmount'),
+            changePercent: document.getElementById('changePercent'),
+            
+            // Chart
+            chartCanvas: document.getElementById('chartCanvas'),
+            chartCtx: null,
+            chartStatus: document.getElementById('chartStatus'),
+            winProbability: document.getElementById('winProbability'),
+            
+            // Controls
+            longBtn: document.getElementById('longBtn'),
+            shortBtn: document.getElementById('shortBtn'),
+            leverageSlider: document.getElementById('leverageSlider'),
+            leverageValue: document.getElementById('leverageValue'),
+            leverageFill: document.getElementById('leverageFill'),
+            betSlider: document.getElementById('betSlider'),
+            betPercentageValue: document.getElementById('betPercentageValue'),
+            betFill: document.getElementById('betFill'),
+            tradeInfo: document.getElementById('tradeInfo'),
+            
+            // Stats
+            bestBalanceElement: document.getElementById('bestBalance'),
+            totalTradesElement: document.getElementById('totalTrades'),
+            winRateElement: document.getElementById('winRate'),
+            
+            // UI
+            statusMessage: document.getElementById('statusMessage'),
+            gameOverScreen: document.getElementById('gameOverScreen'),
+            restartBtn: document.getElementById('restartBtn'),
+            menuButton: document.getElementById('menuButton'),
+            menuOverlay: document.getElementById('menuOverlay'),
+            menuClose: document.getElementById('menuClose'),
+            appContainer: document.getElementById('appContainer')
+        };
 
-        // ==================== INITIALIZATION ====================
-        function init() {
+        // ==================== UTILITY FUNCTIONS ====================
+        function formatCurrency(amount) {
+            return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function calculateWinProbability() {
+            const leverage = CONFIG.LEVERAGES[state.leverageIndex];
+            const penalty = state.betPercentage / 200;
+            const probability = leverage.baseWin * (1 - penalty);
+            return Math.max(0.05, Math.min(0.95, probability));
+        }
+
+        function getMaxLeverageIndex() {
+            for (let i = CONFIG.UNLOCKS.length - 1; i >= 0; i--) {
+                if (state.balance >= CONFIG.UNLOCKS[i].threshold) {
+                    return CONFIG.UNLOCKS[i].maxIndex;
+                }
+            }
+            return 0;
+        }
+
+        function calculateBetAmount() {
+            return state.balance * (state.betPercentage / 100);
+        }
+
+        // ==================== CORE GAME FUNCTIONS ====================
+        function initGame() {
             setupCanvas();
-            setupEventListeners();
             loadGameState();
-            updateDisplay();
+            setupEventListeners();
+            updateUI();
             startNewRound();
         }
-        
+
         function setupCanvas() {
+            const canvas = dom.chartCanvas;
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
             
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             
-            ctx.scale(dpr, dpr);
+            dom.chartCtx = canvas.getContext('2d');
+            dom.chartCtx.scale(dpr, dpr);
+            
             canvas.style.width = `${rect.width}px`;
             canvas.style.height = `${rect.height}px`;
         }
-        
+
         function setupEventListeners() {
-            // Menu
-            menuButton.addEventListener('click', openMenu);
-            menuClose.addEventListener('click', closeMenu);
-            
             // Game controls
-            longBtn.addEventListener('click', chooseLong);
-            shortBtn.addEventListener('click', chooseShort);
-            leverageSlider.addEventListener('input', updateLeverage);
-            percentageSlider.addEventListener('input', updateBetPercentage);
-            restartBtn.addEventListener('click', restartGame);
+            dom.longBtn.addEventListener('click', handleLong);
+            dom.shortBtn.addEventListener('click', handleShort);
+            dom.leverageSlider.addEventListener('input', handleLeverageChange);
+            dom.betSlider.addEventListener('input', handleBetChange);
+            dom.restartBtn.addEventListener('click', handleRestart);
+            
+            // Menu
+            dom.menuButton.addEventListener('click', openMenu);
+            dom.menuClose.addEventListener('click', closeMenu);
             
             // Prevent zoom/scroll
-            document.addEventListener('touchmove', preventScroll, { passive: false });
-            document.addEventListener('gesturestart', preventZoom);
-            document.addEventListener('gesturechange', preventZoom);
-            document.addEventListener('gestureend', preventZoom);
+            document.addEventListener('touchmove', (e) => {
+                if (e.scale !== 1) e.preventDefault();
+            }, { passive: false });
             
-            window.addEventListener('resize', setupCanvas);
-        }
-        
-        function preventScroll(e) {
-            if (!e.target.closest('.menu-overlay')) {
-                e.preventDefault();
-            }
-        }
-        
-        function preventZoom(e) {
-            e.preventDefault();
-        }
-
-        // ==================== GAME LOGIC ====================
-        function getCurrentLeverageSettings() {
-            return LEVERAGE_SETTINGS[leverageIndex];
-        }
-        
-        function getMaxUnlockedLeverageIndex() {
-            for (let i = LEVERAGE_UNLOCKS.length - 1; i >= 0; i--) {
-                if (balance >= LEVERAGE_UNLOCKS[i].threshold) {
-                    return LEVERAGE_UNLOCKS[i].maxLeverageIndex;
+            // Resize handling
+            window.addEventListener('resize', () => {
+                setupCanvas();
+                if (state.chartData.length > 0) {
+                    drawChart();
                 }
-            }
-            return 0;
-        }
-        
-        function calculateWinChance() {
-            const settings = getCurrentLeverageSettings();
-            const penalty = betPercentage / 200;
-            const dynamicChance = settings.baseWinChance * (1 - penalty);
-            return Math.max(0.05, dynamicChance);
-        }
-        
-        function isTradeSuccessful() {
-            return Math.random() < calculateWinChance();
-        }
-        
-        function calculateTradeResult(isWin) {
-            const betAmount = balance * (betPercentage / 100);
-            return isWin ? betAmount * leverage : -betAmount * leverage;
-        }
-        
-        function calculateBet() {
-            return balance * (betPercentage / 100);
+            });
         }
 
-        // ==================== DISPLAY UPDATES ====================
-        function updateDisplay() {
-            // Update balance
-            balanceAmount.textContent = `$${balance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-            bestBalanceElement.textContent = `$${bestBalance.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+        // ==================== TRADE LOGIC ====================
+        function handleLong() {
+            if (!state.gameActive || state.isAnimating || state.userChoice) return;
             
-            // Update stats
-            totalTradesElement.textContent = totalTrades;
-            winRateElement.textContent = `${Math.round((wins / totalTrades) * 100) || 0}%`;
-            
-            // Update sliders
-            const maxLeverageIndex = getMaxUnlockedLeverageIndex();
-            leverageSlider.max = maxLeverageIndex;
-            leverageFill.style.width = `${(leverageIndex / 7) * 100}%`;
-            percentageFill.style.width = `${betPercentage}%`;
-            
-            // Update info text
-            const betAmount = calculateBet();
-            const winChance = Math.round(calculateWinChance() * 100);
-            const potentialWin = betAmount * leverage;
-            const potentialLoss = betAmount * leverage;
-            
-            infoText.innerHTML = `
-                Bet: <strong>$${betAmount.toFixed(2)}</strong> | 
-                Win Chance: <strong>${winChance}%</strong> | 
-                Potential: <span style="color:#00ff88">+$${potentialWin.toFixed(2)}</span> / 
-                <span style="color:#ff4444">-$${potentialLoss.toFixed(2)}</span>
-            `;
-            
-            // Update probability indicator
-            probabilityIndicator.textContent = `${winChance}% WIN`;
-            probabilityIndicator.style.color = winChance > 50 ? '#00ff88' : 
-                                             winChance > 30 ? '#ffaa44' : '#ff4444';
-            
-            // Update balance change indicator
-            updateChangeIndicator();
+            state.userChoice = 'long';
+            state.tradeResult = Math.random() < calculateWinProbability();
+            executeTrade();
         }
-        
-        function updateChangeIndicator() {
-            const lastBalance = parseFloat(localStorage.getItem('lastBalance')) || balance;
-            const change = balance - lastBalance;
-            const percentChange = (change / lastBalance) * 100;
+
+        function handleShort() {
+            if (!state.gameActive || state.isAnimating || state.userChoice) return;
             
-            if (change > 0) {
-                balanceChange.className = 'change-positive';
-                changeAmount.textContent = `+$${Math.abs(change).toFixed(2)}`;
-                changePercent.textContent = `${Math.abs(percentChange).toFixed(2)}%`;
-                balanceLabel.textContent = 'TOTAL BALANCE';
-            } else if (change < 0) {
-                balanceChange.className = 'change-negative';
-                changeAmount.textContent = `-$${Math.abs(change).toFixed(2)}`;
-                changePercent.textContent = `${Math.abs(percentChange).toFixed(2)}%`;
-                balanceLabel.textContent = 'TOTAL BALANCE';
-            } else {
-                balanceLabel.textContent = 'TOTAL BALANCE';
+            state.userChoice = 'short';
+            state.tradeResult = Math.random() < calculateWinProbability();
+            executeTrade();
+        }
+
+        function executeTrade() {
+            dom.longBtn.disabled = true;
+            dom.shortBtn.disabled = true;
+            dom.chartStatus.textContent = state.tradeResult ? 'WINNING' : 'LOSING';
+            
+            // Modify chart trend based on result
+            const trend = (state.userChoice === 'long' ? 1 : -1) * (state.tradeResult ? 0.08 : -0.08);
+            modifyChartTrend(trend);
+            
+            state.isAnimating = true;
+            animateChart();
+        }
+
+        function modifyChartTrend(trend) {
+            const startValue = state.chartData[state.decisionPoint];
+            for (let i = state.decisionPoint + 1; i < state.chartData.length; i++) {
+                const progress = (i - state.decisionPoint) / (state.chartData.length - state.decisionPoint);
+                state.chartData[i] = startValue + trend * progress * 30 + (Math.random() - 0.5) * 2;
+                state.chartData[i] = Math.max(20, Math.min(80, state.chartData[i]));
             }
         }
-        
-        function updateLeverage() {
-            leverageIndex = parseInt(leverageSlider.value);
-            const settings = getCurrentLeverageSettings();
-            leverage = settings.leverage;
-            leverageValue.textContent = `${leverage}x`;
-            leverageValue.style.color = settings.color;
-            leverageFill.style.width = `${(leverageIndex / 7) * 100}%`;
+
+        function completeTrade() {
+            const betAmount = calculateBetAmount();
+            const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
+            const result = state.tradeResult ? betAmount * leverage : -betAmount * leverage;
             
-            updateDisplay();
-            saveGameState();
-        }
-        
-        function updateBetPercentage() {
-            betPercentage = parseInt(percentageSlider.value);
-            percentageValue.textContent = `${betPercentage}%`;
-            percentageFill.style.width = `${betPercentage}%`;
+            state.balance += result;
+            state.totalTrades++;
             
-            updateDisplay();
+            if (state.tradeResult) {
+                state.wins++;
+                showStatus(`WIN! +${formatCurrency(betAmount * leverage)}`, '#00ff88');
+            } else {
+                showStatus(`LOSS! -${formatCurrency(betAmount * leverage)}`, '#ff4444');
+            }
+            
+            // Update best balance
+            if (state.balance > state.bestBalance) {
+                state.bestBalance = state.balance;
+            }
+            
+            // Check for bankruptcy
+            if (state.balance <= 0) {
+                state.gameActive = false;
+                dom.gameOverScreen.style.display = 'flex';
+            }
+            
+            updateUI();
             saveGameState();
+            
+            // Reset for next round
+            setTimeout(() => {
+                state.userChoice = null;
+                state.tradeResult = null;
+                startNewRound();
+            }, 2000);
         }
 
         // ==================== CHART FUNCTIONS ====================
@@ -940,42 +885,52 @@
             const data = [];
             let value = 50;
             
-            for (let i = 0; i < 200; i++) {
-                value += (Math.random() - 0.5) * 2;
-                value = Math.max(10, Math.min(90, value));
+            for (let i = 0; i < 150; i++) {
+                value += (Math.random() - 0.5) * 3;
+                value = Math.max(20, Math.min(80, value));
                 data.push(value);
             }
             
             return data;
         }
-        
+
         function drawChart() {
-            const width = canvas.width / (window.devicePixelRatio || 1);
-            const height = canvas.height / (window.devicePixelRatio || 1);
+            const ctx = dom.chartCtx;
+            const width = dom.chartCanvas.width / (window.devicePixelRatio || 1);
+            const height = dom.chartCanvas.height / (window.devicePixelRatio || 1);
             
+            // Clear
             ctx.clearRect(0, 0, width, height);
             
-            if (chartData.length === 0) return;
+            if (state.chartData.length === 0) return;
             
-            const minValue = Math.min(...chartData);
-            const maxValue = Math.max(...chartData);
-            const range = maxValue - minValue || 1;
+            // Setup
+            const data = state.chartData;
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const range = max - min || 1;
             
-            const scaleX = width / (chartData.length - 1);
-            const scaleY = height / range;
+            const xScale = width / (data.length - 1);
+            const yScale = height / range;
             
+            // Draw line
             ctx.beginPath();
             ctx.lineWidth = 2;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             
-            const color = tradeResult === null ? '#ffffff' : 
-                         tradeResult ? '#00ff88' : '#ff4444';
+            // Determine color
+            let color = '#ffffff';
+            if (state.tradeResult === true) color = '#00ff88';
+            if (state.tradeResult === false) color = '#ff4444';
+            
             ctx.strokeStyle = color;
             
-            for (let i = 0; i < Math.min(chartStep, chartData.length); i++) {
-                const x = i * scaleX;
-                const y = height - ((chartData[i] - minValue) * scaleY);
+            // Draw up to current step
+            const steps = Math.min(state.chartStep, data.length);
+            for (let i = 0; i < steps; i++) {
+                const x = i * xScale;
+                const y = height - ((data[i] - min) * yScale);
                 
                 if (i === 0) {
                     ctx.moveTo(x, y);
@@ -987,9 +942,9 @@
             ctx.stroke();
             
             // Draw decision point marker
-            if (userChoice && chartStep > decisionPoint) {
-                const x = decisionPoint * scaleX;
-                const y = height - ((chartData[decisionPoint] - minValue) * scaleY);
+            if (state.userChoice && state.chartStep > state.decisionPoint) {
+                const x = state.decisionPoint * xScale;
+                const y = height - ((data[state.decisionPoint] - min) * yScale);
                 
                 ctx.beginPath();
                 ctx.fillStyle = color;
@@ -997,204 +952,215 @@
                 ctx.fill();
             }
         }
-        
+
         function animateChart() {
-            if (chartStep < chartData.length) {
-                chartStep++;
+            if (state.chartStep < state.chartData.length) {
+                state.chartStep++;
                 drawChart();
                 
-                if (chartStep === decisionPoint + 1 && !userChoice) {
-                    isAnimating = false;
-                    enableTradeButtons();
-                    chartIndicator.textContent = 'DECISION TIME';
-                    chartIndicator.classList.add('pulse');
+                if (state.chartStep === state.decisionPoint + 1 && !state.userChoice) {
+                    state.isAnimating = false;
+                    dom.longBtn.disabled = false;
+                    dom.shortBtn.disabled = false;
+                    dom.chartStatus.textContent = 'DECIDE';
+                    dom.chartStatus.classList.add('pulse');
                 }
                 
-                if (isAnimating || (userChoice && chartStep <= chartData.length)) {
-                    setTimeout(() => {
-                        requestAnimationFrame(animateChart);
-                    }, 20);
+                if (state.isAnimating || state.userChoice) {
+                    requestAnimationFrame(() => {
+                        setTimeout(animateChart, 16);
+                    });
                 }
             } else {
-                processTradeResult();
+                completeTrade();
             }
         }
 
-        // ==================== TRADE FUNCTIONS ====================
         function startNewRound() {
-            chartData = generateChartData();
-            chartStep = 0;
-            userChoice = null;
-            tradeResult = null;
-            decisionPoint = Math.floor(chartData.length * 0.6);
+            state.chartData = generateChartData();
+            state.chartStep = 0;
+            state.userChoice = null;
+            state.tradeResult = null;
+            state.decisionPoint = Math.floor(state.chartData.length * 0.6);
+            state.isAnimating = true;
             
-            chartIndicator.textContent = 'LIVE';
-            chartIndicator.classList.remove('pulse');
-            
-            isAnimating = true;
-            disableTradeButtons();
-            hideStatusMessage();
+            dom.chartStatus.textContent = 'LIVE';
+            dom.chartStatus.classList.remove('pulse');
+            dom.longBtn.disabled = true;
+            dom.shortBtn.disabled = true;
             
             animateChart();
         }
-        
-        function chooseLong() {
-            if (!isAnimating && !userChoice && gameActive) {
-                userChoice = 'long';
-                tradeResult = isTradeSuccessful();
-                completeTrade();
-            }
+
+        // ==================== UI UPDATES ====================
+        function updateUI() {
+            // Update balance
+            dom.balanceAmount.textContent = formatCurrency(state.balance);
+            dom.bestBalanceElement.textContent = '$' + Math.round(state.bestBalance).toLocaleString();
+            
+            // Update change indicator
+            updateChangeIndicator();
+            
+            // Update stats
+            dom.totalTradesElement.textContent = state.totalTrades;
+            const winRate = state.totalTrades > 0 ? Math.round((state.wins / state.totalTrades) * 100) : 0;
+            dom.winRateElement.textContent = winRate + '%';
+            
+            // Update controls
+            updateControls();
+            
+            // Update trade info
+            updateTradeInfo();
         }
-        
-        function chooseShort() {
-            if (!isAnimating && !userChoice && gameActive) {
-                userChoice = 'short';
-                tradeResult = isTradeSuccessful();
-                completeTrade();
+
+        function updateChangeIndicator() {
+            const change = state.balance - state.lastBalance;
+            const percentChange = (change / state.lastBalance) * 100;
+            
+            if (change > 0) {
+                dom.balanceChange.className = 'balance-change change-positive';
+                dom.changeIcon.textContent = '↑';
+                dom.changeAmount.textContent = `+${formatCurrency(Math.abs(change))}`;
+                dom.changePercent.textContent = `${Math.abs(percentChange).toFixed(2)}%`;
+            } else if (change < 0) {
+                dom.balanceChange.className = 'balance-change change-negative';
+                dom.changeIcon.textContent = '↓';
+                dom.changeAmount.textContent = `-${formatCurrency(Math.abs(change))}`;
+                dom.changePercent.textContent = `${Math.abs(percentChange).toFixed(2)}%`;
             }
+            
+            // Store for next comparison
+            state.lastBalance = state.balance;
         }
-        
-        function completeTrade() {
-            disableTradeButtons();
-            chartIndicator.textContent = tradeResult ? 'WINNING' : 'LOSING';
+
+        function updateControls() {
+            const maxLeverageIndex = getMaxLeverageIndex();
+            dom.leverageSlider.max = maxLeverageIndex;
             
-            const trendStrength = (userChoice === 'long' ? 1 : -1) * (tradeResult ? 0.1 : -0.1);
-            const startValue = chartData[decisionPoint];
-            
-            for (let i = decisionPoint + 1; i < chartData.length; i++) {
-                chartData[i] = startValue + trendStrength * (i - decisionPoint) + (Math.random() - 0.5) * 0.5;
-                chartData[i] = Math.max(10, Math.min(90, chartData[i]));
+            // Cap current leverage if too high
+            if (state.leverageIndex > maxLeverageIndex) {
+                state.leverageIndex = maxLeverageIndex;
+                dom.leverageSlider.value = state.leverageIndex;
             }
             
-            isAnimating = true;
-            animateChart();
+            const leverage = CONFIG.LEVERAGES[state.leverageIndex];
+            dom.leverageValue.textContent = `${leverage.value}x`;
+            dom.leverageValue.style.color = leverage.color;
+            dom.leverageFill.style.width = `${(state.leverageIndex / 7) * 100}%`;
+            
+            dom.betPercentageValue.textContent = `${state.betPercentage}%`;
+            dom.betFill.style.width = `${state.betPercentage}%`;
+            
+            // Update win probability
+            const winProb = Math.round(calculateWinProbability() * 100);
+            dom.winProbability.textContent = `${winProb}% WIN`;
+            dom.winProbability.style.color = winProb > 50 ? '#00ff88' : 
+                                           winProb > 30 ? '#ffaa44' : '#ff4444';
         }
-        
-        function processTradeResult() {
-            const result = calculateTradeResult(tradeResult);
-            const betAmount = calculateBet();
+
+        function updateTradeInfo() {
+            const betAmount = calculateBetAmount();
+            const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
+            const winProb = Math.round(calculateWinProbability() * 100);
             
-            balance += result;
-            totalTrades++;
+            dom.tradeInfo.innerHTML = `
+                Bet: <strong>${formatCurrency(betAmount)}</strong> | 
+                Leverage: <strong>${leverage}x</strong> | 
+                Win Chance: <strong>${winProb}%</strong>
+            `;
+        }
+
+        function showStatus(message, color) {
+            dom.statusMessage.textContent = message;
+            dom.statusMessage.style.color = color;
+            dom.statusMessage.classList.add('show');
             
-            if (tradeResult) {
-                wins++;
-                showStatusMessage(`WIN! +$${(betAmount * leverage).toFixed(2)}`, '#00ff88');
-            } else {
-                showStatusMessage(`LOSS! -$${(betAmount * leverage).toFixed(2)}`, '#ff4444');
-            }
-            
-            if (balance > bestBalance) {
-                bestBalance = balance;
-            }
-            
-            if (balance <= 0) {
-                gameOver();
-                return;
-            }
-            
-            updateDisplay();
+            setTimeout(() => {
+                dom.statusMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        // ==================== EVENT HANDLERS ====================
+        function handleLeverageChange() {
+            state.leverageIndex = parseInt(dom.leverageSlider.value);
+            updateUI();
             saveGameState();
-            
-            setTimeout(startNewRound, 2000);
         }
-        
-        function gameOver() {
-            gameActive = false;
-            gameOverScreen.style.display = 'flex';
+
+        function handleBetChange() {
+            state.betPercentage = parseInt(dom.betSlider.value);
+            updateUI();
+            saveGameState();
         }
-        
-        function restartGame() {
-            balance = 1000;
-            bestBalance = Math.max(bestBalance, 1000);
-            gameActive = true;
-            leverageIndex = 0;
-            leverage = 1;
-            betPercentage = 5;
+
+        function handleRestart() {
+            state.balance = CONFIG.MIN_BALANCE;
+            state.gameActive = true;
+            state.leverageIndex = 0;
+            state.betPercentage = 5;
             
-            leverageSlider.value = leverageIndex;
-            percentageSlider.value = betPercentage;
+            dom.leverageSlider.value = state.leverageIndex;
+            dom.betSlider.value = state.betPercentage;
+            dom.gameOverScreen.style.display = 'none';
             
-            gameOverScreen.style.display = 'none';
-            updateDisplay();
+            updateUI();
             saveGameState();
             startNewRound();
         }
-        
-        function enableTradeButtons() {
-            longBtn.disabled = false;
-            shortBtn.disabled = false;
-        }
-        
-        function disableTradeButtons() {
-            longBtn.disabled = true;
-            shortBtn.disabled = true;
-        }
-        
-        function showStatusMessage(text, color) {
-            statusMessage.textContent = text;
-            statusMessage.style.color = color;
-            statusMessage.classList.add('show');
-            
-            setTimeout(hideStatusMessage, 3000);
-        }
-        
-        function hideStatusMessage() {
-            statusMessage.classList.remove('show');
+
+        function openMenu() {
+            dom.menuOverlay.classList.add('active');
+            state.isAnimating = false;
         }
 
-        // ==================== MENU FUNCTIONS ====================
-        function openMenu() {
-            menuOverlay.classList.add('active');
-            isAnimating = false;
-        }
-        
         function closeMenu() {
-            menuOverlay.classList.remove('active');
-            if (gameActive && !userChoice) {
-                isAnimating = true;
+            dom.menuOverlay.classList.remove('active');
+            if (state.gameActive && !state.userChoice) {
+                state.isAnimating = true;
                 animateChart();
             }
         }
 
-        // ==================== DATA MANAGEMENT ====================
-        function loadGameState() {
-            const savedBalance = localStorage.getItem('xtradeBalance');
-            const savedBestBalance = localStorage.getItem('xtradeBestBalance');
-            const savedTrades = localStorage.getItem('xtradeTotalTrades');
-            const savedWins = localStorage.getItem('xtradeWins');
-            const savedLeverageIndex = localStorage.getItem('xtradeLeverageIndex');
-            const savedBetPercentage = localStorage.getItem('xtradeBetPercentage');
-            
-            if (savedBalance) balance = parseFloat(savedBalance);
-            if (savedBestBalance) bestBalance = parseFloat(savedBestBalance);
-            if (savedTrades) totalTrades = parseInt(savedTrades);
-            if (savedWins) wins = parseInt(savedWins);
-            if (savedLeverageIndex) {
-                leverageIndex = parseInt(savedLeverageIndex);
-                leverageSlider.value = leverageIndex;
-            }
-            if (savedBetPercentage) {
-                betPercentage = parseInt(savedBetPercentage);
-                percentageSlider.value = betPercentage;
-            }
-            
-            const settings = getCurrentLeverageSettings();
-            leverage = settings.leverage;
-        }
-        
+        // ==================== DATA PERSISTENCE ====================
         function saveGameState() {
-            localStorage.setItem('xtradeBalance', balance.toString());
-            localStorage.setItem('xtradeBestBalance', bestBalance.toString());
-            localStorage.setItem('lastBalance', balance.toString());
-            localStorage.setItem('xtradeTotalTrades', totalTrades.toString());
-            localStorage.setItem('xtradeWins', wins.toString());
-            localStorage.setItem('xtradeLeverageIndex', leverageIndex.toString());
-            localStorage.setItem('xtradeBetPercentage', betPercentage.toString());
+            localStorage.setItem('xtrade_balance', state.balance.toString());
+            localStorage.setItem('xtrade_best', state.bestBalance.toString());
+            localStorage.setItem('xtrade_trades', state.totalTrades.toString());
+            localStorage.setItem('xtrade_wins', state.wins.toString());
+            localStorage.setItem('xtrade_leverage', state.leverageIndex.toString());
+            localStorage.setItem('xtrade_bet', state.betPercentage.toString());
         }
 
-        // ==================== START GAME ====================
-        window.addEventListener('load', init);
+        function loadGameState() {
+            const savedBalance = localStorage.getItem('xtrade_balance');
+            const savedBest = localStorage.getItem('xtrade_best');
+            const savedTrades = localStorage.getItem('xtrade_trades');
+            const savedWins = localStorage.getItem('xtrade_wins');
+            const savedLeverage = localStorage.getItem('xtrade_leverage');
+            const savedBet = localStorage.getItem('xtrade_bet');
+            
+            if (savedBalance) state.balance = parseFloat(savedBalance);
+            if (savedBest) state.bestBalance = parseFloat(savedBest);
+            if (savedTrades) state.totalTrades = parseInt(savedTrades);
+            if (savedWins) state.wins = parseInt(savedWins);
+            if (savedLeverage) state.leverageIndex = parseInt(savedLeverage);
+            if (savedBet) state.betPercentage = parseInt(savedBet);
+            
+            // Validate
+            state.balance = Math.max(CONFIG.MIN_BALANCE, state.balance);
+            state.bestBalance = Math.max(state.bestBalance, CONFIG.MIN_BALANCE);
+            state.leverageIndex = Math.max(0, Math.min(7, state.leverageIndex));
+            state.betPercentage = Math.max(1, Math.min(100, state.betPercentage));
+            
+            state.lastBalance = state.balance;
+            
+            // Update sliders
+            dom.leverageSlider.value = state.leverageIndex;
+            dom.betSlider.value = state.betPercentage;
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', initGame);
     </script>
 </body>
 </html>
