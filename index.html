@@ -406,34 +406,6 @@
             min-height: 16px;
         }
         
-        /* ===== STATS BAR ===== */
-        .stats-bar {
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 20px;
-            background: #000000;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-        
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .stat-label {
-            color: #888888;
-            margin-bottom: 4px;
-        }
-        
-        .stat-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-        
         /* ===== PAGINE OVERLAY ===== */
         .page-overlay {
             position: fixed;
@@ -732,47 +704,6 @@
             transform: scale(0.98);
         }
         
-        /* ===== STATUS MESSAGE ===== */
-        .status-message {
-            position: fixed;
-            bottom: 120px;
-            left: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(20px);
-            padding: 14px 20px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 40;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.3s ease;
-            pointer-events: none;
-        }
-        
-        .status-message.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        /* ===== SCROLLBAR ===== */
-        .page-content::-webkit-scrollbar {
-            width: 5px;
-        }
-        
-        .page-content::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-        }
-        
-        .page-content::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-        
         /* ===== RESPONSIVE ===== */
         @media (max-height: 700px) {
             .balance-amount {
@@ -835,29 +766,71 @@
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
         }
+        
+        /* ===== DOCK ICONS (SVG) ===== */
+        .dock-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: #888888;
+            transition: fill 0.2s ease;
+        }
+        
+        .dock-item.active .dock-icon svg {
+            fill: #00ff88;
+        }
+        
+        .dock-icon.trading svg {
+            stroke: #888888;
+            stroke-width: 1.5;
+            fill: none;
+        }
+        
+        .dock-item.active .dock-icon.trading svg {
+            stroke: #00ff88;
+        }
     </style>
 </head>
 <body>
     <!-- Dock -->
     <div class="dock-container">
         <div class="dock-item active" id="dockTrading">
-            <div class="dock-icon">📈</div>
+            <div class="dock-icon trading">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 18h18v2H3zm0-5h18v2H3zm0-7v2h18V6z"/>
+                </svg>
+            </div>
             <div class="dock-label">Trading</div>
         </div>
         <div class="dock-item" id="dockAccount">
-            <div class="dock-icon">👤</div>
+            <div class="dock-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                </svg>
+            </div>
             <div class="dock-label">Account</div>
         </div>
         <div class="dock-item" id="dockRank">
-            <div class="dock-icon">🏆</div>
+            <div class="dock-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
+                </svg>
+            </div>
             <div class="dock-label">Ranking</div>
         </div>
         <div class="dock-item" id="dockSettings">
-            <div class="dock-icon">⚙️</div>
+            <div class="dock-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                </svg>
+            </div>
             <div class="dock-label">Settings</div>
         </div>
         <div class="dock-item" id="dockInfo">
-            <div class="dock-icon">ℹ️</div>
+            <div class="dock-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                </svg>
+            </div>
             <div class="dock-label">Info</div>
         </div>
     </div>
@@ -1044,9 +1017,6 @@
         </div>
     </div>
     
-    <!-- Status Message -->
-    <div class="status-message" id="statusMessage"></div>
-    
     <!-- Main App -->
     <div class="app-container" id="appContainer">
         <!-- Header -->
@@ -1116,22 +1086,6 @@
             </div>
             
             <div class="unlock-info" id="unlockInfo"></div>
-        </div>
-        
-        <!-- Stats -->
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-label">BEST</div>
-                <div class="stat-value" id="bestBalance">$10k</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">TRADES</div>
-                <div class="stat-value" id="totalTrades">0</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">WIN RATE</div>
-                <div class="stat-value" id="winRate">0%</div>
-            </div>
         </div>
     </div>
 
@@ -1231,11 +1185,6 @@
             tradeInfo: document.getElementById('tradeInfo'),
             unlockInfo: document.getElementById('unlockInfo'),
             
-            // Stats
-            bestBalanceElement: document.getElementById('bestBalance'),
-            totalTradesElement: document.getElementById('totalTrades'),
-            winRateElement: document.getElementById('winRate'),
-            
             // Dock
             dockTrading: document.getElementById('dockTrading'),
             dockAccount: document.getElementById('dockAccount'),
@@ -1269,7 +1218,6 @@
             resetDataBtn: document.getElementById('resetDataBtn'),
             
             // UI
-            statusMessage: document.getElementById('statusMessage'),
             gameOverScreen: document.getElementById('gameOverScreen'),
             restartBtn: document.getElementById('restartBtn'),
             appContainer: document.getElementById('appContainer'),
@@ -1484,10 +1432,10 @@
             if (state.tradeResult) {
                 state.wins++;
                 state.leverageStats[leverage].wins++;
-                showStatus(`WIN! +${formatCurrency(betAmount * leverage)}`, '#00ff88');
+                // Removed status message display
                 if (state.soundEnabled) playSound('win');
             } else {
-                showStatus(`LOSS! -${formatCurrency(betAmount * leverage)}`, '#ff4444');
+                // Removed status message display
                 if (state.soundEnabled) playSound('lose');
             }
             
@@ -1714,15 +1662,9 @@
         function updateUI() {
             // Update balance
             dom.balanceAmount.textContent = formatCurrency(state.balance);
-            dom.bestBalanceElement.textContent = formatCurrency(state.bestBalance);
             
             // Update change indicator
             updateChangeIndicator();
-            
-            // Update stats
-            dom.totalTradesElement.textContent = state.totalTrades;
-            const winRate = state.totalTrades > 0 ? Math.round((state.wins / state.totalTrades) * 100) : 0;
-            dom.winRateElement.textContent = winRate + '%';
             
             // Update controls
             updateControls();
@@ -1834,16 +1776,6 @@
                 dom.unlockInfo.textContent = 'All leverages unlocked!';
                 dom.unlockInfo.style.color = '#00ff88';
             }
-        }
-
-        function showStatus(message, color) {
-            dom.statusMessage.textContent = message;
-            dom.statusMessage.style.color = color;
-            dom.statusMessage.classList.add('show');
-            
-            setTimeout(() => {
-                dom.statusMessage.classList.remove('show');
-            }, 3000);
         }
 
         // ==================== PAGE MANAGEMENT ====================
