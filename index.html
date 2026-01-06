@@ -40,6 +40,62 @@
             display: flex;
             flex-direction: column;
             background: #000000;
+            padding-bottom: 70px; /* Space for dock */
+        }
+        
+        /* ===== DOCK ===== */
+        .dock-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+        
+        .dock-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .dock-item:active {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.95);
+        }
+        
+        .dock-icon {
+            font-size: 22px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .dock-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #888888;
+            transition: all 0.2s ease;
+        }
+        
+        .dock-item.active .dock-icon {
+            color: #00ff88;
+            transform: translateY(-2px);
+        }
+        
+        .dock-item.active .dock-label {
+            color: #ffffff;
         }
         
         /* ===== HEADER/BALANCE ===== */
@@ -607,95 +663,6 @@
             color: #00ff88;
         }
         
-        /* ===== MENU ===== */
-        .menu-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            cursor: pointer;
-            z-index: 50;
-        }
-        
-        .menu-dot {
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            background: #ffffff;
-        }
-        
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000000;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 900;
-        }
-        
-        .menu-overlay.active {
-            display: flex;
-        }
-        
-        .menu-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: #ffffff;
-            cursor: pointer;
-        }
-        
-        .menu-items {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 80%;
-            max-width: 260px;
-        }
-        
-        .menu-item {
-            padding: 18px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        
-        .menu-item:active {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(0.98);
-        }
-        
         /* ===== GAME OVER ===== */
         .game-over {
             position: fixed;
@@ -824,6 +791,10 @@
             .controls-section {
                 padding: 16px;
             }
+            
+            .app-container {
+                padding-bottom: 65px;
+            }
         }
         
         @media (max-width: 350px) {
@@ -844,6 +815,14 @@
                 padding: 15px;
                 padding-top: 50px;
             }
+            
+            .dock-label {
+                font-size: 9px;
+            }
+            
+            .dock-icon {
+                font-size: 20px;
+            }
         }
         
         /* ===== PERFORMANCE ===== */
@@ -859,20 +838,27 @@
     </style>
 </head>
 <body>
-    <!-- Menu -->
-    <div class="menu-button" id="menuButton">
-        <div class="menu-dot"></div>
-        <div class="menu-dot"></div>
-        <div class="menu-dot"></div>
-    </div>
-    
-    <div class="menu-overlay" id="menuOverlay">
-        <div class="menu-close" id="menuClose">✕</div>
-        <div class="menu-items">
-            <div class="menu-item" id="accountBtn">Account</div>
-            <div class="menu-item" id="rankBtn">Ranking</div>
-            <div class="menu-item" id="infoBtn">Info</div>
-            <div class="menu-item" id="settingsBtn">Settings</div>
+    <!-- Dock -->
+    <div class="dock-container">
+        <div class="dock-item active" id="dockTrading">
+            <div class="dock-icon">📈</div>
+            <div class="dock-label">Trading</div>
+        </div>
+        <div class="dock-item" id="dockAccount">
+            <div class="dock-icon">👤</div>
+            <div class="dock-label">Account</div>
+        </div>
+        <div class="dock-item" id="dockRank">
+            <div class="dock-icon">🏆</div>
+            <div class="dock-label">Ranking</div>
+        </div>
+        <div class="dock-item" id="dockSettings">
+            <div class="dock-icon">⚙️</div>
+            <div class="dock-label">Settings</div>
+        </div>
+        <div class="dock-item" id="dockInfo">
+            <div class="dock-icon">ℹ️</div>
+            <div class="dock-label">Info</div>
         </div>
     </div>
     
@@ -1205,7 +1191,10 @@
             hapticEnabled: true,
             
             // Username
-            username: "Trader"
+            username: "Trader",
+            
+            // Current page
+            currentPage: 'trading'
         };
 
         // Initialize leverage stats
@@ -1247,6 +1236,13 @@
             totalTradesElement: document.getElementById('totalTrades'),
             winRateElement: document.getElementById('winRate'),
             
+            // Dock
+            dockTrading: document.getElementById('dockTrading'),
+            dockAccount: document.getElementById('dockAccount'),
+            dockRank: document.getElementById('dockRank'),
+            dockSettings: document.getElementById('dockSettings'),
+            dockInfo: document.getElementById('dockInfo'),
+            
             // Account Page
             accountBalance: document.getElementById('accountBalance'),
             accountBestBalance: document.getElementById('accountBestBalance'),
@@ -1276,9 +1272,6 @@
             statusMessage: document.getElementById('statusMessage'),
             gameOverScreen: document.getElementById('gameOverScreen'),
             restartBtn: document.getElementById('restartBtn'),
-            menuButton: document.getElementById('menuButton'),
-            menuOverlay: document.getElementById('menuOverlay'),
-            menuClose: document.getElementById('menuClose'),
             appContainer: document.getElementById('appContainer'),
             
             // Pages
@@ -1291,13 +1284,7 @@
             accountBackBtn: document.getElementById('accountBackBtn'),
             rankBackBtn: document.getElementById('rankBackBtn'),
             infoBackBtn: document.getElementById('infoBackBtn'),
-            settingsBackBtn: document.getElementById('settingsBackBtn'),
-            
-            // Menu buttons
-            accountBtn: document.getElementById('accountBtn'),
-            rankBtn: document.getElementById('rankBtn'),
-            infoBtn: document.getElementById('infoBtn'),
-            settingsBtn: document.getElementById('settingsBtn')
+            settingsBackBtn: document.getElementById('settingsBackBtn')
         };
 
         // ==================== UTILITY FUNCTIONS ====================
@@ -1375,6 +1362,7 @@
             setupEventListeners();
             updateUI();
             updateSliderThumbs();
+            updateDockActiveState();
             startNewRound();
         }
 
@@ -1413,21 +1401,18 @@
             dom.betSlider.addEventListener('input', handleBetChange);
             dom.restartBtn.addEventListener('click', handleRestart);
             
-            // Menu
-            dom.menuButton.addEventListener('click', openMenu);
-            dom.menuClose.addEventListener('click', closeMenu);
-            
-            // Page navigation
-            dom.accountBtn.addEventListener('click', () => openPage(dom.accountPage));
-            dom.rankBtn.addEventListener('click', () => openPage(dom.rankPage));
-            dom.infoBtn.addEventListener('click', () => openPage(dom.infoPage));
-            dom.settingsBtn.addEventListener('click', () => openPage(dom.settingsPage));
+            // Dock navigation
+            dom.dockTrading.addEventListener('click', () => showTradingPage());
+            dom.dockAccount.addEventListener('click', () => openPage(dom.accountPage, 'account'));
+            dom.dockRank.addEventListener('click', () => openPage(dom.rankPage, 'rank'));
+            dom.dockSettings.addEventListener('click', () => openPage(dom.settingsPage, 'settings'));
+            dom.dockInfo.addEventListener('click', () => openPage(dom.infoPage, 'info'));
             
             // Back buttons
-            dom.accountBackBtn.addEventListener('click', () => closePage(dom.accountPage));
-            dom.rankBackBtn.addEventListener('click', () => closePage(dom.rankPage));
-            dom.infoBackBtn.addEventListener('click', () => closePage(dom.infoPage));
-            dom.settingsBackBtn.addEventListener('click', () => closePage(dom.settingsPage));
+            dom.accountBackBtn.addEventListener('click', () => showTradingPage());
+            dom.rankBackBtn.addEventListener('click', () => showTradingPage());
+            dom.infoBackBtn.addEventListener('click', () => showTradingPage());
+            dom.settingsBackBtn.addEventListener('click', () => showTradingPage());
             
             // Settings
             dom.soundToggle.addEventListener('change', handleSoundToggle);
@@ -1862,11 +1847,40 @@
         }
 
         // ==================== PAGE MANAGEMENT ====================
-        function openPage(page) {
-            closeMenu();
+        function showTradingPage() {
+            // Close all pages
+            dom.accountPage.classList.remove('active');
+            dom.rankPage.classList.remove('active');
+            dom.infoPage.classList.remove('active');
+            dom.settingsPage.classList.remove('active');
+            
+            // Update dock active state
+            state.currentPage = 'trading';
+            updateDockActiveState();
+            
+            // Resume chart animation if game is active
+            if (state.gameActive && !state.userChoice) {
+                state.isAnimating = true;
+                animateChart();
+            }
+        }
+
+        function openPage(page, pageName) {
+            // Close all pages first
+            dom.accountPage.classList.remove('active');
+            dom.rankPage.classList.remove('active');
+            dom.infoPage.classList.remove('active');
+            dom.settingsPage.classList.remove('active');
+            
+            // Open the requested page
             page.classList.add('active');
+            state.currentPage = pageName;
+            updateDockActiveState();
+            
+            // Pause chart animation
             state.isAnimating = false;
             
+            // Update page content if needed
             if (page === dom.accountPage) {
                 updateAccountPage();
             } else if (page === dom.rankPage) {
@@ -1874,24 +1888,31 @@
             }
         }
 
-        function closePage(page) {
-            page.classList.remove('active');
-            if (state.gameActive && !state.userChoice) {
-                state.isAnimating = true;
-                animateChart();
-            }
-        }
-
-        function openMenu() {
-            dom.menuOverlay.classList.add('active');
-            state.isAnimating = false;
-        }
-
-        function closeMenu() {
-            dom.menuOverlay.classList.remove('active');
-            if (state.gameActive && !state.userChoice) {
-                state.isAnimating = true;
-                animateChart();
+        function updateDockActiveState() {
+            // Remove active class from all dock items
+            dom.dockTrading.classList.remove('active');
+            dom.dockAccount.classList.remove('active');
+            dom.dockRank.classList.remove('active');
+            dom.dockSettings.classList.remove('active');
+            dom.dockInfo.classList.remove('active');
+            
+            // Add active class to current page
+            switch(state.currentPage) {
+                case 'trading':
+                    dom.dockTrading.classList.add('active');
+                    break;
+                case 'account':
+                    dom.dockAccount.classList.add('active');
+                    break;
+                case 'rank':
+                    dom.dockRank.classList.add('active');
+                    break;
+                case 'settings':
+                    dom.dockSettings.classList.add('active');
+                    break;
+                case 'info':
+                    dom.dockInfo.classList.add('active');
+                    break;
             }
         }
 
