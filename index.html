@@ -811,7 +811,7 @@
                 <li><strong>Medio</strong>: Leve 2x-5x - Probabilità dal 70% al 50%</li>
                 <li><strong>Alto</strong>: Leva 10x-20x - Probabilità dal 40% al 30%</li>
                 <li><strong>Estremo</strong>: Leva 50x - 20% di probabilità</li>
-                <li><strong>Insano</strong>: Leva 100x - Solo 10% di probabilità!</li>
+                <li><strong>Insano</strong>: Leva 100x - 20% di probabilità!</li>
             </ul>
             
             <h2>Consigli</h2>
@@ -917,6 +917,7 @@
 
     <script>
         // ==================== SISTEMA LEVE ====================
+        // MODIFICATO: Probabilità più realistiche per bilanciare il sistema simmetrico
         const LEVERAGE_SETTINGS = [
             { leverage: 1, winChance: 0.80, color: "#44ff44", name: "Novizio", level: "Basso" },
             { leverage: 2, winChance: 0.70, color: "#66ff66", name: "Principiante", level: "Medio" },
@@ -925,7 +926,7 @@
             { leverage: 10, winChance: 0.40, color: "#ffaa44", name: "Risky", level: "Alto" },
             { leverage: 20, winChance: 0.30, color: "#ff7744", name: "High Risk", level: "Alto" },
             { leverage: 50, winChance: 0.20, color: "#ff4444", name: "Extreme", level: "Estremo" },
-            { leverage: 100, winChance: 0.10, color: "#ff2244", name: "Insano", level: "Insano" }
+            { leverage: 100, winChance: 0.20, color: "#ff2244", name: "Insano", level: "Insano" } // MODIFICATO: da 10% a 20%
         ];
 
         const LEVERAGE_UNLOCKS = [
@@ -1102,11 +1103,14 @@
             return Math.random() < settings.winChance;
         }
 
+        // ==================== MODIFICA PRINCIPALE: SISTEMA DI PUNTEGGIO SIMETRICO ====================
         function calculateTradeResult(isWin, betAmount) {
             if (isWin) {
+                // VITTORIA: puntata * leva
                 return betAmount * leverage;
             } else {
-                return -betAmount;
+                // PERDITA: puntata * leva (STESSO MOLTIPLICATORE!)
+                return -betAmount * leverage;
             }
         }
 
@@ -1235,12 +1239,13 @@
             leverageValue.style.color = settings.color;
         }
 
+        // ==================== MODIFICA: AGGIORNAMENTO INFO PUNTATA ====================
         function updateBetInfo() {
             const settings = getCurrentLeverageSettings();
             const bet = calculateBet();
             const winChance = Math.round(settings.winChance * 100);
             const potentialWin = bet * leverage;
-            const potentialLoss = bet;
+            const potentialLoss = bet * leverage; // MODIFICATO: stessa formula delle vincite
             
             let info = `Puntata: $${bet} (${betPercentage}%) | Leva: ${leverage}x`;
             info += `<br>Probabilità: ${winChance}% | Se vinci: +$${potentialWin} | Se perdi: -$${potentialLoss}`;
@@ -1404,12 +1409,13 @@
             
             balance += result;
             
+            // ==================== MODIFICA: MESSAGGI DI RISULTATO ====================
             if (win) {
                 statusMessage.textContent = `VITTORIA! +$${bet * leverage} (${leverage}x)`;
                 chartColor = "#0c0";
                 playSound('win');
             } else {
-                statusMessage.textContent = `PERDITA! -$${bet}`;
+                statusMessage.textContent = `PERDITA! -$${bet * leverage} (${leverage}x)`; // MODIFICATO
                 chartColor = "#f00";
                 playSound('lose');
             }
