@@ -1040,4 +1040,750 @@
         const betRiskIndicator = document.getElementById('betRiskIndicator');
         const leverageRiskIndicator = document.getElementById('leverageRiskIndicator');
 
-        // ==================== FUNZIONI DINAMIC
+        // ==================== FUNZIONI DINAMICHE DEL NUOVO SISTEMA ====================
+        
+        // Funzione per calcolare la probabilità dinamica in base a leva e puntata
+        function getDynamicWinChance(baseWinChance, betPercent) {
+            // Ogni 1% di puntata riduce la probabilità dello 0.5%
+            // Formula: Probabilità Finale = Probabilità Base × (1 - (Puntata% / 200))
+            const penalty = betPercent / 200; // Massimo 0.5 (50%) quando puntata = 100%
+            const dynamicChance = baseWinChance * (1 - penalty);
+            
+            // Assicuriamoci che non scenda sotto il 5%
+            return Math.max(0.05, dynamicChance);
+        }
+        
+        // Funzione per calcolare il colore del rischio
+        function getRiskColor(riskLevel) {
+            if (riskLevel <= 0.3) return "#44ff44"; // Basso - Verde
+            if (riskLevel <= 0.5) return "#ffff44"; // Medio - Giallo
+            if (riskLevel <= 0.7) return "#ffaa44"; // Alto - Arancione
+            return "#ff4444"; // Estremo - Rosso
+        }
+        
+        // Funzione per calcolare il livello di rischio totale
+        function calculateTotalRisk(leverageIndex, betPercent) {
+            const settings = LEVERAGE_SETTINGS[leverageIndex];
+            const baseRisk = 1 - settings.baseWinChance; // Rischio base della leva
+            
+            // Rischio aggiuntivo della puntata: più punti, più rischi
+            const betRisk = betPercent / 100; // Da 0 a 1
+            
+            // Combiniamo i rischi (media pesata)
+            return (baseRisk * 0.7) + (betRisk * 0.3); // Da 0 a 1
+        }
+
+        // ==================== FUNZIONI MENU ====================
+        function openMenu() {
+            menuOverlay.classList.add('active');
+            isAnimating = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function closeMenu() {
+            menuOverlay.classList.remove('active');
+            if (gameActive && !userChoice && chartStep <= decisionPoint) {
+                isAnimating = true;
+                animateChart();
+            }
+        }
+
+        function openPage(pageOverlay) {
+            closeMenu();
+            pageOverlay.classList.add('active');
+            isAnimating = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            if (pageOverlay === infoOverlay || pageOverlay === settingsOverlay) {
+                document.body.style.overflow = 'hidden';
+                pageOverlay.querySelector('.page-content').style.overflowY = 'auto';
+            }
+        }
+
+        function closePage(pageOverlay) {
+            pageOverlay.classList.remove('active');
+            if (gameActive && !userChoice && chartStep <= decisionPoint) {
+                isAnimating = true;
+                animateChart();
+            }
+            
+            document.body.style.overflow = 'hidden';
+        }
+
+        // ==================== FUNZIONI AUDIO ====================
+        function playSound(type) {
+            if (!audioEnabled) return;
+            
+            switch(type) {
+                case 'click':
+                    break;
+                case 'win':
+                    break;
+                case 'lose':
+                    break;
+                case 'error':
+                    break;
+            }
+        }
+
+        // ==================== FUNZIONI HELPER ====================
+        function getCurrentLeverageSettings() {
+            return LEVERAGE_SETTINGS[leverageIndex];
+        }
+
+        function getMaxUnlockedLeverageIndex() {
+            for (let i = LEVERAGE_UNLOCKS.length - 1; i >= 0; i--) {
+                if (balance >= LEVERAGE_UNLOCKS[i].threshold) {
+                    return LEVERAGE_UNLOCKS[i].maxLeverageIndex;
+                }
+            }
+            return 0;
+        }
+
+        function getNextUnlock() {
+            const currentMaxIndex = getMaxUnlockedLeverageIndex();
+            
+            for (let unlock of LEVERAGE_UNLOCKS) {
+                if (unlock.maxLeverageIndex > currentMaxIndex) {
+                    const settings = LEVERAGE_SETTINGS[unlock.maxLeverageIndex];
+                    return {
+                        threshold: unlock.threshold,
+                        leverage: settings.leverage,
+                        baseWinChance: settings.baseWinChance,
+                        remaining: unlock.threshold - balance
+                    };
+                }
+            }
+            return null;
+        }
+
+        // MODIFICATO: Usa la probabilità dinamica
+        function isTradeSuccessful() {
+            const settings = getCurrentLeverageSettings();
+            const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
+            return Math.random() < dynamicChance;
+        }
+
+        // ==================== SISTEMA DI PUNTEGGIO SIMETRICO ====================
+        function calculateTradeResult(isWin, betAmount) {
+            if (isWin) {
+                return betAmount * leverage;
+            } else {
+                return -betAmount * leverage;
+            }
+        }
+
+        // ==================== FUNZIONI CORE ====================
+        function setupCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            ctx.scale(dpr, dpr);
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
+        }
+
+        function loadGameState() {
+            const savedBalance = localStorage.getItem('tradingBalance');
+            const savedBestBalance = localStorage.getItem('tradingBestBalance');
+            const savedPercentage = localStorage.getItem('tradingPercentage');
+            const savedLeverageIndex = localStorage.getItem('tradingLeverageIndex');
+            const savedTotalTrades = localStorage.getItem('tradingTotalTrades');
+            const savedAudioEnabled = localStorage.getItem('tradingAudioEnabled');
+            
+            if (savedBalance) balance = parseInt(savedBalance);
+            if (savedBestBalance) bestBalance = parseInt(savedBestBalance);
+            if (savedPercentage) {
+                betPercentage = parseInt(savedPercentage);
+                percentageSlider.value = betPercentage;
+                percentageValue.textContent = `${betPercentage}%`;
+            }
+            if (savedLeverageIndex) {
+                leverageIndex = parseInt(savedLeverageIndex);
+                leverageSlider.value = leverageIndex;
+                const settings = LEVERAGE_SETTINGS[leverageIndex];
+                leverage = settings.leverage;
+                leverageValue.textContent = `${leverage}x`;
+            }
+            if (savedTotalTrades) {
+                totalTrades = parseInt(savedTotalTrades);
+                totalTradesElement.textContent = totalTrades;
+            }
+            if (savedAudioEnabled !== null) {
+                audioEnabled = savedAudioEnabled === 'true';
+                audioToggle.checked = audioEnabled;
+            }
+            
+            if (balance < 1000) {
+                balance = 1000;
+            }
+            if (bestBalance < 1000) {
+                bestBalance = 1000;
+            }
+            
+            updateBalanceDisplay();
+            updateLeverageControls();
+            updateBetInfo();
+            updateRiskIndicators();
+            updateUnlockInfo();
+            updateStats();
+        }
+
+        function saveGameState() {
+            localStorage.setItem('tradingBalance', balance.toString());
+            localStorage.setItem('tradingBestBalance', bestBalance.toString());
+            localStorage.setItem('tradingPercentage', betPercentage.toString());
+            localStorage.setItem('tradingLeverageIndex', leverageIndex.toString());
+            localStorage.setItem('tradingTotalTrades', totalTrades.toString());
+            localStorage.setItem('tradingAudioEnabled', audioEnabled.toString());
+        }
+
+        function resetGameData() {
+            if (confirm("Sei sicuro di voler resettare tutti i dati di gioco? Perderai saldo, record e statistiche.")) {
+                localStorage.removeItem('tradingBalance');
+                localStorage.removeItem('tradingBestBalance');
+                localStorage.removeItem('tradingPercentage');
+                localStorage.removeItem('tradingLeverageIndex');
+                localStorage.removeItem('tradingTotalTrades');
+                
+                balance = 1000;
+                bestBalance = 1000;
+                betPercentage = 5;
+                leverageIndex = 0;
+                leverage = 1;
+                totalTrades = 0;
+                
+                percentageSlider.value = betPercentage;
+                percentageValue.textContent = `${betPercentage}%`;
+                leverageSlider.value = leverageIndex;
+                leverageValue.textContent = `${leverage}x`;
+                
+                updateBalanceDisplay();
+                updateLeverageControls();
+                updateBetInfo();
+                updateRiskIndicators();
+                updateUnlockInfo();
+                updateStats();
+                saveGameState();
+                
+                closePage(settingsOverlay);
+                if (gameOverScreen.style.display === 'flex') {
+                    gameOverScreen.style.display = 'none';
+                }
+                gameActive = true;
+                startNewRound();
+                
+                alert("Dati di gioco resettati con successo!");
+            }
+        }
+
+        function updateBalanceDisplay() {
+            balanceElement.textContent = "$" + balance.toLocaleString();
+            bestBalanceElement.textContent = "$" + bestBalance.toLocaleString();
+        }
+
+        function calculateBet() {
+            return Math.floor(balance * (betPercentage / 100));
+        }
+
+        function updateLeverageControls() {
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            if (leverageIndex > maxUnlockedIndex) {
+                leverageIndex = maxUnlockedIndex;
+                leverageSlider.value = leverageIndex;
+                const settings = LEVERAGE_SETTINGS[leverageIndex];
+                leverage = settings.leverage;
+                leverageValue.textContent = `${leverage}x`;
+            }
+            
+            leverageSlider.max = maxUnlockedIndex;
+            
+            const settings = getCurrentLeverageSettings();
+            leverageValue.style.color = settings.color;
+        }
+
+        // ==================== MODIFICA: AGGIORNAMENTO INFO PUNTATA DINAMICA ====================
+        function updateBetInfo() {
+            const settings = getCurrentLeverageSettings();
+            const bet = calculateBet();
+            const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
+            const winChance = Math.round(dynamicChance * 100);
+            const baseWinChance = Math.round(settings.baseWinChance * 100);
+            const potentialWin = bet * leverage;
+            const potentialLoss = bet * leverage;
+            
+            let info = `Puntata: $${bet.toLocaleString()} (${betPercentage}%) | Leva: ${leverage}x`;
+            info += `<br>Probabilità: <strong>${winChance}%</strong> (base: ${baseWinChance}%)`;
+            
+            // MODIFICA: Controlla se la perdita potenziale è maggiore o uguale al saldo disponibile
+            if (potentialLoss >= balance) {
+                info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: <span style="color:#ff4444">BANCAROTTA</span>`;
+            } else {
+                info += `<br>Se vinci: +$${potentialWin.toLocaleString()} | Se perdi: -$${potentialLoss.toLocaleString()}`;
+            }
+            
+            betInfo.innerHTML = info;
+            betInfo.style.color = settings.color;
+            
+            if (dynamicChance <= 0.3) {
+                betInfo.classList.add('high-risk');
+            } else {
+                betInfo.classList.remove('high-risk');
+            }
+        }
+        
+        // NUOVA FUNZIONE: Aggiorna indicatori di rischio
+        function updateRiskIndicators() {
+            // Calcola rischio per la puntata
+            const betRisk = betPercentage / 100; // Normalizza da 0 a 1
+            betRiskIndicator.style.backgroundColor = getRiskColor(betRisk);
+            
+            // Calcola rischio per la leva
+            const settings = getCurrentLeverageSettings();
+            const leverageRisk = 1 - settings.baseWinChance; // Più alta la leva, più alto il rischio
+            leverageRiskIndicator.style.backgroundColor = getRiskColor(leverageRisk);
+            
+            // Calcola rischio totale
+            const totalRisk = calculateTotalRisk(leverageIndex, betPercentage);
+            
+            // Cambia colore del titolo in base al rischio totale
+            if (totalRisk >= 0.7) {
+                document.querySelector('.game-title').style.color = '#ff4444';
+            } else if (totalRisk >= 0.5) {
+                document.querySelector('.game-title').style.color = '#ffaa44';
+            } else if (totalRisk >= 0.3) {
+                document.querySelector('.game-title').style.color = '#ffff44';
+            } else {
+                document.querySelector('.game-title').style.color = '#44ff44';
+            }
+        }
+
+        function updateUnlockInfo() {
+            if (unlockMessageTimeout) {
+                clearTimeout(unlockMessageTimeout);
+                unlockMessageTimeout = null;
+            }
+            
+            const next = getNextUnlock();
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            
+            unlockInfo.classList.remove('fade-out');
+            
+            if (next) {
+                const baseWinChance = Math.round(next.baseWinChance * 100);
+                unlockInfo.textContent = `Prossimo sblocco: ${next.leverage}x (base: ${baseWinChance}% win) a $${next.threshold.toLocaleString()}`;
+                unlockInfo.style.color = "#ffaa44";
+            } else {
+                unlockInfo.textContent = "Tutte le leve sbloccate!";
+                unlockInfo.style.color = "#44ff44";
+                
+                unlockMessageTimeout = setTimeout(() => {
+                    unlockInfo.classList.add('fade-out');
+                }, 3000);
+            }
+            
+            unlockedCountElement.textContent = `${maxUnlockedIndex + 1}/${LEVERAGE_SETTINGS.length}`;
+        }
+
+        function updateStats() {
+            const settings = getCurrentLeverageSettings();
+            currentLevelElement.textContent = settings.level;
+            
+            const maxUnlockedIndex = getMaxUnlockedLeverageIndex();
+            currentLevelElement.style.color = settings.color;
+        }
+
+        // ==================== GRAFICO ====================
+        function generateChartData(length, startValue, trendStrength = 0) {
+            const data = [];
+            let value = startValue || 50;
+            
+            for (let i = 0; i < length; i++) {
+                value += (Math.random() - 0.5) * 1.5 + trendStrength;
+                
+                if (value < 5) value = 5 + Math.random() * 5;
+                if (value > 95) value = 95 - Math.random() * 5;
+                
+                data.push(value);
+            }
+            
+            return data;
+        }
+
+        function drawChart() {
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (chartData.length === 0) return;
+            
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            const dpr = window.devicePixelRatio || 1;
+            ctx.scale(dpr, dpr);
+            
+            const minValue = Math.min(...chartData);
+            const maxValue = Math.max(...chartData);
+            const valueRange = maxValue - minValue || 1;
+            
+            const scaleY = height / valueRange;
+            const stepX = width / (chartData.length - 1);
+            
+            ctx.strokeStyle = chartColor;
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            
+            for (let i = 0; i < Math.min(chartStep, chartData.length); i++) {
+                const x = i * stepX;
+                const y = height - ((chartData[i] - minValue) * scaleY);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            if (userChoice && decisionPoint > 0 && chartStep > decisionPoint) {
+                const decisionX = decisionPoint * stepX;
+                const decisionY = height - ((chartData[decisionPoint] - minValue) * scaleY);
+                
+                ctx.fillStyle = chartColor;
+                ctx.beginPath();
+                ctx.arc(decisionX, decisionY, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function animateChart() {
+            if (chartStep < chartData.length) {
+                chartStep++;
+                drawChart();
+                
+                if (isAnimating && chartStep <= decisionPoint) {
+                    setTimeout(() => {
+                        animationId = requestAnimationFrame(animateChart);
+                    }, 8 + Math.random() * 4);
+                } 
+                else if (userChoice && chartStep > decisionPoint) {
+                    setTimeout(() => {
+                        animationId = requestAnimationFrame(animateChart);
+                    }, 8 + Math.random() * 4);
+                } 
+                else if (chartStep > decisionPoint && !userChoice) {
+                    isAnimating = false;
+                    enableTradeButtons();
+                    statusMessage.textContent = "Previsione?";
+                    return;
+                }
+                else {
+                    animationId = requestAnimationFrame(animateChart);
+                }
+            } else {
+                processTradeResult();
+            }
+        }
+
+        function processTradeResult() {
+            const settings = getCurrentLeverageSettings();
+            const bet = calculateBet();
+            const win = tradeResult;
+            const result = calculateTradeResult(win, bet);
+            
+            totalTrades++;
+            totalTradesElement.textContent = totalTrades;
+            
+            if (!leverageStats[leverage]) {
+                leverageStats[leverage] = { total: 0, wins: 0 };
+            }
+            leverageStats[leverage].total++;
+            if (win) leverageStats[leverage].wins++;
+            
+            balance += result;
+            
+            // Calcola probabilità dinamica per il messaggio
+            const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
+            const winChance = Math.round(dynamicChance * 100);
+            
+            if (win) {
+                statusMessage.textContent = `VITTORIA! +$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
+                chartColor = "#0c0";
+                playSound('win');
+            } else {
+                statusMessage.textContent = `PERDITA! -$${(bet * leverage).toLocaleString()} (${leverage}x - ${winChance}% prob)`;
+                chartColor = "#f00";
+                playSound('lose');
+            }
+            
+            if (balance > bestBalance) {
+                bestBalance = balance;
+            }
+            
+            drawChart();
+            
+            saveGameState();
+            updateBalanceDisplay();
+            updateLeverageControls();
+            updateBetInfo();
+            updateRiskIndicators();
+            updateUnlockInfo();
+            updateStats();
+            
+            if (balance <= 0) {
+                gameActive = false;
+                gameOverScreen.style.display = 'flex';
+                playSound('error');
+                return;
+            }
+            
+            setTimeout(startNewRound, 2000);
+        }
+
+        // ==================== CONTROLLI UI ====================
+        function enableTradeButtons() {
+            longBtn.disabled = false;
+            shortBtn.disabled = false;
+        }
+
+        function disableTradeButtons() {
+            longBtn.disabled = true;
+            shortBtn.disabled = true;
+        }
+
+        function startNewRound() {
+            chartStep = 0;
+            userChoice = null;
+            tradeResult = null;
+            chartColor = "#fff";
+            isAnimating = true;
+            
+            chartData = generateChartData(180);
+            decisionPoint = Math.floor(chartData.length * (0.4 + Math.random() * 0.3));
+            
+            const settings = getCurrentLeverageSettings();
+            const dynamicChance = getDynamicWinChance(settings.baseWinChance, betPercentage);
+            const winChance = Math.round(dynamicChance * 100);
+            statusMessage.textContent = `Analisi del mercato... (Leva ${leverage}x - ${winChance}% win)`;
+            disableTradeButtons();
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            animateChart();
+        }
+
+        function chooseLong() {
+            if (!isAnimating && gameActive && !userChoice) {
+                userChoice = 'long';
+                tradeResult = isTradeSuccessful();
+                playSound('click');
+                
+                const trendStrength = tradeResult ? 0.08 : -0.08;
+                const startValue = chartData[decisionPoint];
+                const remainingLength = chartData.length - decisionPoint - 1;
+                
+                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
+                
+                for (let i = 0; i < newSegment.length; i++) {
+                    chartData[decisionPoint + 1 + i] = newSegment[i];
+                }
+                
+                disableTradeButtons();
+                statusMessage.textContent = "LONG selezionato";
+                chartColor = "#fff";
+                isAnimating = true;
+                animationId = requestAnimationFrame(animateChart);
+            }
+        }
+
+        function chooseShort() {
+            if (!isAnimating && gameActive && !userChoice) {
+                userChoice = 'short';
+                tradeResult = isTradeSuccessful();
+                playSound('click');
+                
+                const trendStrength = tradeResult ? -0.08 : 0.08;
+                const startValue = chartData[decisionPoint];
+                const remainingLength = chartData.length - decisionPoint - 1;
+                
+                const newSegment = generateChartData(remainingLength, startValue, trendStrength);
+                
+                for (let i = 0; i < newSegment.length; i++) {
+                    chartData[decisionPoint + 1 + i] = newSegment[i];
+                }
+                
+                disableTradeButtons();
+                statusMessage.textContent = "SHORT selezionato";
+                chartColor = "#fff";
+                isAnimating = true;
+                animationId = requestAnimationFrame(animateChart);
+            }
+        }
+
+        function restartGame() {
+            balance = 1000;
+            gameActive = true;
+            leverageIndex = 0;
+            leverage = 1;
+            betPercentage = 5;
+            totalTrades = 0;
+            tradeResult = null;
+            
+            percentageSlider.value = betPercentage;
+            percentageValue.textContent = `${betPercentage}%`;
+            leverageSlider.value = leverageIndex;
+            leverageValue.textContent = `${leverage}x`;
+            
+            gameOverScreen.style.display = 'none';
+            
+            updateBalanceDisplay();
+            updateLeverageControls();
+            updateBetInfo();
+            updateRiskIndicators();
+            updateUnlockInfo();
+            updateStats();
+            saveGameState();
+            startNewRound();
+            playSound('click');
+        }
+
+        // ==================== EVENT HANDLERS ====================
+        function handlePercentageChange() {
+            betPercentage = parseInt(percentageSlider.value);
+            percentageValue.textContent = `${betPercentage}%`;
+            updateBetInfo();
+            updateRiskIndicators();
+            saveGameState();
+            playSound('click');
+        }
+
+        function handleLeverageChange() {
+            leverageIndex = parseInt(leverageSlider.value);
+            const settings = LEVERAGE_SETTINGS[leverageIndex];
+            leverage = settings.leverage;
+            leverageValue.textContent = `${leverage}x`;
+            leverageValue.style.color = settings.color;
+            
+            updateBetInfo();
+            updateRiskIndicators();
+            updateStats();
+            saveGameState();
+            playSound('click');
+        }
+
+        function handleAudioToggle() {
+            audioEnabled = audioToggle.checked;
+            saveGameState();
+            playSound('click');
+        }
+
+        // ==================== PREVENZIONE ZOOM/SCROLL ====================
+        function preventZoomAndScroll(e) {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                return false;
+            }
+            
+            if (e.touches && e.touches.length > 1) {
+                e.preventDefault();
+                return false;
+            }
+        }
+
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                return false;
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', function(e) {
+            if (e.target.closest('.page-content')) {
+                return;
+            }
+            if (!e.target.matches('input[type="range"]')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gesturechange', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gestureend', function(e) {
+            e.preventDefault();
+        });
+
+        // ==================== INIZIALIZZAZIONE ====================
+        function initGame() {
+            setupCanvas();
+            loadGameState();
+            
+            // Menu event listeners
+            menuButton.addEventListener('click', openMenu);
+            menuClose.addEventListener('click', closeMenu);
+            
+            // Page navigation
+            infoBtn.addEventListener('click', () => openPage(infoOverlay));
+            settingsBtn.addEventListener('click', () => openPage(settingsOverlay));
+            infoBackBtn.addEventListener('click', () => closePage(infoOverlay));
+            settingsBackBtn.addEventListener('click', () => closePage(settingsOverlay));
+            
+            // Settings controls
+            audioToggle.addEventListener('change', handleAudioToggle);
+            resetDataBtn.addEventListener('click', resetGameData);
+            
+            // Game event listeners
+            longBtn.addEventListener('click', chooseLong);
+            shortBtn.addEventListener('click', chooseShort);
+            restartBtn.addEventListener('click', restartGame);
+            percentageSlider.addEventListener('input', handlePercentageChange);
+            leverageSlider.addEventListener('input', handleLeverageChange);
+            
+            window.addEventListener('resize', () => {
+                setupCanvas();
+                drawChart();
+            });
+            
+            startNewRound();
+            
+            LEVERAGE_SETTINGS.forEach(settings => {
+                leverageStats[settings.leverage] = { total: 0, wins: 0 };
+            });
+        }
+
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
