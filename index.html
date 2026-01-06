@@ -40,6 +40,7 @@
             display: flex;
             flex-direction: column;
             background: #000000;
+            padding-bottom: 120px; /* Space for buttons + dock */
         }
         
         /* ===== DOCK ===== */
@@ -97,16 +98,22 @@
             color: #ffffff;
         }
         
-        /* ===== TRADE BUTTONS ABOVE DOCK ===== */
-        .trade-buttons-above-dock {
+        /* ===== LONG/SHORT BUTTONS SECTION ===== */
+        .long-short-section {
             position: fixed;
-            bottom: 70px; /* Align above dock */
-            left: 20px;
-            right: 20px;
+            bottom: 70px; /* Above the dock */
+            left: 0;
+            right: 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 99;
+        }
+        
+        .trade-buttons {
             display: flex;
             gap: 12px;
-            margin-bottom: 0;
-            z-index: 99;
         }
         
         .trade-btn {
@@ -257,15 +264,10 @@
             background: rgba(255, 255, 255, 0.05);
         }
         
-        /* ===== CONTROLS SECTION (Sotto il chart) ===== */
+        /* ===== CONTROLS ===== */
         .controls-section {
             flex-shrink: 0;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: 20px;
-            background: #0a0a0a;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            max-height: 40vh; /* Limit height to ensure space for trade buttons */
+            padding: 0 20px;
         }
         
         /* Sliders con pallini */
@@ -402,6 +404,7 @@
             text-align: center;
             line-height: 1.4;
             margin-top: 15px;
+            margin-bottom: 20px;
         }
         
         /* Unlock info */
@@ -411,6 +414,7 @@
             text-align: center;
             margin-top: 10px;
             min-height: 16px;
+            margin-bottom: 20px;
         }
         
         /* ===== PAGINE OVERLAY ===== */
@@ -426,6 +430,7 @@
             z-index: 1000;
             padding: 20px;
             padding-top: 60px;
+            padding-bottom: 120px; /* Space for buttons + dock */
             overflow: hidden;
         }
         
@@ -710,12 +715,20 @@
             }
             
             .controls-section {
-                padding: 16px;
-                max-height: 35vh;
+                padding: 0 16px;
             }
             
-            .trade-buttons-above-dock {
+            .app-container {
+                padding-bottom: 115px;
+            }
+            
+            .long-short-section {
                 bottom: 65px;
+                padding: 12px;
+            }
+            
+            .page-overlay {
+                padding-bottom: 115px;
             }
         }
         
@@ -736,6 +749,7 @@
             .page-overlay {
                 padding: 15px;
                 padding-top: 50px;
+                padding-bottom: 115px;
             }
             
             .dock-label {
@@ -744,11 +758,6 @@
             
             .dock-icon {
                 font-size: 20px;
-            }
-            
-            .trade-buttons-above-dock {
-                left: 15px;
-                right: 15px;
             }
         }
         
@@ -831,10 +840,12 @@
         </div>
     </div>
     
-    <!-- Trade Buttons Above Dock -->
-    <div class="trade-buttons-above-dock">
-        <button class="trade-btn long-btn" id="longBtn">LONG</button>
-        <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
+    <!-- Long/Short Buttons Section -->
+    <div class="long-short-section">
+        <div class="trade-buttons">
+            <button class="trade-btn long-btn" id="longBtn">LONG</button>
+            <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
+        </div>
     </div>
     
     <!-- Game Over -->
@@ -1163,11 +1174,9 @@
             chartCtx: null,
             winProbability: document.getElementById('winProbability'),
             
-            // Trade buttons (now above dock)
+            // Controls
             longBtn: document.getElementById('longBtn'),
             shortBtn: document.getElementById('shortBtn'),
-            
-            // Controls
             leverageSlider: document.getElementById('leverageSlider'),
             leverageValue: document.getElementById('leverageValue'),
             leverageFill: document.getElementById('leverageFill'),
