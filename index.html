@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>XTRADE - Bitcoin Real Time Candles</title>
+    <title>XTRADE - Bitcoin Real Time</title>
     <style>
         /* ===== RESET & BASE ===== */
         * {
@@ -247,43 +247,21 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* Chart info */
-        .chart-info {
+        /* Chart grid lines */
+        .chart-grid {
             position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            text-align: right;
-            z-index: 5;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
         
-        .chart-price {
-            font-size: 32px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #00ff88, #00a3ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-            margin-bottom: 5px;
-        }
-        
-        .chart-change {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .chart-timeframe {
+        .grid-line {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 5;
+            width: 100%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
         }
         
         /* ===== CONTROLS ===== */
@@ -293,7 +271,7 @@
             padding-bottom: 90px;
         }
         
-        /* Sliders */
+        /* Sliders con pallini */
         .slider-group {
             margin-bottom: 20px;
             position: relative;
@@ -750,10 +728,6 @@
             .page-overlay {
                 padding-bottom: 140px;
             }
-            
-            .chart-price {
-                font-size: 28px;
-            }
         }
         
         @media (max-width: 350px) {
@@ -782,10 +756,6 @@
             
             .dock-icon {
                 font-size: 20px;
-            }
-            
-            .chart-price {
-                font-size: 24px;
             }
         }
         
@@ -841,65 +811,32 @@
             100% { background-color: rgba(255, 68, 68, 0.1); }
         }
         
-        /* ===== CANDLE CHART STYLES ===== */
-        .candle-info {
+        /* ===== REAL-TIME CHART STYLES ===== */
+        .chart-current-price {
             position: absolute;
             right: 20px;
-            top: 50px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 5;
-            min-width: 120px;
-        }
-        
-        .candle-info-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 4px 0;
-        }
-        
-        .candle-info-label {
-            color: #888888;
-        }
-        
-        .candle-info-value {
-            color: #ffffff;
-            font-weight: 600;
-        }
-        
-        .ohlc-display {
-            position: absolute;
-            left: 20px;
-            top: 50px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 5;
-        }
-        
-        /* Volume bars */
-        .volume-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 30px;
-            z-index: 2;
-        }
-        
-        /* Loading animation */
-        .chart-loading {
-            position: absolute;
             top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 14px;
-            color: #888888;
+            transform: translateY(-50%);
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00ff88, #00a3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            z-index: 5;
+        }
+        
+        .chart-timeframe {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 5;
         }
     </style>
 </head>
@@ -1049,20 +986,14 @@
         </div>
         <div class="page-content">
             <h2>Welcome to XTRADE</h2>
-            <p>Real-time Bitcoin candlestick chart trading simulator with 1-second updates.</p>
+            <p>Real-time Bitcoin trading simulator with live price data updated every second.</p>
             
-            <h2>Real-time Candlestick Chart</h2>
+            <h2>How It Works</h2>
             <ul>
-                <li><strong>1-Second Candles</strong>: Each candle represents 1 second of trading</li>
-                <li><strong>Live OHLC Data</strong>: Open, High, Low, Close prices updated every second</li>
-                <li><strong>Real Bitcoin Price</strong>: Uses CoinGecko API for actual BTC/USD prices</li>
-                <li><strong>Volume Visualization</strong>: Shows trading volume for each candle</li>
-            </ul>
-            
-            <h2>Candle Colors</h2>
-            <ul>
-                <li><strong style="color:#00ff88">Green Candle</strong>: Price closed higher than it opened (Bullish)</li>
-                <li><strong style="color:#ff4444">Red Candle</strong>: Price closed lower than it opened (Bearish)</li>
+                <li><strong>Real Bitcoin Price</strong>: Live BTC/USD price from CoinGecko API</li>
+                <li><strong>1-Second Updates</strong>: Chart updates every second with real price data</li>
+                <li><strong>3-Second Trades</strong>: Choose LONG or SHORT and wait 3 seconds for result</li>
+                <li><strong>Real Price Comparison</strong>: Win if prediction matches actual price movement</li>
             </ul>
         </div>
     </div>
@@ -1123,25 +1054,8 @@
                 <div class="chart-overlay">
                     <div class="chart-badge" id="winProbability">BTC Loading...</div>
                 </div>
-                <div class="chart-info">
-                    <div class="chart-price" id="currentPrice">-</div>
-                    <div class="chart-change" id="priceChange">-</div>
-                </div>
-                <div class="ohlc-display" id="ohlcDisplay">
-                    O: - H: - L: - C: -
-                </div>
-                <div class="candle-info" id="candleInfo">
-                    <div class="candle-info-item">
-                        <span class="candle-info-label">Time:</span>
-                        <span class="candle-info-value" id="candleTime">-</span>
-                    </div>
-                    <div class="candle-info-item">
-                        <span class="candle-info-label">Change:</span>
-                        <span class="candle-info-value" id="candleChange">-</span>
-                    </div>
-                </div>
-                <div class="chart-timeframe">1s CANDLES | REAL-TIME</div>
-                <div class="chart-loading" id="chartLoading">Loading Bitcoin data...</div>
+                <div class="chart-current-price" id="currentPrice">-</div>
+                <div class="chart-timeframe">REAL-TIME 1s</div>
             </div>
         </div>
         
@@ -1217,9 +1131,7 @@
             TRADE_DURATION: 3000,
             BTC_API_URL: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true",
             UPDATE_INTERVAL: 1000,
-            CANDLE_COUNT: 30,
-            CANDLE_WIDTH: 12,
-            CANDLE_SPACING: 4
+            CHART_HISTORY_SIZE: 60
         };
 
         // ==================== STATE ====================
@@ -1231,12 +1143,11 @@
             gameActive: true,
             isAnimating: false,
             
-            // Candle chart data
-            candles: [],
-            currentCandle: null,
-            lastCandleUpdate: 0,
+            // Real-time chart data
+            chartData: [],
             currentPrice: 0,
             priceChange24h: 0,
+            lastUpdate: 0,
             
             // Trade state
             tradeActive: false,
@@ -1260,14 +1171,7 @@
             
             // Chart dimensions
             chartWidth: 0,
-            chartHeight: 0,
-            chartTop: 0,
-            chartBottom: 0,
-            
-            // Mouse position for hover
-            mouseX: -1,
-            mouseY: -1,
-            hoverCandleIndex: -1
+            chartHeight: 0
         };
 
         // Initialize leverage stats
@@ -1287,12 +1191,6 @@
             chartCtx: null,
             winProbability: document.getElementById('winProbability'),
             currentPrice: document.getElementById('currentPrice'),
-            priceChange: document.getElementById('priceChange'),
-            ohlcDisplay: document.getElementById('ohlcDisplay'),
-            candleInfo: document.getElementById('candleInfo'),
-            candleTime: document.getElementById('candleTime'),
-            candleChange: document.getElementById('candleChange'),
-            chartLoading: document.getElementById('chartLoading'),
             
             longBtn: document.getElementById('longBtn'),
             shortBtn: document.getElementById('shortBtn'),
@@ -1357,15 +1255,9 @@
         }
 
         function formatPrice(price) {
-            if (price >= 1000) {
-                return price.toLocaleString('en-US', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                });
-            }
             return price.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
             });
         }
 
@@ -1411,130 +1303,57 @@
             return isWin ? betAmount * leverage : -betAmount * leverage;
         }
 
-        function getTimeString(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            });
+        // ==================== REAL-TIME BITCOIN CHART ====================
+        async function fetchBitcoinPrice() {
+            try {
+                const timestamp = Date.now();
+                // Evita troppe richieste
+                if (timestamp - state.lastUpdate < 1000) {
+                    return null;
+                }
+                
+                const response = await fetch(CONFIG.BTC_API_URL + `&t=${timestamp}`);
+                const data = await response.json();
+                const price = data.bitcoin.usd;
+                const change = data.bitcoin.usd_24h_change || 0;
+                
+                state.lastUpdate = timestamp;
+                return { price, change };
+            } catch (error) {
+                console.error("Error fetching Bitcoin price:", error);
+                // Simula un piccolo movimento per test
+                if (state.currentPrice === 0) {
+                    state.currentPrice = 50000;
+                }
+                const change = (Math.random() - 0.5) * 0.1;
+                const newPrice = state.currentPrice * (1 + change / 100);
+                return { price: newPrice, change: change };
+            }
         }
 
-        // ==================== CANDLE CHART FUNCTIONS ====================
-        function createInitialCandles() {
-            state.candles = [];
+        function initChartData() {
+            state.chartData = [];
             const basePrice = 50000;
-            const now = Date.now();
             
-            for (let i = CONFIG.CANDLE_COUNT - 1; i >= 0; i--) {
-                const time = now - (i * CONFIG.UPDATE_INTERVAL);
-                const open = basePrice + (Math.random() - 0.5) * 100;
-                const close = open + (Math.random() - 0.5) * 200;
-                const high = Math.max(open, close) + Math.random() * 100;
-                const low = Math.min(open, close) - Math.random() * 100;
-                const volume = Math.random() * 10 + 1;
+            // Crea dati iniziali
+            for (let i = 0; i < CONFIG.CHART_HISTORY_SIZE; i++) {
+                const minutesAgo = CONFIG.CHART_HISTORY_SIZE - i - 1;
+                const time = Date.now() - (minutesAgo * 1000);
+                const randomChange = (Math.random() - 0.5) * 0.05;
+                const price = basePrice * (1 + randomChange);
                 
-                state.candles.push({
+                state.chartData.push({
                     time: time,
-                    open: open,
-                    high: high,
-                    low: low,
-                    close: close,
-                    volume: volume,
-                    isBullish: close >= open
+                    price: price,
+                    volume: Math.random() * 100
                 });
             }
             
-            state.currentPrice = state.candles[state.candles.length - 1].close;
-            state.currentCandle = { ...state.candles[state.candles.length - 1] };
+            state.currentPrice = state.chartData[state.chartData.length - 1].price;
         }
 
-        async function updateBitcoinPrice() {
-            try {
-                const now = Date.now();
-                
-                // Use CoinGecko API for real price
-                const response = await fetch(CONFIG.BTC_API_URL + `&t=${now}`);
-                const data = await response.json();
-                const newPrice = data.bitcoin.usd;
-                const change24h = data.bitcoin.usd_24h_change || 0;
-                
-                state.priceChange24h = change24h;
-                
-                // Update current candle
-                updateCurrentCandle(newPrice, now);
-                
-                // Update UI
-                updatePriceDisplay();
-                updateTradeInfo();
-                
-                // Hide loading
-                dom.chartLoading.style.display = 'none';
-                
-                return true;
-            } catch (error) {
-                console.error("Error fetching Bitcoin price:", error);
-                
-                // Fallback: simulate price movement
-                const priceChange = (Math.random() - 0.5) * 0.1; // +/- 0.05%
-                const newPrice = state.currentPrice * (1 + priceChange / 100);
-                const now = Date.now();
-                
-                updateCurrentCandle(newPrice, now);
-                updatePriceDisplay();
-                updateTradeInfo();
-                
-                dom.chartLoading.style.display = 'none';
-                
-                return false;
-            }
-        }
-
-        function updateCurrentCandle(newPrice, timestamp) {
-            const now = timestamp || Date.now();
-            
-            // Check if we need to create a new candle
-            if (!state.currentCandle || now - state.currentCandle.time >= CONFIG.UPDATE_INTERVAL) {
-                // Close current candle and create new one
-                if (state.currentCandle) {
-                    state.currentCandle.close = state.currentPrice;
-                    state.currentCandle.isBullish = state.currentCandle.close >= state.currentCandle.open;
-                    
-                    // Add to candles array
-                    state.candles.push({ ...state.currentCandle });
-                    
-                    // Keep only recent candles
-                    if (state.candles.length > CONFIG.CANDLE_COUNT) {
-                        state.candles = state.candles.slice(-CONFIG.CANDLE_COUNT);
-                    }
-                }
-                
-                // Create new candle
-                state.currentCandle = {
-                    time: now,
-                    open: state.currentPrice,
-                    high: state.currentPrice,
-                    low: state.currentPrice,
-                    close: state.currentPrice,
-                    volume: Math.random() * 10 + 1,
-                    isBullish: true
-                };
-                
-                state.lastCandleUpdate = now;
-            } else {
-                // Update current candle
-                state.currentCandle.high = Math.max(state.currentCandle.high, newPrice);
-                state.currentCandle.low = Math.min(state.currentCandle.low, newPrice);
-                state.currentCandle.close = newPrice;
-                state.currentCandle.isBullish = newPrice >= state.currentCandle.open;
-                state.currentCandle.volume += Math.random() * 0.5;
-            }
-            
-            state.currentPrice = newPrice;
-        }
-
-        function drawCandleChart() {
-            if (!dom.chartCtx || state.candles.length === 0) return;
+        function drawRealTimeChart() {
+            if (!dom.chartCtx || state.chartData.length === 0) return;
             
             const ctx = dom.chartCtx;
             const width = dom.chartCanvas.width / (window.devicePixelRatio || 1);
@@ -1553,331 +1372,220 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
             
+            // Draw grid
+            drawGrid(ctx, width, height);
+            
             // Calculate price range
-            const allPrices = [...state.candles];
-            if (state.currentCandle) {
-                allPrices.push(state.currentCandle);
-            }
-            
-            let minPrice = Infinity;
-            let maxPrice = -Infinity;
-            
-            allPrices.forEach(candle => {
-                minPrice = Math.min(minPrice, candle.low);
-                maxPrice = Math.max(maxPrice, candle.high);
-            });
-            
+            const prices = state.chartData.map(d => d.price);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
             const priceRange = maxPrice - minPrice;
             const padding = priceRange * 0.1;
             const chartMin = minPrice - padding;
             const chartMax = maxPrice + padding;
             const chartRange = chartMax - chartMin;
             
-            // Set chart boundaries
-            state.chartTop = 50;
-            state.chartBottom = height - 80;
-            const chartHeight = state.chartBottom - state.chartTop;
-            
-            // Draw grid
-            drawGrid(ctx, width, height, chartMin, chartMax, chartHeight);
-            
-            // Draw price scale
-            drawPriceScale(ctx, chartMin, chartMax, chartHeight);
-            
-            // Draw candles
-            drawCandles(ctx, width, chartMin, chartRange, chartHeight);
-            
-            // Draw current price line
-            drawCurrentPriceLine(ctx, width, chartMin, chartRange, chartHeight);
+            // Draw price line
+            drawPriceLine(ctx, width, height, chartMin, chartRange);
             
             // Draw trade markers if active
             if (state.tradeActive || state.tradeResult !== null) {
-                drawTradeMarkers(ctx, width, chartMin, chartRange, chartHeight);
+                drawTradeMarkers(ctx, width, height, chartMin, chartRange);
             }
             
-            // Draw hover effects
-            if (state.hoverCandleIndex >= 0) {
-                drawHoverEffects(ctx, width, chartMin, chartRange, chartHeight);
-            }
-            
-            // Draw volume at bottom
-            drawVolume(ctx, width, height, chartHeight);
+            // Draw current price
+            updatePriceDisplay();
         }
 
-        function drawGrid(ctx, width, height, chartMin, chartMax, chartHeight) {
+        function drawGrid(ctx, width, height) {
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
             ctx.lineWidth = 1;
             
-            // Horizontal grid lines (price levels)
-            const priceLevels = 5;
-            for (let i = 0; i <= priceLevels; i++) {
-                const y = state.chartTop + (i / priceLevels) * chartHeight;
+            // Horizontal lines
+            for (let i = 1; i < 5; i++) {
+                const y = i * (height / 5);
                 ctx.beginPath();
                 ctx.moveTo(0, y);
                 ctx.lineTo(width, y);
                 ctx.stroke();
-                
-                // Price labels
-                const price = chartMax - (i / priceLevels) * (chartMax - chartMin);
-                ctx.fillStyle = '#666666';
-                ctx.font = '10px Arial';
-                ctx.textAlign = 'right';
-                ctx.fillText(`$${formatPrice(price)}`, 60, y - 5);
             }
             
-            // Vertical grid lines (time)
-            const visibleCandles = Math.floor(width / (CONFIG.CANDLE_WIDTH + CONFIG.CANDLE_SPACING));
-            for (let i = 0; i <= visibleCandles; i += 5) {
-                const x = width - (i * (CONFIG.CANDLE_WIDTH + CONFIG.CANDLE_SPACING));
-                if (x >= 70) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, state.chartTop);
-                    ctx.lineTo(x, state.chartBottom);
-                    ctx.stroke();
-                }
-            }
-        }
-
-        function drawPriceScale(ctx, chartMin, chartMax, chartHeight) {
-            // Reset text alignment
-            ctx.textAlign = 'left';
-        }
-
-        function drawCandles(ctx, width, chartMin, chartRange, chartHeight) {
-            const allCandles = [...state.candles];
-            if (state.currentCandle) {
-                allCandles.push(state.currentCandle);
-            }
-            
-            const totalCandles = allCandles.length;
-            const startX = 70; // Leave space for price scale
-            
-            // Calculate how many candles we can display
-            const maxCandles = Math.floor((width - startX) / (CONFIG.CANDLE_WIDTH + CONFIG.CANDLE_SPACING));
-            const displayCandles = allCandles.slice(-maxCandles);
-            
-            displayCandles.forEach((candle, index) => {
-                const x = startX + index * (CONFIG.CANDLE_WIDTH + CONFIG.CANDLE_SPACING);
-                
-                // Calculate y positions
-                const yHigh = state.chartTop + ((chartMax - candle.high) / chartRange * chartHeight);
-                const yLow = state.chartTop + ((chartMax - candle.low) / chartRange * chartHeight);
-                const yOpen = state.chartTop + ((chartMax - candle.open) / chartRange * chartHeight);
-                const yClose = state.chartTop + ((chartMax - candle.close) / chartRange * chartHeight);
-                
-                // Candle color
-                const isCurrent = candle === state.currentCandle;
-                let color;
-                if (isCurrent) {
-                    color = candle.isBullish ? '#00ff88' : '#ff4444';
-                } else {
-                    color = candle.isBullish ? 'rgba(0, 255, 136, 0.8)' : 'rgba(255, 68, 68, 0.8)';
-                }
-                
-                // Draw wick (high-low line)
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 1;
+            // Vertical lines
+            for (let i = 1; i < 5; i++) {
+                const x = i * (width / 5);
                 ctx.beginPath();
-                ctx.moveTo(x + CONFIG.CANDLE_WIDTH/2, yHigh);
-                ctx.lineTo(x + CONFIG.CANDLE_WIDTH/2, yLow);
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
                 ctx.stroke();
-                
-                // Draw candle body
-                const bodyTop = Math.min(yOpen, yClose);
-                const bodyBottom = Math.max(yOpen, yClose);
-                const bodyHeight = Math.max(1, bodyBottom - bodyTop);
-                
-                ctx.fillStyle = color;
-                ctx.fillRect(x, bodyTop, CONFIG.CANDLE_WIDTH, bodyHeight);
-                
-                // Draw body border
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 1;
-                ctx.strokeRect(x, bodyTop, CONFIG.CANDLE_WIDTH, bodyHeight);
-                
-                // If this is the hovered candle, highlight it
-                if (state.hoverCandleIndex === index) {
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(x - 2, bodyTop - 2, CONFIG.CANDLE_WIDTH + 4, bodyHeight + 4);
-                    
-                    // Update candle info
-                    updateCandleInfo(candle, index);
-                }
-            });
+            }
         }
 
-        function drawCurrentPriceLine(ctx, width, chartMin, chartRange, chartHeight) {
-            if (state.currentPrice === 0) return;
+        function drawPriceLine(ctx, width, height, chartMin, chartRange) {
+            const data = state.chartData;
+            const dataLength = data.length;
             
-            const y = state.chartTop + ((chartMax - state.currentPrice) / chartRange * chartHeight);
+            // Determine line color based on trend
+            const firstPrice = data[0].price;
+            const lastPrice = data[dataLength - 1].price;
+            const isUp = lastPrice >= firstPrice;
             
-            // Draw horizontal line
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([5, 5]);
             ctx.beginPath();
-            ctx.moveTo(70, y);
-            ctx.lineTo(width, y);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = isUp ? '#00ff88' : '#ff4444';
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             
-            // Draw price label on left
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '12px Arial';
-            ctx.textAlign = 'right';
-            ctx.fillText(`$${formatPrice(state.currentPrice)}`, 65, y - 5);
+            // Draw line
+            for (let i = 0; i < dataLength; i++) {
+                const point = data[i];
+                const x = (i / (dataLength - 1)) * width;
+                const y = height - ((point.price - chartMin) / chartRange * height);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // Draw gradient under line
+            if (dataLength > 1) {
+                const lastPoint = data[dataLength - 1];
+                const lastX = width;
+                const lastY = height - ((lastPoint.price - chartMin) / chartRange * height);
+                
+                ctx.lineTo(lastX, height);
+                ctx.lineTo(0, height);
+                ctx.closePath();
+                
+                const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
+                areaGradient.addColorStop(0, isUp ? 
+                    'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)');
+                areaGradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = areaGradient;
+                ctx.fill();
+            }
+            
+            // Draw current price dot
+            if (dataLength > 0) {
+                const lastPoint = data[dataLength - 1];
+                const lastX = width;
+                const lastY = height - ((lastPoint.price - chartMin) / chartRange * height);
+                
+                // Glow effect
+                ctx.beginPath();
+                ctx.arc(lastX, lastY, 8, 0, Math.PI * 2);
+                ctx.fillStyle = isUp ? 
+                    'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)';
+                ctx.fill();
+                
+                // Main dot
+                ctx.beginPath();
+                ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+                ctx.fillStyle = isUp ? '#00ff88' : '#ff4444';
+                ctx.fill();
+            }
         }
 
-        function drawTradeMarkers(ctx, width, chartMin, chartRange, chartHeight) {
+        function drawTradeMarkers(ctx, width, height, chartMin, chartRange) {
             if (state.tradeStartPrice > 0) {
-                const y = state.chartTop + ((chartMax - state.tradeStartPrice) / chartRange * chartHeight);
+                const startY = height - ((state.tradeStartPrice - chartMin) / chartRange * height);
                 
                 // Draw start price line
-                ctx.strokeStyle = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([5, 5]);
                 ctx.beginPath();
-                ctx.moveTo(70, y);
-                ctx.lineTo(width, y);
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
+                ctx.lineWidth = 1;
+                ctx.moveTo(0, startY);
+                ctx.lineTo(width, startY);
                 ctx.stroke();
                 ctx.setLineDash([]);
                 
-                // Draw label
+                // Draw start price label
                 ctx.fillStyle = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
                 ctx.font = '12px Arial';
-                ctx.textAlign = 'left';
                 ctx.fillText(
-                    `Trade: $${formatPrice(state.tradeStartPrice)}`,
-                    width - 150,
-                    y - 10
+                    `Start: $${formatPrice(state.tradeStartPrice)}`,
+                    10,
+                    startY - 10
+                );
+            }
+            
+            // Draw trade result if available
+            if (state.tradeResult !== null && state.tradeEndPrice > 0) {
+                const endY = height - ((state.tradeEndPrice - chartMin) / chartRange * height);
+                
+                ctx.fillStyle = state.tradeResult ? '#00ff88' : '#ff4444';
+                ctx.font = '12px Arial';
+                ctx.fillText(
+                    `End: $${formatPrice(state.tradeEndPrice)}`,
+                    width - 100,
+                    endY + 20
                 );
             }
         }
 
-        function drawHoverEffects(ctx, width, chartMin, chartRange, chartHeight) {
-            // Show vertical line at hover position
-            if (state.mouseX >= 70 && state.mouseX <= width) {
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(state.mouseX, state.chartTop);
-                ctx.lineTo(state.mouseX, state.chartBottom);
-                ctx.stroke();
-            }
-        }
-
-        function drawVolume(ctx, width, height, chartHeight) {
-            const volumeHeight = 30;
-            const volumeTop = height - volumeHeight;
+        function updatePriceDisplay() {
+            if (state.chartData.length === 0) return;
             
-            // Volume background
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(70, volumeTop, width - 70, volumeHeight);
+            const current = state.chartData[state.chartData.length - 1];
+            const first = state.chartData[0];
+            const change = ((current.price - first.price) / first.price * 100);
             
-            // Get recent candles for volume
-            const allCandles = [...state.candles];
-            if (state.currentCandle) {
-                allCandles.push(state.currentCandle);
-            }
+            // Update current price display
+            dom.currentPrice.textContent = `$${formatPrice(current.price)}`;
             
-            const maxCandles = Math.floor((width - 70) / (CONFIG.CANDLE_WIDTH + CONFIG.CANDLE_SPACING));
-            const displayCandles = allCandles.slice(-maxCandles);
-            
-            if (displayCandles.length === 0) return;
-            
-            // Find max volume
-            let maxVolume = 0;
-            displayCandles.forEach(candle => {
-                maxVolume = Math.max(maxVolume, candle.volume);
-            });
-            
-            if (maxVolume === 0) return;
-            
-            // Draw volume bars
-            displayCandles.forEach((candle, index) => {
-                const x = 70 + index * (CONFIG.CANDLE_WIDTH + CONFIG.CANDLE_SPACING);
-                const barHeight = (candle.volume / maxVolume) * (volumeHeight - 10);
-                const y = volumeTop + volumeHeight - barHeight;
-                
-                ctx.fillStyle = candle.isBullish ? 
-                    'rgba(0, 255, 136, 0.5)' : 
-                    'rgba(255, 68, 68, 0.5)';
-                ctx.fillRect(x, y, CONFIG.CANDLE_WIDTH, barHeight);
-            });
-            
-            // Volume label
-            ctx.fillStyle = '#888888';
-            ctx.font = '10px Arial';
-            ctx.textAlign = 'right';
-            ctx.fillText('VOLUME', 65, volumeTop + 15);
-        }
-
-        function updateCandleInfo(candle, index) {
-            const change = ((candle.close - candle.open) / candle.open * 100);
+            // Update badge
+            const winProb = Math.round(calculateWinProbability() * 100);
             const changeText = change >= 0 ? 
                 `+${change.toFixed(2)}%` : 
                 `${change.toFixed(2)}%`;
             
-            dom.candleTime.textContent = getTimeString(candle.time);
-            dom.candleChange.textContent = changeText;
-            dom.candleChange.style.color = change >= 0 ? '#00ff88' : '#ff4444';
-            
-            // Update OHLC display
-            dom.ohlcDisplay.innerHTML = `
-                O: <span style="color: #888888">$${formatPrice(candle.open)}</span> 
-                H: <span style="color: #00ff88">$${formatPrice(candle.high)}</span> 
-                L: <span style="color: #ff4444">$${formatPrice(candle.low)}</span> 
-                C: <span style="color: ${candle.isBullish ? '#00ff88' : '#ff4444'}">$${formatPrice(candle.close)}</span>
-            `;
-        }
-
-        function updatePriceDisplay() {
-            if (state.currentPrice === 0) return;
-            
-            // Update current price
-            dom.currentPrice.textContent = `$${formatPrice(state.currentPrice)}`;
-            
-            // Calculate 24h change if available
-            let changeText = '';
-            if (state.priceChange24h !== 0) {
-                changeText = state.priceChange24h >= 0 ? 
-                    `+${state.priceChange24h.toFixed(2)}% (24h)` : 
-                    `${state.priceChange24h.toFixed(2)}% (24h)`;
-                
-                dom.priceChange.textContent = changeText;
-                dom.priceChange.style.color = state.priceChange24h >= 0 ? '#00ff88' : '#ff4444';
-            }
-            
-            // Update win probability badge
-            const winProb = Math.round(calculateWinProbability() * 100);
             dom.winProbability.innerHTML = 
-                `BTC $${formatPrice(state.currentPrice)} <span style="color: ${state.priceChange24h >= 0 ? '#00ff88' : '#ff4444'}">${changeText}</span> | ${winProb}% WIN`;
+                `BTC $${formatPrice(current.price)} <span style="color: ${change >= 0 ? '#00ff88' : '#ff4444'}">${changeText}</span> | ${winProb}% WIN`;
         }
 
-        function handleChartHover(event) {
-            const rect = dom.chartCanvas.getBoundingClientRect();
-            state.mouseX = event.clientX - rect.left;
-            state.mouseY = event.clientY - rect.top;
+        async function updateBitcoinData() {
+            if (state.currentPage !== 'trading') return;
             
-            // Calculate which candle is being hovered
-            const startX = 70;
-            const allCandles = [...state.candles];
-            if (state.currentCandle) {
-                allCandles.push(state.currentCandle);
-            }
-            
-            const maxCandles = Math.floor((state.chartWidth - startX) / (CONFIG.CANDLE_WIDTH + CONFIG.CANDLE_SPACING));
-            const displayCandles = allCandles.slice(-maxCandles);
-            
-            state.hoverCandleIndex = -1;
-            
-            if (state.mouseX >= startX && state.mouseX <= state.chartWidth) {
-                const candleIndex = Math.floor((state.mouseX - startX) / (CONFIG.CANDLE_WIDTH + CONFIG.CANDLE_SPACING));
+            try {
+                const data = await fetchBitcoinPrice();
+                if (!data) return;
                 
-                if (candleIndex >= 0 && candleIndex < displayCandles.length) {
-                    state.hoverCandleIndex = allCandles.length - maxCandles + candleIndex;
+                const { price, change } = data;
+                
+                // Update state
+                state.currentPrice = price;
+                state.priceChange24h = change;
+                
+                // Add to chart data
+                state.chartData.push({
+                    time: Date.now(),
+                    price: price,
+                    volume: Math.random() * 100
+                });
+                
+                // Keep only recent data
+                if (state.chartData.length > CONFIG.CHART_HISTORY_SIZE) {
+                    state.chartData = state.chartData.slice(-CONFIG.CHART_HISTORY_SIZE);
                 }
+                
+                // Update chart
+                drawRealTimeChart();
+                
+                // Update trade info
+                updateTradeInfo();
+                
+                // Update trade countdown if active
+                if (state.tradeActive) {
+                    updateTradeCountdown();
+                }
+                
+            } catch (error) {
+                console.error("Error updating Bitcoin data:", error);
             }
         }
 
@@ -2043,6 +1751,19 @@
             }
         }
 
+        function updateTradeCountdown() {
+            if (!state.tradeActive) return;
+            
+            const now = Date.now();
+            const remaining = Math.max(0, state.tradeEndTime - now);
+            state.tradeCountdown = (remaining / 1000).toFixed(1);
+            
+            const countdownBadge = document.getElementById('tradeCountdown');
+            if (countdownBadge) {
+                countdownBadge.textContent = `${state.tradeCountdown}s`;
+            }
+        }
+
         function updateTradeUI() {
             if (state.tradeActive) {
                 dom.longBtn.textContent = state.tradeDirection === 'long' ? 'WAITING...' : 'LONG';
@@ -2085,12 +1806,12 @@
             updateSliderThumbs();
             updateDockActiveState();
             
-            // Initialize candle data
-            createInitialCandles();
+            // Initialize chart data
+            initChartData();
             
             // Start real-time updates
-            updateBitcoinPrice();
-            setInterval(updateBitcoinPrice, CONFIG.UPDATE_INTERVAL);
+            updateBitcoinData();
+            setInterval(updateBitcoinData, CONFIG.UPDATE_INTERVAL);
             
             // Start chart animation loop
             requestAnimationFrame(chartAnimationLoop);
@@ -2109,14 +1830,6 @@
             
             canvas.style.width = `${rect.width}px`;
             canvas.style.height = `${rect.height}px`;
-            
-            // Add hover event listeners
-            canvas.addEventListener('mousemove', handleChartHover);
-            canvas.addEventListener('mouseleave', () => {
-                state.mouseX = -1;
-                state.mouseY = -1;
-                state.hoverCandleIndex = -1;
-            });
         }
 
         function createLeverageDots() {
@@ -2133,7 +1846,7 @@
 
         function chartAnimationLoop() {
             if (state.currentPage === 'trading') {
-                drawCandleChart();
+                drawRealTimeChart();
             }
             requestAnimationFrame(chartAnimationLoop);
         }
@@ -2161,7 +1874,7 @@
             
             window.addEventListener('resize', () => {
                 setupCanvas();
-                drawCandleChart();
+                drawRealTimeChart();
                 updateSliderThumbs();
             });
         }
@@ -2341,12 +2054,12 @@
         function updateRankPage() {
             const ranks = [
                 { name: state.username, balance: state.bestBalance, level: CONFIG.LEVERAGES[state.leverageIndex].name },
-                { name: "CandleMaster", balance: 125000, level: "Expert" },
-                { name: "BitcoinWhale", balance: 89000, level: "High Risk" },
-                { name: "ChartPro", balance: 67000, level: "Intermediate" },
-                { name: "SwingTrader", balance: 45000, level: "Beginner" },
-                { name: "DayTrader", balance: 32000, level: "Beginner" },
-                { name: "CryptoLearner", balance: 18000, level: "Novice" }
+                { name: "BitcoinPro", balance: 85000, level: "Expert" },
+                { name: "CryptoMaster", balance: 62000, level: "High Risk" },
+                { name: "TradingWizard", balance: 45000, level: "Intermediate" },
+                { name: "HODLer", balance: 32000, level: "Beginner" },
+                { name: "RiskTaker", balance: 18000, level: "Beginner" },
+                { name: "NewTrader", balance: 9500, level: "Novice" }
             ];
             
             ranks.sort((a, b) => b.balance - a.balance);
