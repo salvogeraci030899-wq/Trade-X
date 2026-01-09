@@ -862,14 +862,19 @@
             font-weight: 700;
             border: 1px solid;
             z-index: 5;
-            animation: fadeInOut 2s ease;
+            animation: fadeInOut 2s ease forwards;
         }
         
         @keyframes fadeInOut {
             0% { opacity: 0; transform: translateY(-10px); }
             20% { opacity: 1; transform: translateY(0); }
             80% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 0; transform: translateY(-10px); visibility: hidden; }
+        }
+        
+        /* FIX: Assicura che l'indicatore non sia visibile dopo l'animazione */
+        .trade-result-indicator.hidden {
+            display: none;
         }
     </style>
 </head>
@@ -1621,7 +1626,7 @@
             dom.shortBtn.disabled = true;
             
             // Pulisci indicatori precedenti PRIMA di iniziare un nuovo trade
-            document.querySelectorAll('.trade-result-indicator').forEach(el => el.remove());
+            cleanupAllTradeIndicators();
             
             state.tradeStartPrice = state.currentPrice;
             state.tradeDirection = direction;
@@ -1739,13 +1744,14 @@
                 dom.longBtn.disabled = false;
                 dom.shortBtn.disabled = false;
                 updateTradeUI();
+                // Pulisci tutti gli indicatori
+                cleanupAllTradeIndicators();
             }, 2100); // 100ms extra per assicurarsi che l'animazione sia completata
         }
 
         function showTradeResult(isWin) {
             // Rimuovi qualsiasi indicatore precedente
-            const existingIndicators = document.querySelectorAll('.trade-result-indicator');
-            existingIndicators.forEach(indicator => indicator.remove());
+            cleanupAllTradeIndicators();
             
             const countdownBadge = document.getElementById('tradeCountdown');
             if (countdownBadge) {
@@ -1771,7 +1777,12 @@
                 
                 // Rimuovi dopo l'animazione
                 resultIndicator.addEventListener('animationend', () => {
-                    resultIndicator.remove();
+                    resultIndicator.classList.add('hidden');
+                    setTimeout(() => {
+                        if (resultIndicator.parentNode) {
+                            resultIndicator.remove();
+                        }
+                    }, 100);
                 });
                 
                 countdownBadge.style.transform = 'scale(1.1)';
@@ -1779,6 +1790,24 @@
                     countdownBadge.style.transform = 'scale(1)';
                 }, 200);
             }
+        }
+
+        function cleanupAllTradeIndicators() {
+            // Rimuovi badge countdown
+            const countdownBadge = document.getElementById('tradeCountdown');
+            if (countdownBadge && countdownBadge.parentNode) {
+                countdownBadge.remove();
+            }
+            
+            // Rimuovi tutti gli indicatori di risultato
+            document.querySelectorAll('.trade-result-indicator').forEach(el => {
+                el.classList.add('hidden');
+                setTimeout(() => {
+                    if (el.parentNode) {
+                        el.remove();
+                    }
+                }, 100);
+            });
         }
 
         function resetTradeState() {
@@ -1796,13 +1825,8 @@
                 state.tradeCountdownInterval = null;
             }
             
-            const countdownBadge = document.getElementById('tradeCountdown');
-            if (countdownBadge) {
-                countdownBadge.remove();
-            }
-            
-            // Aggiungi questa linea per rimuovere eventuali indicatori rimasti
-            document.querySelectorAll('.trade-result-indicator').forEach(el => el.remove());
+            // Pulisci tutti gli indicatori
+            cleanupAllTradeIndicators();
         }
 
         function updateTradeCountdown() {
@@ -1860,7 +1884,7 @@
         // ==================== CORE FUNCTIONS ====================
         function initGame() {
             // Pulisci eventuali indicatori residui all'avvio
-            document.querySelectorAll('.trade-result-indicator').forEach(el => el.remove());
+            cleanupAllTradeIndicators();
             
             initChartData();
             setupCanvas();
@@ -2201,6 +2225,7 @@
             updateUI();
             saveGameState();
             resetTradeState();
+            cleanupAllTradeIndicators();
         }
 
         function handleSoundToggle() {
