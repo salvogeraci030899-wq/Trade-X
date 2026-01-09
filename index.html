@@ -1220,6 +1220,7 @@
             tradeDirection: null,
             tradeResult: null,
             tradeCountdown: 0,
+            tradeCountdownInterval: null,
             
             leverageIndex: 0,
             betPercentage: 5,
@@ -1619,6 +1620,9 @@
             dom.longBtn.disabled = true;
             dom.shortBtn.disabled = true;
             
+            // Pulisci indicatori precedenti PRIMA di iniziare un nuovo trade
+            document.querySelectorAll('.trade-result-indicator').forEach(el => el.remove());
+            
             state.tradeStartPrice = state.currentPrice;
             state.tradeDirection = direction;
             state.tradeActive = true;
@@ -1630,19 +1634,21 @@
             updateTradeUI();
             
             const chartOverlay = document.querySelector('.chart-overlay');
-            let countdownBadge = chartOverlay.querySelector('#tradeCountdown');
-            if (!countdownBadge) {
-                countdownBadge = document.createElement('div');
-                countdownBadge.className = 'chart-badge';
-                countdownBadge.id = 'tradeCountdown';
-                countdownBadge.style.backgroundColor = direction === 'long' ? 
-                    'rgba(0, 255, 136, 0.15)' : 'rgba(255, 68, 68, 0.15)';
-                countdownBadge.style.borderColor = direction === 'long' ? 
-                    'rgba(0, 255, 136, 0.4)' : 'rgba(255, 68, 68, 0.4)';
-                countdownBadge.style.fontSize = '13px';
-                countdownBadge.style.fontWeight = '700';
-                chartOverlay.appendChild(countdownBadge);
-            }
+            // Rimuovi badge precedente se esiste
+            const existingBadge = chartOverlay.querySelector('#tradeCountdown');
+            if (existingBadge) existingBadge.remove();
+            
+            // Crea nuovo badge
+            const countdownBadge = document.createElement('div');
+            countdownBadge.className = 'chart-badge';
+            countdownBadge.id = 'tradeCountdown';
+            countdownBadge.style.backgroundColor = direction === 'long' ? 
+                'rgba(0, 255, 136, 0.15)' : 'rgba(255, 68, 68, 0.15)';
+            countdownBadge.style.borderColor = direction === 'long' ? 
+                'rgba(0, 255, 136, 0.4)' : 'rgba(255, 68, 68, 0.4)';
+            countdownBadge.style.fontSize = '13px';
+            countdownBadge.style.fontWeight = '700';
+            chartOverlay.appendChild(countdownBadge);
             
             const countdownInterval = setInterval(() => {
                 if (!state.tradeActive) {
@@ -1733,10 +1739,14 @@
                 dom.longBtn.disabled = false;
                 dom.shortBtn.disabled = false;
                 updateTradeUI();
-            }, 2000);
+            }, 2100); // 100ms extra per assicurarsi che l'animazione sia completata
         }
 
         function showTradeResult(isWin) {
+            // Rimuovi qualsiasi indicatore precedente
+            const existingIndicators = document.querySelectorAll('.trade-result-indicator');
+            existingIndicators.forEach(indicator => indicator.remove());
+            
             const countdownBadge = document.getElementById('tradeCountdown');
             if (countdownBadge) {
                 const priceDiff = state.tradeEndPrice - state.tradeStartPrice;
@@ -1759,9 +1769,10 @@
                 resultIndicator.textContent = `${diffSign}${diffPercent}%`;
                 document.querySelector('.chart-wrapper').appendChild(resultIndicator);
                 
-                setTimeout(() => {
+                // Rimuovi dopo l'animazione
+                resultIndicator.addEventListener('animationend', () => {
                     resultIndicator.remove();
-                }, 2000);
+                });
                 
                 countdownBadge.style.transform = 'scale(1.1)';
                 setTimeout(() => {
@@ -1789,6 +1800,9 @@
             if (countdownBadge) {
                 countdownBadge.remove();
             }
+            
+            // Aggiungi questa linea per rimuovere eventuali indicatori rimasti
+            document.querySelectorAll('.trade-result-indicator').forEach(el => el.remove());
         }
 
         function updateTradeCountdown() {
@@ -1845,6 +1859,9 @@
 
         // ==================== CORE FUNCTIONS ====================
         function initGame() {
+            // Pulisci eventuali indicatori residui all'avvio
+            document.querySelectorAll('.trade-result-indicator').forEach(el => el.remove());
+            
             initChartData();
             setupCanvas();
             createLeverageDots();
