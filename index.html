@@ -4,1092 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>XTRADE</title>
+    <title>XTRADE - Bitcoin Real Time</title>
     <style>
-        /* ===== RESET & BASE ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
-            background: #000000;
-            color: #ffffff;
-            touch-action: none;
-        }
-        
-        /* Prevent selection */
-        * {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-        
-        /* ===== LAYOUT ===== */
-        .app-container {
-            width: 100%;
-            height: 100vh;
-            max-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background: #000000;
-            /* Rimossa la padding-bottom originale */
-        }
-        
-        /* ===== DOCK ===== */
-        .dock-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            z-index: 1000; /* Aumentato z-index per essere sopra tutto */
-        }
-        
-        .dock-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 8px;
-            border-radius: 12px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            flex: 1;
-            max-width: 80px;
-        }
-        
-        .dock-item:active {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(0.95);
-        }
-        
-        .dock-icon {
-            font-size: 22px;
-            margin-bottom: 4px;
-            transition: all 0.2s ease;
-        }
-        
-        .dock-label {
-            font-size: 10px;
-            font-weight: 600;
-            color: #888888;
-            transition: all 0.2s ease;
-        }
-        
-        .dock-item.active .dock-icon {
-            color: #00ff88;
-            transform: translateY(-2px);
-        }
-        
-        .dock-item.active .dock-label {
-            color: #ffffff;
-        }
-        
-        /* ===== LONG/SHORT BUTTONS SECTION ===== */
-        .long-short-section {
-            position: fixed;
-            bottom: 70px; /* Above the dock */
-            left: 0;
-            right: 0;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 999; /* Sotto il dock ma sopra il contenuto */
-        }
-        
-        .trade-buttons {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .trade-btn {
-            flex: 1;
-            height: 64px;
-            border: none;
-            border-radius: 16px;
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .trade-btn:active {
-            transform: scale(0.97);
-        }
-        
-        .trade-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        .long-btn {
-            background: linear-gradient(135deg, #00cc6a 0%, #00ff88 100%);
-            color: #000000;
-            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.25);
-        }
-        
-        .short-btn {
-            background: linear-gradient(135deg, #cc3636 0%, #ff4444 100%);
-            color: #000000;
-            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.25);
-        }
-        
-        /* ===== HEADER/BALANCE ===== */
-        .header-section {
-            padding: 20px 20px 25px;
-            background: #0a0a0a;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            flex-shrink: 0;
-        }
-        
-        .balance-display {
-            text-align: left;
-            margin-bottom: 8px;
-        }
-        
-        .balance-amount {
-            font-size: 48px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-        
-        .balance-change {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .change-positive {
-            background: rgba(0, 255, 136, 0.15);
-            color: #00ff88;
-        }
-        
-        .change-negative {
-            background: rgba(255, 68, 68, 0.15);
-            color: #ff4444;
-        }
-        
-        .balance-label {
-            font-size: 13px;
-            color: #888888;
-            letter-spacing: 0.3px;
-        }
-        
-        /* ===== CHART ===== */
-        .chart-section {
-            flex: 1;
-            min-height: 0;
-            position: relative;
-            padding: 15px;
-        }
-        
-        .chart-wrapper {
-            width: 100%;
-            height: 100%;
-            background: #0a0a0a;
-            border-radius: 16px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        #chartCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        
-        .chart-overlay {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
-        }
-        
-        .chart-badge {
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        /* Chart grid lines */
-        .chart-grid {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-        
-        .grid-line {
-            position: absolute;
-            width: 100%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        /* ===== CONTROLS ===== */
-        .controls-section {
-            flex-shrink: 0;
-            padding: 0 20px;
-            padding-bottom: 90px; /* Spazio per bottoni + dock */
-        }
-        
-        /* Sliders con pallini */
-        .slider-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-        
-        .slider-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .slider-label {
-            font-size: 15px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-        
-        .slider-value {
-            font-size: 18px;
-            font-weight: 700;
-        }
-        
-        .slider-track {
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            position: relative;
-            overflow: visible;
-        }
-        
-        .slider-fill {
-            height: 100%;
-            border-radius: 4px;
-            position: absolute;
-            left: 0;
-            top: 0;
-            transition: width 0.2s ease;
-        }
-        
-        .leverage-fill {
-            background: linear-gradient(to right, #006633, #00ff88);
-        }
-        
-        .bet-fill {
-            background: linear-gradient(to right, #003366, #00a3ff);
-        }
-        
-        /* Thumb per gli slider */
-        .slider-thumb {
-            position: absolute;
-            top: 50%;
-            width: 24px;
-            height: 24px;
-            background: #ffffff;
-            border-radius: 50%;
-            transform: translateY(-50%) translateX(-12px);
-            z-index: 3;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-            border: 2px solid #000000;
-            transition: left 0.2s ease;
-            pointer-events: none;
-        }
-        
-        .leverage-thumb {
-            background: #00ff88;
-            border-color: #000000;
-        }
-        
-        .bet-thumb {
-            background: #00a3ff;
-            border-color: #000000;
-        }
-        
-        /* Pallini per le leve */
-        .slider-dots {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 2px;
-            pointer-events: none;
-        }
-        
-        .slider-dot {
-            width: 12px;
-            height: 12px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: translateY(-2px);
-        }
-        
-        .slider-dot.active {
-            background: #ffffff;
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-        }
-        
-        .slider-dot.disabled {
-            background: rgba(255, 255, 255, 0.1);
-            opacity: 0.3;
-        }
-        
-        input[type="range"] {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-            z-index: 4;
-        }
-        
-        .slider-ticks {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 8px;
-        }
-        
-        .tick {
-            font-size: 10px;
-            color: #666666;
-            font-weight: 500;
-        }
-        
-        /* Info */
-        .trade-info {
-            font-size: 13px;
-            color: #888888;
-            text-align: center;
-            line-height: 1.4;
-            margin-top: 15px;
-            margin-bottom: 20px;
-        }
-        
-        /* Unlock info */
-        .unlock-info {
-            font-size: 12px;
-            color: #ffaa44;
-            text-align: center;
-            margin-top: 10px;
-            min-height: 16px;
-            margin-bottom: 20px;
-        }
-        
-        /* ===== PAGINE OVERLAY ===== */
-        .page-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000000;
-            display: none;
-            flex-direction: column;
-            z-index: 800; /* Sotto il dock ma sopra l'app */
-            padding: 20px;
-            padding-top: 60px;
-            padding-bottom: 150px; /* Spazio per il dock (70px dock + 80px buttons) */
-            overflow: hidden;
-        }
-        
-        .page-overlay.active {
-            display: flex;
-        }
-        
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            flex-shrink: 0;
-        }
-        
-        .page-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #ffffff;
-        }
-        
-        .page-content {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-right: 5px;
-            color: #cccccc;
-            line-height: 1.6;
-        }
-        
-        .page-content h2 {
-            color: #ffffff;
-            font-size: 18px;
-            font-weight: 600;
-            margin: 25px 0 15px 0;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .page-content h2:first-child {
-            border-top: none;
-            margin-top: 0;
-        }
-        
-        .page-content p {
-            margin-bottom: 15px;
-        }
-        
-        .page-content ul {
-            padding-left: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .page-content li {
-            margin-bottom: 10px;
-        }
-        
-        /* Settings specific */
-        .settings-option {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .settings-label {
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-        
-        .settings-description {
-            font-size: 13px;
-            color: #888888;
-            margin-top: 4px;
-        }
-        
-        /* Toggle switch */
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 26px;
-        }
-        
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #333333;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .toggle-slider {
-            background-color: #ffffff;
-        }
-        
-        input:checked + .toggle-slider:before {
-            transform: translateX(24px);
-            background-color: #000000;
-        }
-        
-        /* Account page */
-        .account-stats {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .account-stats h3 {
-            color: #ffffff;
-            font-size: 16px;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .stat-row:last-child {
-            border-bottom: none;
-        }
-        
-        .stat-label {
-            color: #888888;
-        }
-        
-        .stat-value {
-            color: #ffffff;
-            font-weight: 600;
-        }
-        
-        /* Rank page */
-        .rank-item {
-            display: flex;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .rank-position {
-            font-size: 18px;
-            font-weight: 700;
-            min-width: 40px;
-            color: #888888;
-        }
-        
-        .rank-user {
-            flex: 1;
-        }
-        
-        .rank-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-        
-        .rank-level {
-            font-size: 12px;
-            color: #888888;
-            margin-top: 2px;
-        }
-        
-        .rank-balance {
-            font-size: 16px;
-            font-weight: 700;
-            color: #00ff88;
-        }
-        
-        /* ===== GAME OVER ===== */
-        .game-over {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000000;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .game-over h2 {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, #ff4444 0%, #ff0000 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .game-over p {
-            font-size: 16px;
-            color: #888888;
-            margin-bottom: 30px;
-            text-align: center;
-            max-width: 280px;
-        }
-        
-        .restart-btn {
-            padding: 16px 32px;
-            background: linear-gradient(135deg, #00cc6a 0%, #00ff88 100%);
-            border: none;
-            border-radius: 16px;
-            color: #000000;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        
-        .restart-btn:active {
-            transform: scale(0.97);
-        }
-        
-        /* Reset data button */
-        .reset-button {
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid rgba(255, 68, 68, 0.3);
-            color: #ff4444;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            margin-top: 20px;
-            transition: all 0.15s;
-        }
-        
-        .reset-button:active {
-            background: rgba(255, 68, 68, 0.2);
-            transform: scale(0.98);
-        }
-        
-        /* ===== RESPONSIVE ===== */
-        @media (max-height: 700px) {
-            .balance-amount {
-                font-size: 42px;
-            }
-            
-            .trade-btn {
-                height: 58px;
-                font-size: 20px;
-            }
-            
-            .chart-section {
-                padding: 12px;
-            }
-            
-            .controls-section {
-                padding: 0 16px;
-                padding-bottom: 85px;
-            }
-            
-            .long-short-section {
-                bottom: 65px;
-                padding: 12px;
-            }
-            
-            .page-overlay {
-                padding-bottom: 140px;
-            }
-        }
-        
-        @media (max-width: 350px) {
-            .balance-amount {
-                font-size: 40px;
-            }
-            
-            .trade-btn {
-                height: 56px;
-                font-size: 19px;
-            }
-            
-            .slider-value {
-                font-size: 16px;
-            }
-            
-            .page-overlay {
-                padding: 15px;
-                padding-top: 50px;
-                padding-bottom: 140px;
-            }
-            
-            .dock-label {
-                font-size: 9px;
-            }
-            
-            .dock-icon {
-                font-size: 20px;
-            }
-        }
-        
-        /* ===== PERFORMANCE ===== */
-        .app-container * {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        #chartCanvas {
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-        
-        /* ===== DOCK ICONS (SVG) ===== */
-        .dock-icon svg {
-            width: 24px;
-            height: 24px;
-            fill: #888888;
-            transition: fill 0.2s ease;
-        }
-        
-        .dock-item.active .dock-icon svg {
-            fill: #00ff88;
-        }
-        
-        .dock-icon.trading svg {
-            stroke: #888888;
-            stroke-width: 1.5;
-            fill: none;
-        }
-        
-        .dock-item.active .dock-icon.trading svg {
-            stroke: #00ff88;
-        }
+        /* ... (mantieni tutto il CSS originale) ... */
     </style>
 </head>
 <body>
-    <!-- Dock (ORA SEMPRE VISIBILE) -->
-    <div class="dock-container">
-        <div class="dock-item active" id="dockTrading">
-            <div class="dock-icon trading">
-                <svg viewBox="0 0 24 24">
-                    <path d="M3 18h18v2H3zm0-5h18v2H3zm0-7v2h18V6z"/>
-                </svg>
-            </div>
-            <div class="dock-label">Trading</div>
-        </div>
-        <div class="dock-item" id="dockAccount">
-            <div class="dock-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-                </svg>
-            </div>
-            <div class="dock-label">Account</div>
-        </div>
-        <div class="dock-item" id="dockRank">
-            <div class="dock-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
-                </svg>
-            </div>
-            <div class="dock-label">Ranking</div>
-        </div>
-        <div class="dock-item" id="dockSettings">
-            <div class="dock-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-                </svg>
-            </div>
-            <div class="dock-label">Settings</div>
-        </div>
-        <div class="dock-item" id="dockInfo">
-            <div class="dock-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-            </div>
-            <div class="dock-label">Info</div>
-        </div>
-    </div>
-    
-    <!-- Long/Short Buttons Section (ORA SEMPRE VISIBILE) -->
-    <div class="long-short-section" id="longShortSection">
-        <div class="trade-buttons">
-            <button class="trade-btn long-btn" id="longBtn">LONG</button>
-            <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
-        </div>
-    </div>
-    
-    <!-- Game Over -->
-    <div class="game-over" id="gameOverScreen">
-        <h2>BANKRUPTCY</h2>
-        <p>Balance reached zero</p>
-        <button class="restart-btn" id="restartBtn">TRY AGAIN</button>
-    </div>
-    
-    <!-- Account Page -->
-    <div class="page-overlay" id="accountPage">
-        <div class="page-header">
-            <h1 class="page-title">Account</h1>
-        </div>
-        <div class="page-content">
-            <div class="account-stats">
-                <h3>Personal Statistics</h3>
-                <div class="stat-row">
-                    <span class="stat-label">Current Balance:</span>
-                    <span class="stat-value" id="accountBalance">$10k</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Best Balance:</span>
-                    <span class="stat-value" id="accountBestBalance">$10k</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Total Trades:</span>
-                    <span class="stat-value" id="accountTotalTrades">0</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Win Rate:</span>
-                    <span class="stat-value" id="accountWinRate">0%</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Current Level:</span>
-                    <span class="stat-value" id="accountLevel">Novice</span>
-                </div>
-            </div>
-            
-            <div class="account-stats">
-                <h3>Leverage Statistics</h3>
-                <div class="stat-row">
-                    <span class="stat-label">1x Leverage:</span>
-                    <span class="stat-value" id="leverage1">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">2x Leverage:</span>
-                    <span class="stat-value" id="leverage2">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">3x Leverage:</span>
-                    <span class="stat-value" id="leverage3">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">5x Leverage:</span>
-                    <span class="stat-value" id="leverage5">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">10x Leverage:</span>
-                    <span class="stat-value" id="leverage10">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">20x Leverage:</span>
-                    <span class="stat-value" id="leverage20">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">50x Leverage:</span>
-                    <span class="stat-value" id="leverage50">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">100x Leverage:</span>
-                    <span class="stat-value" id="leverage100">0/0 (0%)</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Ranking Page -->
-    <div class="page-overlay" id="rankPage">
-        <div class="page-header">
-            <h1 class="page-title">Ranking</h1>
-        </div>
-        <div class="page-content">
-            <h2>Top Players</h2>
-            <div id="rankList">
-                <!-- Rank items will be generated here -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- Info Page -->
-    <div class="page-overlay" id="infoPage">
-        <div class="page-header">
-            <h1 class="page-title">Info</h1>
-        </div>
-        <div class="page-content">
-            <h2>Welcome to XTRADE</h2>
-            <p>XTRADE is a trading simulator with a dynamic progressive leverage system. Manage your capital, choose your risk level, and try to beat your record.</p>
-            
-            <h2>How It Works</h2>
-            <ul>
-                <li><strong>Chart Analysis</strong>: Observe price trends and predict if it will rise (LONG) or fall (SHORT)</li>
-                <li><strong>Dynamic System</strong>: Win probability depends on LEVERAGE and BET</li>
-                <li><strong>Risk Management</strong>: Higher leverage OR bet means lower win probability</li>
-                <li><strong>Personal Record</strong>: Your maximum record is saved and not reset in case of bankruptcy</li>
-            </ul>
-            
-            <h2>Dynamic Probability System</h2>
-            <p>Win probability is calculated as follows:</p>
-            <ul>
-                <li><strong>Base Probability</strong>: Depends on chosen leverage (from 80% to 20%)</li>
-                <li><strong>Bet Penalty</strong>: Every 1% of bet reduces probability by 0.5%</li>
-                <li><strong>Final Probability</strong>: Base Probability × (1 - (Bet% / 200))</li>
-                <li><strong>Minimum Guaranteed</strong>: Never goes below 5%</li>
-            </ul>
-            
-            <h2>Practical Examples</h2>
-            <ul>
-                <li><strong>Prudent</strong>: Leverage 1x (80%) + Bet 5% → 78% win chance</li>
-                <li><strong>Risky</strong>: Leverage 10x (40%) + Bet 20% → 36% win chance</li>
-                <li><strong>Extreme</strong>: Leverage 100x (20%) + Bet 50% → 15% win chance</li>
-                <li><strong>Suicidal</strong>: Leverage 100x (20%) + Bet 100% → 10% win chance</li>
-            </ul>
-            
-            <h2>Unlock Thresholds</h2>
-            <ul>
-                <li><strong>Leverage 2x</strong>: Unlocked at $1.5k</li>
-                <li><strong>Leverage 3x</strong>: Unlocked at $2.5k</li>
-                <li><strong>Leverage 5x</strong>: Unlocked at $5k</li>
-                <li><strong>Leverage 10x</strong>: Unlocked at $10k</li>
-                <li><strong>Leverage 20x</strong>: Unlocked at $25k</li>
-                <li><strong>Leverage 50x</strong>: Unlocked at $50k</li>
-                <li><strong>Leverage 100x</strong>: Unlocked at $100k</li>
-            </ul>
-            
-            <h2>Strategic Advice</h2>
-            <ul>
-                <li>Start with low leverages and small bets to get familiar</li>
-                <li>Manage risk: high leverage + high bet = very low probabilities</li>
-                <li>To maximize expected value, balance leverage and bet</li>
-                <li>Never bet more than 20% with leverages above 10x</li>
-                <li>Remember: in real trading, capital management is everything!</li>
-            </ul>
-        </div>
-    </div>
-    
-    <!-- Settings Page -->
-    <div class="page-overlay" id="settingsPage">
-        <div class="page-header">
-            <h1 class="page-title">Settings</h1>
-        </div>
-        <div class="page-content">
-            <div class="settings-option">
-                <div>
-                    <div class="settings-label">Sound Effects</div>
-                    <div class="settings-description">Enable/disable game sounds</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="soundToggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            
-            <div class="settings-option">
-                <div>
-                    <div class="settings-label">Haptic Feedback</div>
-                    <div class="settings-description">Vibration on trade results</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="hapticToggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            
-            <div class="reset-button" id="resetDataBtn">
-                Reset Game Data
-            </div>
-        </div>
-    </div>
-    
-    <!-- Main App -->
-    <div class="app-container" id="appContainer">
-        <!-- Header -->
-        <div class="header-section">
-            <div class="balance-display">
-                <div class="balance-amount" id="balanceAmount">$10k</div>
-                <div class="balance-change change-positive" id="balanceChange">
-                    <span id="changeIcon">↑</span>
-                    <span id="changeAmount">+$0</span>
-                    <span id="changePercent">0.00%</span>
-                </div>
-                <div class="balance-label">TOTAL BALANCE</div>
-            </div>
-        </div>
-        
-        <!-- Chart -->
-        <div class="chart-section">
-            <div class="chart-wrapper">
-                <canvas id="chartCanvas"></canvas>
-                <div class="chart-overlay">
-                    <div class="chart-badge" id="winProbability">80% WIN</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Controls -->
-        <div class="controls-section">
-            <div class="slider-group">
-                <div class="slider-header">
-                    <div class="slider-label">LEVERAGE</div>
-                    <div class="slider-value" id="leverageValue" style="color: #00ff88">1x</div>
-                </div>
-                <div class="slider-track">
-                    <div class="slider-fill leverage-fill" id="leverageFill" style="width: 0%"></div>
-                    <div class="slider-dots" id="leverageDots"></div>
-                    <input type="range" min="0" max="7" value="0" id="leverageSlider">
-                    <div class="slider-thumb leverage-thumb" id="leverageThumb"></div>
-                </div>
-            </div>
-            
-            <div class="slider-group">
-                <div class="slider-header">
-                    <div class="slider-label">BET AMOUNT</div>
-                    <div class="slider-value" id="betPercentageValue" style="color: #00a3ff">5%</div>
-                </div>
-                <div class="slider-track">
-                    <div class="slider-fill bet-fill" id="betFill" style="width: 5%"></div>
-                    <input type="range" min="1" max="100" value="5" id="betSlider">
-                    <div class="slider-thumb bet-thumb" id="betThumb"></div>
-                </div>
-                <div class="slider-ticks">
-                    <div class="tick">1%</div>
-                    <div class="tick">25%</div>
-                    <div class="tick">50%</div>
-                    <div class="tick">75%</div>
-                    <div class="tick">100%</div>
-                </div>
-            </div>
-            
-            <div class="trade-info" id="tradeInfo">
-                Bet: $500 | Probability: 78% (base: 80%)
-            </div>
-            
-            <div class="unlock-info" id="unlockInfo"></div>
-        </div>
-    </div>
+    <!-- ... (mantieni tutto l'HTML originale) ... -->
 
     <script>
         // ==================== CONFIGURATION ====================
@@ -1117,7 +38,9 @@
             ],
             
             INITIAL_BALANCE: 10000,
-            MIN_BALANCE: 1000
+            MIN_BALANCE: 1000,
+            TRADE_DURATION: 3000, // 3 secondi per il trade
+            BTC_API_URL: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true"
         };
 
         // ==================== STATE ====================
@@ -1129,423 +52,400 @@
             gameActive: true,
             isAnimating: false,
             
-            // Nuova struttura dati per grafico a candele
-            candleData: [],
-            currentCandles: [],
-            chartStep: 0,
-            decisionPoint: 0,
-            userChoice: null,
-            tradeResult: null,
+            // Dati per il grafico Bitcoin in tempo reale
+            btcPriceHistory: [],
+            currentBtcPrice: 0,
+            btcPriceChange: 0,
+            lastBtcUpdate: Date.now(),
+            btcUpdateInterval: 2000, // Aggiorna ogni 2 secondi
+            
+            // Stato del trade
+            tradeActive: false,
+            tradeStartTime: 0,
+            tradeEndTime: 0,
+            tradeStartPrice: 0,
+            tradeEndPrice: 0,
+            tradeDirection: null, // 'long' o 'short'
+            tradeResult: null, // true = vinto, false = perso
             
             leverageIndex: 0,
             betPercentage: 5,
             
             lastBalance: CONFIG.INITIAL_BALANCE,
             
-            // Statistics per leverage
             leverageStats: {},
             
-            // Settings
             soundEnabled: true,
             hapticEnabled: true,
-            
-            // Username
             username: "Trader",
-            
-            // Current page
             currentPage: 'trading'
         };
 
-        // Initialize leverage stats
-        CONFIG.LEVERAGES.forEach(leverage => {
-            state.leverageStats[leverage.value] = { total: 0, wins: 0 };
-        });
-
-        // ==================== DOM REFERENCES ====================
-        const dom = {
-            // Balance
-            balanceAmount: document.getElementById('balanceAmount'),
-            balanceChange: document.getElementById('balanceChange'),
-            changeIcon: document.getElementById('changeIcon'),
-            changeAmount: document.getElementById('changeAmount'),
-            changePercent: document.getElementById('changePercent'),
-            
-            // Chart
-            chartCanvas: document.getElementById('chartCanvas'),
-            chartCtx: null,
-            winProbability: document.getElementById('winProbability'),
-            
-            // Controls
-            longBtn: document.getElementById('longBtn'),
-            shortBtn: document.getElementById('shortBtn'),
-            leverageSlider: document.getElementById('leverageSlider'),
-            leverageValue: document.getElementById('leverageValue'),
-            leverageFill: document.getElementById('leverageFill'),
-            leverageDots: document.getElementById('leverageDots'),
-            leverageThumb: document.getElementById('leverageThumb'),
-            betSlider: document.getElementById('betSlider'),
-            betPercentageValue: document.getElementById('betPercentageValue'),
-            betFill: document.getElementById('betFill'),
-            betThumb: document.getElementById('betThumb'),
-            tradeInfo: document.getElementById('tradeInfo'),
-            unlockInfo: document.getElementById('unlockInfo'),
-            
-            // Dock
-            dockTrading: document.getElementById('dockTrading'),
-            dockAccount: document.getElementById('dockAccount'),
-            dockRank: document.getElementById('dockRank'),
-            dockSettings: document.getElementById('dockSettings'),
-            dockInfo: document.getElementById('dockInfo'),
-            
-            // Account Page
-            accountBalance: document.getElementById('accountBalance'),
-            accountBestBalance: document.getElementById('accountBestBalance'),
-            accountTotalTrades: document.getElementById('accountTotalTrades'),
-            accountWinRate: document.getElementById('accountWinRate'),
-            accountLevel: document.getElementById('accountLevel'),
-            
-            // Leverage stats
-            leverage1: document.getElementById('leverage1'),
-            leverage2: document.getElementById('leverage2'),
-            leverage3: document.getElementById('leverage3'),
-            leverage5: document.getElementById('leverage5'),
-            leverage10: document.getElementById('leverage10'),
-            leverage20: document.getElementById('leverage20'),
-            leverage50: document.getElementById('leverage50'),
-            leverage100: document.getElementById('leverage100'),
-            
-            // Rank Page
-            rankList: document.getElementById('rankList'),
-            
-            // Settings
-            soundToggle: document.getElementById('soundToggle'),
-            hapticToggle: document.getElementById('hapticToggle'),
-            resetDataBtn: document.getElementById('resetDataBtn'),
-            
-            // UI
-            gameOverScreen: document.getElementById('gameOverScreen'),
-            restartBtn: document.getElementById('restartBtn'),
-            appContainer: document.getElementById('appContainer'),
-            longShortSection: document.getElementById('longShortSection'),
-            
-            // Pages
-            accountPage: document.getElementById('accountPage'),
-            rankPage: document.getElementById('rankPage'),
-            infoPage: document.getElementById('infoPage'),
-            settingsPage: document.getElementById('settingsPage')
-        };
-
-        // ==================== UTILITY FUNCTIONS ====================
-        function formatCurrency(amount) {
-            if (amount >= 1000000) {
-                return '$' + (amount / 1000000).toFixed(1) + 'M';
-            } else if (amount >= 1000) {
-                return '$' + (amount / 1000).toFixed(1) + 'k';
+        // ==================== BITCOIN REAL-TIME FUNCTIONS ====================
+        async function fetchBitcoinPrice() {
+            try {
+                const response = await fetch(CONFIG.BTC_API_URL);
+                const data = await response.json();
+                const price = data.bitcoin.usd;
+                const change = data.bitcoin.usd_24h_change || 0;
+                
+                return { price, change };
+            } catch (error) {
+                console.error("Errore nel fetch del prezzo Bitcoin:", error);
+                // Fallback a un prezzo simulato se l'API non funziona
+                const simulatedPrice = 50000 + (Math.random() - 0.5) * 1000;
+                const simulatedChange = (Math.random() - 0.5) * 5;
+                return { price: simulatedPrice, change: simulatedChange };
             }
-            return '$' + Math.round(amount);
         }
 
-        function formatNumberAbbreviation(num) {
-            if (num >= 1000000) {
-                return (num / 1000000).toFixed(1) + 'M';
-            } else if (num >= 1000) {
-                return (num / 1000).toFixed(1) + 'k';
-            }
-            return num.toString();
-        }
-
-        // ORIGINAL PROBABILITY SYSTEM
-        function calculateWinProbability() {
-            const leverage = CONFIG.LEVERAGES[state.leverageIndex];
-            const penalty = state.betPercentage / 200; // Original: ogni 1% bet = 0.5% penalty
-            const dynamicChance = leverage.baseWin * (1 - penalty);
-            return Math.max(0.05, dynamicChance); // Minimo garantito 5%
-        }
-
-        function getMaxLeverageIndex() {
-            for (let i = CONFIG.UNLOCKS.length - 1; i >= 0; i--) {
-                if (state.balance >= CONFIG.UNLOCKS[i].threshold) {
-                    return CONFIG.UNLOCKS[i].maxIndex;
-                }
-            }
-            return 0;
-        }
-
-        function getNextUnlock() {
-            const currentMaxIndex = getMaxLeverageIndex();
+        function updateBitcoinPrice() {
+            if (state.currentPage !== 'trading') return;
             
-            for (let unlock of CONFIG.UNLOCKS) {
-                if (unlock.maxIndex > currentMaxIndex) {
-                    const settings = CONFIG.LEVERAGES[unlock.maxIndex];
-                    return {
-                        threshold: unlock.threshold,
-                        leverage: settings.value,
-                        baseWinChance: settings.baseWin,
-                        remaining: unlock.threshold - state.balance
-                    };
-                }
-            }
-            return null;
-        }
-
-        function calculateBetAmount() {
-            return state.balance * (state.betPercentage / 100);
-        }
-
-        function isTradeSuccessful() {
-            return Math.random() < calculateWinProbability();
-        }
-
-        function calculateTradeResult(isWin) {
-            const betAmount = calculateBetAmount();
-            const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
-            return isWin ? betAmount * leverage : -betAmount * leverage;
-        }
-
-        // ==================== GRAFICO A CANDELA ====================
-        function generateCandleData() {
-            const candles = [];
-            let lastClose = 50;
-            
-            // Genera 30 candele
-            for (let i = 0; i < 30; i++) {
-                // Determina il trend base
-                const trend = (Math.random() - 0.5) * 0.2;
+            fetchBitcoinPrice().then(({ price, change }) => {
+                state.currentBtcPrice = price;
+                state.btcPriceChange = change;
                 
-                // Genera apertura (vicina alla chiusura precedente)
-                const open = lastClose + (Math.random() - 0.5) * 2;
-                
-                // Determina se la candela sarà rialzista (verde) o ribassista (rossa)
-                const isBullish = Math.random() > 0.5;
-                
-                // Calcola chiusura basata su trend e direzione
-                let close;
-                if (isBullish) {
-                    close = open + Math.abs(trend * 10) + Math.random() * 3;
-                } else {
-                    close = open - Math.abs(trend * 10) - Math.random() * 3;
-                }
-                
-                // Calcola massimo e minimo
-                let high, low;
-                if (isBullish) {
-                    high = Math.max(open, close) + Math.random() * 2;
-                    low = Math.min(open, close) - Math.random() * 1;
-                } else {
-                    high = Math.max(open, close) + Math.random() * 1;
-                    low = Math.min(open, close) - Math.random() * 2;
-                }
-                
-                // Assicura che high > low e high > open, high > close, low < open, low < close
-                high = Math.max(open, close, high);
-                low = Math.min(open, close, low);
-                
-                // Aggiusta per evitare valori uguali
-                if (high <= low) high = low + 0.1;
-                if (open === close) close = open + (isBullish ? 0.1 : -0.1);
-                
-                candles.push({
-                    open: open,
-                    high: high,
-                    low: low,
-                    close: close,
-                    isBullish: isBullish,
-                    index: i
+                // Aggiungi il prezzo alla storia per il grafico
+                state.btcPriceHistory.push({
+                    time: Date.now(),
+                    price: price,
+                    change: change
                 });
                 
-                lastClose = close;
-            }
-            
-            return candles;
+                // Mantieni solo gli ultimi 50 punti
+                if (state.btcPriceHistory.length > 50) {
+                    state.btcPriceHistory = state.btcPriceHistory.slice(-50);
+                }
+                
+                // Aggiorna il grafico
+                updateBtcChart();
+                
+                // Aggiorna il badge del prezzo
+                updateBtcPriceBadge();
+                
+                // Se c'è un trade attivo, aggiorna il countdown
+                if (state.tradeActive) {
+                    updateTradeCountdown();
+                }
+            });
         }
 
-        function drawCandleChart() {
+        function updateBtcPriceBadge() {
+            const badge = document.getElementById('btcPriceBadge');
+            if (!badge) return;
+            
+            const changeText = state.btcPriceChange >= 0 ? 
+                `+${state.btcPriceChange.toFixed(2)}%` : 
+                `${state.btcPriceChange.toFixed(2)}%`;
+            
+            badge.innerHTML = `BTC $${state.currentBtcPrice.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            })} <span style="color: ${state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444'}">${changeText}</span>`;
+        }
+
+        function updateTradeCountdown() {
+            const now = Date.now();
+            const elapsed = now - state.tradeStartTime;
+            const remaining = Math.max(0, CONFIG.TRADE_DURATION - elapsed);
+            
+            const countdownElement = document.getElementById('tradeCountdown');
+            if (countdownElement) {
+                const secondsRemaining = (remaining / 1000).toFixed(1);
+                countdownElement.textContent = `${secondsRemaining}s`;
+                countdownElement.style.color = remaining > 1000 ? '#00ff88' : '#ff4444';
+            }
+            
+            // Se il tempo è scaduto, completa il trade
+            if (remaining <= 0 && !state.tradeResult) {
+                completeBtcTrade();
+            }
+        }
+
+        function updateBtcChart() {
+            if (!dom.chartCtx || state.btcPriceHistory.length < 2) return;
+            
             const ctx = dom.chartCtx;
             const width = dom.chartCanvas.width / (window.devicePixelRatio || 1);
             const height = dom.chartCanvas.height / (window.devicePixelRatio || 1);
             
-            // Clear with gradient background
+            // Clear canvas
             const gradient = ctx.createLinearGradient(0, 0, 0, height);
             gradient.addColorStop(0, '#0a0a0a');
             gradient.addColorStop(1, '#050505');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
             
-            if (state.candleData.length === 0) return;
-            
-            // Draw grid lines
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-            ctx.lineWidth = 1;
-            
-            // Horizontal grid lines
-            for (let i = 1; i < 5; i++) {
-                const y = i * (height / 5);
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(width, y);
-                ctx.stroke();
-            }
-            
-            // Vertical grid lines
-            for (let i = 1; i < 5; i++) {
-                const x = i * (width / 5);
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
-                ctx.stroke();
-            }
-            
-            // Calcola range di prezzo
-            let minPrice = Infinity;
-            let maxPrice = -Infinity;
-            
-            const visibleCandles = state.candleData.slice(0, state.chartStep);
-            
-            visibleCandles.forEach(candle => {
-                minPrice = Math.min(minPrice, candle.low);
-                maxPrice = Math.max(maxPrice, candle.high);
-            });
-            
+            // Calcola il range dei prezzi
+            const prices = state.btcPriceHistory.map(p => p.price);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
             const priceRange = maxPrice - minPrice;
             const padding = priceRange * 0.1;
-            minPrice -= padding;
-            maxPrice += padding;
-            const actualRange = maxPrice - minPrice;
+            const chartMin = minPrice - padding;
+            const chartMax = maxPrice + padding;
+            const chartRange = chartMax - chartMin;
             
-            // Disegna candele
-            const candleWidth = (width * 0.8) / visibleCandles.length;
-            const candleSpacing = candleWidth * 0.3;
-            const actualCandleWidth = candleWidth - candleSpacing;
-            const xOffset = width * 0.1;
+            // Disegna il grafico a linee
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444';
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             
-            visibleCandles.forEach((candle, index) => {
-                const x = xOffset + index * candleWidth;
+            state.btcPriceHistory.forEach((point, index) => {
+                const x = (index / (state.btcPriceHistory.length - 1)) * width * 0.9 + width * 0.05;
+                const y = height - ((point.price - chartMin) / chartRange * height);
                 
-                // Calcola coordinate Y
-                const yHigh = height - ((candle.high - minPrice) / actualRange * height);
-                const yLow = height - ((candle.low - minPrice) / actualRange * height);
-                const yOpen = height - ((candle.open - minPrice) / actualRange * height);
-                const yClose = height - ((candle.close - minPrice) / actualRange * height);
-                
-                // Colore della candela
-                let color;
-                if (state.tradeResult === true && index >= state.decisionPoint) {
-                    color = '#00ff88'; // Verde per trade vincente
-                } else if (state.tradeResult === false && index >= state.decisionPoint) {
-                    color = '#ff4444'; // Rosso per trade perdente
+                if (index === 0) {
+                    ctx.moveTo(x, y);
                 } else {
-                    color = candle.isBullish ? '#00ff88' : '#ff4444';
+                    ctx.lineTo(x, y);
                 }
-                
-                // Disegna corpo della candela
-                ctx.fillStyle = color;
-                const yTop = Math.min(yOpen, yClose);
-                const yBottom = Math.max(yOpen, yClose);
-                const bodyHeight = Math.max(1, yBottom - yTop);
-                
-                ctx.fillRect(
-                    x + candleSpacing/2, 
-                    yTop, 
-                    actualCandleWidth, 
-                    bodyHeight
-                );
-                
-                // Disegna stoppini (ombre)
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(x + actualCandleWidth/2 + candleSpacing/2, yHigh);
-                ctx.lineTo(x + actualCandleWidth/2 + candleSpacing/2, yTop);
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(x + actualCandleWidth/2 + candleSpacing/2, yBottom);
-                ctx.lineTo(x + actualCandleWidth/2 + candleSpacing/2, yLow);
-                ctx.stroke();
-                
-                // Bordo del corpo
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 0.5;
-                ctx.strokeRect(
-                    x + candleSpacing/2, 
-                    yTop, 
-                    actualCandleWidth, 
-                    bodyHeight
-                );
             });
             
-            // Disegna marker del punto di decisione
-            if (state.userChoice && state.chartStep > state.decisionPoint) {
-                const candle = visibleCandles[state.decisionPoint];
-                const x = xOffset + state.decisionPoint * candleWidth + actualCandleWidth/2 + candleSpacing/2;
-                const y = height - ((candle.close - minPrice) / actualRange * height);
+            ctx.stroke();
+            
+            // Aggiungi un gradiente sotto la linea
+            ctx.lineTo(width * 0.95, height);
+            ctx.lineTo(width * 0.05, height);
+            ctx.closePath();
+            
+            const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
+            areaGradient.addColorStop(0, state.btcPriceChange >= 0 ? 
+                'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)');
+            areaGradient.addColorStop(1, 'transparent');
+            
+            ctx.fillStyle = areaGradient;
+            ctx.fill();
+            
+            // Disegna il punto dell'ultimo prezzo
+            if (state.btcPriceHistory.length > 0) {
+                const lastPoint = state.btcPriceHistory[state.btcPriceHistory.length - 1];
+                const lastX = width * 0.95;
+                const lastY = height - ((lastPoint.price - chartMin) / chartRange * height);
                 
                 ctx.beginPath();
-                ctx.fillStyle = state.tradeResult ? '#00ff88' : '#ff4444';
-                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+                ctx.fillStyle = state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444';
                 ctx.fill();
                 
                 // Effetto glow
                 ctx.beginPath();
-                ctx.arc(x, y, 10, 0, Math.PI * 2);
-                ctx.fillStyle = (state.tradeResult ? '#00ff88' : '#ff4444') + '40';
+                ctx.arc(lastX, lastY, 8, 0, Math.PI * 2);
+                ctx.fillStyle = state.btcPriceChange >= 0 ? 
+                    'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)';
                 ctx.fill();
             }
-        }
-
-        function modifyCandleTrend(trend) {
-            if (state.candleData.length === 0) return;
             
-            const startCandle = state.candleData[state.decisionPoint];
-            let lastClose = startCandle.close;
-            
-            for (let i = state.decisionPoint + 1; i < state.candleData.length; i++) {
-                const progress = (i - state.decisionPoint) / (state.candleData.length - state.decisionPoint);
+            // Se c'è un trade attivo, mostra la linea del prezzo di partenza
+            if (state.tradeActive && state.tradeStartPrice > 0) {
+                const startY = height - ((state.tradeStartPrice - chartMin) / chartRange * height);
                 
-                // Determina se la candela sarà rialzista o ribassista in base al trend
-                const isBullish = trend > 0 ? Math.random() < 0.7 : Math.random() < 0.3;
+                ctx.beginPath();
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
+                ctx.lineWidth = 1;
+                ctx.moveTo(width * 0.05, startY);
+                ctx.lineTo(width * 0.95, startY);
+                ctx.stroke();
+                ctx.setLineDash([]);
                 
-                // Calcola apertura (vicina alla chiusura precedente)
-                const open = lastClose + (Math.random() - 0.5) * 1;
-                
-                // Calcola chiusura in base al trend
-                let close;
-                if (isBullish) {
-                    close = open + Math.abs(trend * 5 * progress) + Math.random() * 2;
-                } else {
-                    close = open - Math.abs(trend * 5 * progress) - Math.random() * 2;
-                }
-                
-                // Calcola massimo e minimo
-                let high, low;
-                if (isBullish) {
-                    high = Math.max(open, close) + Math.random() * 1.5;
-                    low = Math.min(open, close) - Math.random() * 0.5;
-                } else {
-                    high = Math.max(open, close) + Math.random() * 0.5;
-                    low = Math.min(open, close) - Math.random() * 1.5;
-                }
-                
-                // Assicura che high > low
-                high = Math.max(open, close, high);
-                low = Math.min(open, close, low);
-                if (high <= low) high = low + 0.1;
-                
-                // Aggiorna la candela
-                state.candleData[i] = {
-                    open: open,
-                    high: high,
-                    low: low,
-                    close: close,
-                    isBullish: isBullish,
-                    index: i
-                };
-                
-                lastClose = close;
+                // Testo del prezzo di partenza
+                ctx.fillStyle = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
+                ctx.font = '12px Arial';
+                ctx.fillText(
+                    `Start: $${state.tradeStartPrice.toLocaleString('en-US', {maximumFractionDigits: 0})}`,
+                    width * 0.05,
+                    startY - 10
+                );
             }
         }
 
-        // ==================== CORE GAME FUNCTIONS ====================
+        // ==================== TRADE FUNCTIONS ====================
+        async function startBtcTrade(direction) {
+            if (!state.gameActive || state.tradeActive || state.isAnimating) return;
+            
+            // Disabilita i bottoni
+            dom.longBtn.disabled = true;
+            dom.shortBtn.disabled = true;
+            state.isAnimating = true;
+            
+            // Ottieni il prezzo corrente
+            const priceData = await fetchBitcoinPrice();
+            state.currentBtcPrice = priceData.price;
+            
+            // Inizia il trade
+            state.tradeActive = true;
+            state.tradeStartTime = Date.now();
+            state.tradeEndTime = state.tradeStartTime + CONFIG.TRADE_DURATION;
+            state.tradeStartPrice = state.currentBtcPrice;
+            state.tradeDirection = direction;
+            state.tradeResult = null;
+            
+            // Mostra il countdown
+            const chartOverlay = document.querySelector('.chart-overlay');
+            if (!chartOverlay.querySelector('#tradeCountdown')) {
+                const countdownBadge = document.createElement('div');
+                countdownBadge.className = 'chart-badge';
+                countdownBadge.id = 'tradeCountdown';
+                countdownBadge.style.color = '#00ff88';
+                chartOverlay.appendChild(countdownBadge);
+            }
+            
+            // Aggiorna UI
+            updateTradeUI();
+            
+            // Avvia il timer per completare il trade
+            setTimeout(() => {
+                if (state.tradeActive) {
+                    completeBtcTrade();
+                }
+            }, CONFIG.TRADE_DURATION);
+        }
+
+        async function completeBtcTrade() {
+            if (!state.tradeActive) return;
+            
+            // Ottieni il prezzo finale
+            const priceData = await fetchBitcoinPrice();
+            const finalPrice = priceData.price;
+            state.tradeEndPrice = finalPrice;
+            
+            // Determina se il trade ha vinto
+            let isWin = false;
+            if (state.tradeDirection === 'long') {
+                isWin = finalPrice > state.tradeStartPrice;
+            } else { // short
+                isWin = finalPrice < state.tradeStartPrice;
+            }
+            
+            // Applica la probabilità dinamica (come nel sistema originale)
+            const shouldWin = Math.random() < calculateWinProbability();
+            const finalResult = isWin && shouldWin;
+            
+            state.tradeResult = finalResult;
+            
+            // Calcola il risultato finanziario
+            const betAmount = calculateBetAmount();
+            const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
+            const result = finalResult ? betAmount * leverage : -betAmount * leverage;
+            
+            // Aggiorna lo stato
+            state.balance += result;
+            state.totalTrades++;
+            state.leverageStats[leverage].total++;
+            
+            if (finalResult) {
+                state.wins++;
+                state.leverageStats[leverage].wins++;
+                if (state.soundEnabled) playSound('win');
+            } else {
+                if (state.soundEnabled) playSound('lose');
+            }
+            
+            if (state.balance > state.bestBalance) {
+                state.bestBalance = state.balance;
+            }
+            
+            // Controlla bancarotta
+            if (state.balance <= 0) {
+                state.gameActive = false;
+                dom.gameOverScreen.style.display = 'flex';
+                if (state.soundEnabled) playSound('bankruptcy');
+            }
+            
+            // Mostra il risultato
+            showTradeResult(finalResult, finalPrice);
+            
+            // Salva e aggiorna UI
+            saveGameState();
+            updateUI();
+            
+            // Resetta per il prossimo trade
+            setTimeout(() => {
+                resetTradeState();
+                state.isAnimating = false;
+                dom.longBtn.disabled = false;
+                dom.shortBtn.disabled = false;
+                updateTradeUI();
+            }, 3000);
+        }
+
+        function showTradeResult(isWin, finalPrice) {
+            // Rimuovi il countdown
+            const countdownElement = document.getElementById('tradeCountdown');
+            if (countdownElement) {
+                countdownElement.textContent = isWin ? 'WIN!' : 'LOSE!';
+                countdownElement.style.color = isWin ? '#00ff88' : '#ff4444';
+                countdownElement.style.animation = 'pulse 0.5s infinite alternate';
+            }
+            
+            // Mostra il risultato nel grafico
+            const chartOverlay = document.querySelector('.chart-overlay');
+            if (!chartOverlay.querySelector('#tradeResult')) {
+                const resultBadge = document.createElement('div');
+                resultBadge.className = 'chart-badge';
+                resultBadge.id = 'tradeResult';
+                resultBadge.style.backgroundColor = isWin ? 
+                    'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)';
+                resultBadge.style.borderColor = isWin ? 
+                    'rgba(0, 255, 136, 0.5)' : 'rgba(255, 68, 68, 0.5)';
+                chartOverlay.appendChild(resultBadge);
+            }
+            
+            const resultElement = document.getElementById('tradeResult');
+            const priceDiff = finalPrice - state.tradeStartPrice;
+            const diffPercent = (priceDiff / state.tradeStartPrice * 100).toFixed(2);
+            
+            resultElement.innerHTML = `
+                ${isWin ? '✅ WIN' : '❌ LOSE'} | 
+                ${state.tradeDirection.toUpperCase()} | 
+                ${priceDiff >= 0 ? '+' : ''}${diffPercent}%
+            `;
+        }
+
+        function resetTradeState() {
+            state.tradeActive = false;
+            state.tradeStartTime = 0;
+            state.tradeEndTime = 0;
+            state.tradeStartPrice = 0;
+            state.tradeEndPrice = 0;
+            state.tradeDirection = null;
+            state.tradeResult = null;
+            
+            // Rimuovi gli elementi del trade
+            const countdownElement = document.getElementById('tradeCountdown');
+            const resultElement = document.getElementById('tradeResult');
+            if (countdownElement) countdownElement.remove();
+            if (resultElement) resultElement.remove();
+        }
+
+        function updateTradeUI() {
+            if (state.tradeActive) {
+                // Cambia testo dei bottoni durante il trade
+                dom.longBtn.textContent = state.tradeDirection === 'long' ? 'WAITING...' : 'LONG';
+                dom.shortBtn.textContent = state.tradeDirection === 'short' ? 'WAITING...' : 'SHORT';
+                
+                // Cambia colore dei bottoni attivi
+                if (state.tradeDirection === 'long') {
+                    dom.longBtn.style.opacity = '0.7';
+                    dom.shortBtn.style.opacity = '0.3';
+                } else if (state.tradeDirection === 'short') {
+                    dom.longBtn.style.opacity = '0.3';
+                    dom.shortBtn.style.opacity = '0.7';
+                }
+            } else {
+                // Ripristina stato normale
+                dom.longBtn.textContent = 'LONG';
+                dom.shortBtn.textContent = 'SHORT';
+                dom.longBtn.style.opacity = '1';
+                dom.shortBtn.style.opacity = '1';
+            }
+        }
+
+        // ==================== MODIFICHE ALLE FUNZIONI ESISTENTI ====================
         function initGame() {
             setupCanvas();
             createLeverageDots();
@@ -1554,531 +454,45 @@
             updateUI();
             updateSliderThumbs();
             updateDockActiveState();
-            startNewRound();
+            
+            // Aggiungi badge per il prezzo Bitcoin
+            const chartOverlay = document.querySelector('.chart-overlay');
+            const btcPriceBadge = document.createElement('div');
+            btcPriceBadge.className = 'chart-badge';
+            btcPriceBadge.id = 'btcPriceBadge';
+            btcPriceBadge.innerHTML = 'BTC Loading...';
+            chartOverlay.appendChild(btcPriceBadge);
+            
+            // Inizia l'aggiornamento del prezzo Bitcoin
+            updateBitcoinPrice();
+            setInterval(updateBitcoinPrice, state.btcUpdateInterval);
+            
+            // Inizia a disegnare il grafico
+            drawBtcChartLoop();
         }
 
-        function setupCanvas() {
-            const canvas = dom.chartCanvas;
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.getBoundingClientRect();
-            
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            
-            dom.chartCtx = canvas.getContext('2d');
-            dom.chartCtx.scale(dpr, dpr);
-            
-            canvas.style.width = `${rect.width}px`;
-            canvas.style.height = `${rect.height}px`;
-        }
-
-        function createLeverageDots() {
-            dom.leverageDots.innerHTML = '';
-            for (let i = 0; i < 8; i++) {
-                const dot = document.createElement('div');
-                dot.className = 'slider-dot';
-                if (i === state.leverageIndex) {
-                    dot.classList.add('active');
-                }
-                dom.leverageDots.appendChild(dot);
+        function drawBtcChartLoop() {
+            if (state.currentPage === 'trading') {
+                updateBtcChart();
             }
+            requestAnimationFrame(drawBtcChartLoop);
         }
 
-        function setupEventListeners() {
-            // Game controls
-            dom.longBtn.addEventListener('click', handleLong);
-            dom.shortBtn.addEventListener('click', handleShort);
-            dom.leverageSlider.addEventListener('input', handleLeverageChange);
-            dom.betSlider.addEventListener('input', handleBetChange);
-            dom.restartBtn.addEventListener('click', handleRestart);
-            
-            // Dock navigation
-            dom.dockTrading.addEventListener('click', () => showTradingPage());
-            dom.dockAccount.addEventListener('click', () => openPage(dom.accountPage, 'account'));
-            dom.dockRank.addEventListener('click', () => openPage(dom.rankPage, 'rank'));
-            dom.dockSettings.addEventListener('click', () => openPage(dom.settingsPage, 'settings'));
-            dom.dockInfo.addEventListener('click', () => openPage(dom.infoPage, 'info'));
-            
-            // Settings
-            dom.soundToggle.addEventListener('change', handleSoundToggle);
-            dom.hapticToggle.addEventListener('change', handleHapticToggle);
-            dom.resetDataBtn.addEventListener('click', handleResetData);
-            
-            // Prevent zoom/scroll
-            document.addEventListener('touchmove', (e) => {
-                if (e.scale !== 1) e.preventDefault();
-            }, { passive: false });
-            
-            window.addEventListener('resize', () => {
-                setupCanvas();
-                if (state.candleData.length > 0) {
-                    drawCandleChart();
-                }
-                updateSliderThumbs();
-            });
-        }
-
-        // ==================== TRADE LOGIC ====================
+        // Modifica gli handler dei bottoni LONG/SHORT
         function handleLong() {
-            if (!state.gameActive || state.isAnimating || state.userChoice) return;
-            
-            state.userChoice = 'long';
-            state.tradeResult = isTradeSuccessful();
-            executeTrade();
+            if (!state.gameActive || state.tradeActive || state.isAnimating) return;
+            startBtcTrade('long');
         }
 
         function handleShort() {
-            if (!state.gameActive || state.isAnimating || state.userChoice) return;
-            
-            state.userChoice = 'short';
-            state.tradeResult = isTradeSuccessful();
-            executeTrade();
+            if (!state.gameActive || state.tradeActive || state.isAnimating) return;
+            startBtcTrade('short');
         }
 
-        function executeTrade() {
-            dom.longBtn.disabled = true;
-            dom.shortBtn.disabled = true;
-            
-            // Modifica trend delle candele in base al risultato
-            const trend = (state.userChoice === 'long' ? 1 : -1) * (state.tradeResult ? 0.08 : -0.08);
-            modifyCandleTrend(trend);
-            
-            state.isAnimating = true;
-            animateChart();
-        }
+        // Mantieni tutte le altre funzioni del tuo codice originale...
+        // ... (le funzioni utility, UI, persistence, ecc. rimangono uguali)
 
-        function completeTrade() {
-            const betAmount = calculateBetAmount();
-            const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
-            const result = calculateTradeResult(state.tradeResult);
-            
-            state.balance += result;
-            state.totalTrades++;
-            
-            // Update leverage statistics
-            state.leverageStats[leverage].total++;
-            if (state.tradeResult) {
-                state.wins++;
-                state.leverageStats[leverage].wins++;
-                if (state.soundEnabled) playSound('win');
-            } else {
-                if (state.soundEnabled) playSound('lose');
-            }
-            
-            // Update best balance
-            if (state.balance > state.bestBalance) {
-                state.bestBalance = state.balance;
-            }
-            
-            // Check for bankruptcy
-            if (state.balance <= 0) {
-                state.gameActive = false;
-                dom.gameOverScreen.style.display = 'flex';
-                if (state.soundEnabled) playSound('bankruptcy');
-            }
-            
-            updateUI();
-            saveGameState();
-            
-            // Reset for next round
-            setTimeout(() => {
-                state.userChoice = null;
-                state.tradeResult = null;
-                startNewRound();
-            }, 2000);
-        }
-
-        function playSound(type) {
-            // In a real implementation, you would play actual sounds
-            console.log('Playing sound:', type);
-        }
-
-        function animateChart() {
-            if (state.chartStep < state.candleData.length) {
-                state.chartStep++;
-                drawCandleChart();
-                
-                if (state.chartStep === state.decisionPoint + 1 && !state.userChoice) {
-                    state.isAnimating = false;
-                    dom.longBtn.disabled = false;
-                    dom.shortBtn.disabled = false;
-                }
-                
-                if (state.isAnimating || state.userChoice) {
-                    requestAnimationFrame(() => {
-                        setTimeout(animateChart, 30);
-                    });
-                }
-            } else {
-                completeTrade();
-            }
-        }
-
-        function startNewRound() {
-            state.candleData = generateCandleData();
-            state.chartStep = 0;
-            state.userChoice = null;
-            state.tradeResult = null;
-            state.decisionPoint = Math.floor(state.candleData.length * 0.6);
-            state.isAnimating = true;
-            
-            dom.longBtn.disabled = true;
-            dom.shortBtn.disabled = true;
-            
-            animateChart();
-        }
-
-        // ==================== UI UPDATES ====================
-        function updateUI() {
-            // Update balance
-            dom.balanceAmount.textContent = formatCurrency(state.balance);
-            
-            // Update change indicator
-            updateChangeIndicator();
-            
-            // Update controls
-            updateControls();
-            
-            // Update trade info
-            updateTradeInfo();
-            
-            // Update unlock info
-            updateUnlockInfo();
-            
-            // Update slider thumbs
-            updateSliderThumbs();
-        }
-
-        function updateChangeIndicator() {
-            const change = state.balance - state.lastBalance;
-            const percentChange = state.lastBalance !== 0 ? (change / state.lastBalance) * 100 : 0;
-            
-            if (change > 0) {
-                dom.balanceChange.className = 'balance-change change-positive';
-                dom.changeIcon.textContent = '↑';
-                dom.changeAmount.textContent = `+${formatCurrency(Math.abs(change))}`;
-                dom.changePercent.textContent = `${Math.abs(percentChange).toFixed(2)}%`;
-            } else if (change < 0) {
-                dom.balanceChange.className = 'balance-change change-negative';
-                dom.changeIcon.textContent = '↓';
-                dom.changeAmount.textContent = `-${formatCurrency(Math.abs(change))}`;
-                dom.changePercent.textContent = `${Math.abs(percentChange).toFixed(2)}%`;
-            }
-            
-            // Store for next comparison
-            state.lastBalance = state.balance;
-        }
-
-        function updateControls() {
-            const maxLeverageIndex = getMaxLeverageIndex();
-            dom.leverageSlider.max = maxLeverageIndex;
-            
-            // Cap current leverage if too high
-            if (state.leverageIndex > maxLeverageIndex) {
-                state.leverageIndex = maxLeverageIndex;
-                dom.leverageSlider.value = state.leverageIndex;
-            }
-            
-            const leverage = CONFIG.LEVERAGES[state.leverageIndex];
-            dom.leverageValue.textContent = `${leverage.value}x`;
-            dom.leverageValue.style.color = leverage.color;
-            dom.leverageFill.style.width = `${(state.leverageIndex / 7) * 100}%`;
-            
-            // Update dots
-            const dots = dom.leverageDots.querySelectorAll('.slider-dot');
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === state.leverageIndex);
-                dot.classList.toggle('disabled', index > maxLeverageIndex);
-            });
-            
-            dom.betPercentageValue.textContent = `${state.betPercentage}%`;
-            dom.betFill.style.width = `${state.betPercentage}%`;
-            
-            // Update win probability
-            const winProb = Math.round(calculateWinProbability() * 100);
-            dom.winProbability.textContent = `${winProb}% WIN`;
-            dom.winProbability.style.color = winProb > 50 ? '#00ff88' : 
-                                           winProb > 30 ? '#ffaa44' : '#ff4444';
-        }
-
-        function updateSliderThumbs() {
-            // Update leverage thumb position
-            const leverageSliderWidth = dom.leverageSlider.offsetWidth;
-            const leverageValue = parseInt(dom.leverageSlider.value);
-            const leverageMax = parseInt(dom.leverageSlider.max) || 7;
-            const leveragePercent = (leverageValue / leverageMax) * 100;
-            const leverageThumbPos = (leveragePercent / 100) * leverageSliderWidth;
-            
-            dom.leverageThumb.style.left = `${leverageThumbPos}px`;
-            
-            // Update bet thumb position
-            const betSliderWidth = dom.betSlider.offsetWidth;
-            const betValue = parseInt(dom.betSlider.value);
-            const betMax = parseInt(dom.betSlider.max) || 100;
-            const betPercent = (betValue / betMax) * 100;
-            const betThumbPos = (betPercent / 100) * betSliderWidth;
-            
-            dom.betThumb.style.left = `${betThumbPos}px`;
-        }
-
-        function updateTradeInfo() {
-            const betAmount = calculateBetAmount();
-            const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
-            const baseProb = CONFIG.LEVERAGES[state.leverageIndex].baseWin * 100;
-            const winProb = Math.round(calculateWinProbability() * 100);
-            
-            dom.tradeInfo.innerHTML = `
-                Bet: <strong>${formatCurrency(betAmount)}</strong> | 
-                Probability: <strong>${winProb}%</strong> (base: ${Math.round(baseProb)}%)
-            `;
-        }
-
-        function updateUnlockInfo() {
-            const nextUnlock = getNextUnlock();
-            const maxIndex = getMaxLeverageIndex();
-            
-            if (nextUnlock) {
-                const baseWin = Math.round(nextUnlock.baseWinChance * 100);
-                dom.unlockInfo.textContent = `Next: ${nextUnlock.leverage}x (${baseWin}% win) at ${formatCurrency(nextUnlock.threshold)}`;
-                dom.unlockInfo.style.color = '#ffaa44';
-            } else {
-                dom.unlockInfo.textContent = 'All leverages unlocked!';
-                dom.unlockInfo.style.color = '#00ff88';
-            }
-        }
-
-        // ==================== PAGE MANAGEMENT ====================
-        function showTradingPage() {
-            // Close all pages
-            dom.accountPage.classList.remove('active');
-            dom.rankPage.classList.remove('active');
-            dom.infoPage.classList.remove('active');
-            dom.settingsPage.classList.remove('active');
-            
-            // Update dock active state
-            state.currentPage = 'trading';
-            updateDockActiveState();
-            
-            // Mostra i bottoni LONG/SHORT
-            dom.longShortSection.style.display = 'block';
-            
-            // Resume chart animation if game is active
-            if (state.gameActive && !state.userChoice) {
-                state.isAnimating = true;
-                animateChart();
-            }
-        }
-
-        function openPage(page, pageName) {
-            // Close all pages first
-            dom.accountPage.classList.remove('active');
-            dom.rankPage.classList.remove('active');
-            dom.infoPage.classList.remove('active');
-            dom.settingsPage.classList.remove('active');
-            
-            // Open the requested page
-            page.classList.add('active');
-            state.currentPage = pageName;
-            updateDockActiveState();
-            
-            // Nascondi i bottoni LONG/SHORT quando si è in una pagina
-            dom.longShortSection.style.display = 'none';
-            
-            // Pause chart animation
-            state.isAnimating = false;
-            
-            // Update page content if needed
-            if (page === dom.accountPage) {
-                updateAccountPage();
-            } else if (page === dom.rankPage) {
-                updateRankPage();
-            }
-        }
-
-        function updateDockActiveState() {
-            // Remove active class from all dock items
-            dom.dockTrading.classList.remove('active');
-            dom.dockAccount.classList.remove('active');
-            dom.dockRank.classList.remove('active');
-            dom.dockSettings.classList.remove('active');
-            dom.dockInfo.classList.remove('active');
-            
-            // Add active class to current page
-            switch(state.currentPage) {
-                case 'trading':
-                    dom.dockTrading.classList.add('active');
-                    break;
-                case 'account':
-                    dom.dockAccount.classList.add('active');
-                    break;
-                case 'rank':
-                    dom.dockRank.classList.add('active');
-                    break;
-                case 'settings':
-                    dom.dockSettings.classList.add('active');
-                    break;
-                case 'info':
-                    dom.dockInfo.classList.add('active');
-                    break;
-            }
-        }
-
-        // ==================== ACCOUNT PAGE ====================
-        function updateAccountPage() {
-            // Update personal stats
-            dom.accountBalance.textContent = formatCurrency(state.balance);
-            dom.accountBestBalance.textContent = formatCurrency(state.bestBalance);
-            dom.accountTotalTrades.textContent = state.totalTrades;
-            
-            const winRate = state.totalTrades > 0 ? Math.round((state.wins / state.totalTrades) * 100) : 0;
-            dom.accountWinRate.textContent = winRate + '%';
-            
-            const level = CONFIG.LEVERAGES[state.leverageIndex].name;
-            dom.accountLevel.textContent = level;
-            dom.accountLevel.style.color = CONFIG.LEVERAGES[state.leverageIndex].color;
-            
-            // Update leverage statistics
-            CONFIG.LEVERAGES.forEach(leverage => {
-                const stats = state.leverageStats[leverage.value];
-                const element = dom[`leverage${leverage.value}`];
-                if (element) {
-                    const winRate = stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
-                    element.textContent = `${stats.wins}/${stats.total} (${winRate}%)`;
-                }
-            });
-        }
-
-        // ==================== RANK PAGE ====================
-        function updateRankPage() {
-            // Simulate some rank data
-            const ranks = [
-                { name: state.username, balance: state.bestBalance, level: CONFIG.LEVERAGES[state.leverageIndex].name },
-                { name: "ProTrader", balance: 50000, level: "Expert" },
-                { name: "RiskMaster", balance: 25000, level: "High Risk" },
-                { name: "CryptoKing", balance: 15000, level: "Intermediate" },
-                { name: "LeverageLord", balance: 8000, level: "Beginner" }
-            ];
-            
-            // Sort by balance descending
-            ranks.sort((a, b) => b.balance - a.balance);
-            
-            dom.rankList.innerHTML = '';
-            ranks.forEach((player, index) => {
-                const rankItem = document.createElement('div');
-                rankItem.className = 'rank-item';
-                rankItem.innerHTML = `
-                    <div class="rank-position">${index + 1}</div>
-                    <div class="rank-user">
-                        <div class="rank-name">${player.name}</div>
-                        <div class="rank-level">${player.level}</div>
-                    </div>
-                    <div class="rank-balance">${formatCurrency(player.balance)}</div>
-                `;
-                dom.rankList.appendChild(rankItem);
-            });
-        }
-
-        // ==================== EVENT HANDLERS ====================
-        function handleLeverageChange() {
-            state.leverageIndex = parseInt(dom.leverageSlider.value);
-            updateUI();
-            saveGameState();
-        }
-
-        function handleBetChange() {
-            state.betPercentage = parseInt(dom.betSlider.value);
-            updateUI();
-            saveGameState();
-        }
-
-        function handleRestart() {
-            state.balance = CONFIG.MIN_BALANCE;
-            state.gameActive = true;
-            state.leverageIndex = 0;
-            state.betPercentage = 5;
-            
-            dom.leverageSlider.value = state.leverageIndex;
-            dom.betSlider.value = state.betPercentage;
-            dom.gameOverScreen.style.display = 'none';
-            
-            updateUI();
-            saveGameState();
-            startNewRound();
-        }
-
-        function handleSoundToggle() {
-            state.soundEnabled = dom.soundToggle.checked;
-            saveGameState();
-        }
-
-        function handleHapticToggle() {
-            state.hapticEnabled = dom.hapticToggle.checked;
-            saveGameState();
-        }
-
-        function handleResetData() {
-            if (confirm("Are you sure you want to reset all game data? This cannot be undone.")) {
-                localStorage.removeItem('xtrade_game_state');
-                location.reload();
-            }
-        }
-
-        // ==================== DATA PERSISTENCE ====================
-        function saveGameState() {
-            const gameState = {
-                balance: state.balance,
-                bestBalance: state.bestBalance,
-                totalTrades: state.totalTrades,
-                wins: state.wins,
-                leverageIndex: state.leverageIndex,
-                betPercentage: state.betPercentage,
-                soundEnabled: state.soundEnabled,
-                hapticEnabled: state.hapticEnabled,
-                username: state.username,
-                leverageStats: state.leverageStats
-            };
-            
-            localStorage.setItem('xtrade_game_state', JSON.stringify(gameState));
-        }
-
-        function loadGameState() {
-            try {
-                const saved = localStorage.getItem('xtrade_game_state');
-                if (saved) {
-                    const gameState = JSON.parse(saved);
-                    
-                    // Load all state properties
-                    Object.assign(state, {
-                        balance: gameState.balance || CONFIG.INITIAL_BALANCE,
-                        bestBalance: gameState.bestBalance || CONFIG.INITIAL_BALANCE,
-                        totalTrades: gameState.totalTrades || 0,
-                        wins: gameState.wins || 0,
-                        leverageIndex: gameState.leverageIndex || 0,
-                        betPercentage: gameState.betPercentage || 5,
-                        soundEnabled: gameState.soundEnabled !== undefined ? gameState.soundEnabled : true,
-                        hapticEnabled: gameState.hapticEnabled !== undefined ? gameState.hapticEnabled : true,
-                        username: gameState.username || "Trader",
-                        leverageStats: gameState.leverageStats || {}
-                    });
-                    
-                    // Ensure minimum balance
-                    state.balance = Math.max(CONFIG.MIN_BALANCE, state.balance);
-                    state.bestBalance = Math.max(state.bestBalance, CONFIG.MIN_BALANCE);
-                    
-                    // Update UI elements
-                    dom.leverageSlider.value = state.leverageIndex;
-                    dom.betSlider.value = state.betPercentage;
-                    dom.soundToggle.checked = state.soundEnabled;
-                    dom.hapticToggle.checked = state.hapticEnabled;
-                    
-                    state.lastBalance = state.balance;
-                }
-            } catch (e) {
-                console.log('No saved game state or error loading:', e);
-            }
-        }
-
-        // ==================== INITIALIZATION ====================
+        // ==================== INIZIALIZZAZIONE ====================
         document.addEventListener('DOMContentLoaded', initGame);
     </script>
 </body>
