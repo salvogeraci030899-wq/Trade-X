@@ -1461,8 +1461,10 @@
             const width = dom.chartCanvas.width / (window.devicePixelRatio || 1);
             const height = dom.chartCanvas.height / (window.devicePixelRatio || 1);
             
+            // Clear the entire canvas
             ctx.clearRect(0, 0, width, height);
             
+            // Fill background
             ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(0, 0, width, height);
             
@@ -1479,7 +1481,9 @@
             
             drawPriceLine(ctx, width, height, chartMin, chartRange);
             
-            if (state.tradeActive || state.tradeResult !== null) {
+            // SOLUZIONE: Disegna i marker SOLO quando c'è un trade attivo
+            // o quando il risultato non è null ma solo per un breve periodo
+            if (state.tradeActive || (state.tradeResult !== null && Date.now() - state.tradeEndTime < 2100)) {
                 drawTradeMarkers(ctx, width, height, chartMin, chartRange);
             }
             
@@ -1543,27 +1547,30 @@
         }
 
         function drawTradeMarkers(ctx, width, height, chartMin, chartRange) {
-            if (state.tradeStartPrice > 0) {
-                const startY = height - ((state.tradeStartPrice - chartMin) / chartRange * height);
+            // SOLUZIONE: Non disegnare nulla se i prezzi non sono validi
+            if (state.tradeStartPrice <= 0) return;
+            
+            const startY = height - ((state.tradeStartPrice - chartMin) / chartRange * height);
+            
+            // Disegna la linea del prezzo di inizio
+            ctx.beginPath();
+            ctx.setLineDash([3, 3]);
+            ctx.strokeStyle = state.tradeDirection === 'long' ? 
+                'rgba(0, 255, 136, 0.4)' : 'rgba(255, 68, 68, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.moveTo(0, startY);
+            ctx.lineTo(width, startY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Disegna il cerchio del prezzo di fine solo se c'è un prezzo di fine valido
+            if (state.tradeEndPrice > 0) {
+                const endY = height - ((state.tradeEndPrice - chartMin) / chartRange * height);
                 
                 ctx.beginPath();
-                ctx.setLineDash([3, 3]);
-                ctx.strokeStyle = state.tradeDirection === 'long' ? 
-                    'rgba(0, 255, 136, 0.4)' : 'rgba(255, 68, 68, 0.4)';
-                ctx.lineWidth = 1;
-                ctx.moveTo(0, startY);
-                ctx.lineTo(width, startY);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                if (state.tradeEndPrice > 0) {
-                    const endY = height - ((state.tradeEndPrice - chartMin) / chartRange * height);
-                    
-                    ctx.beginPath();
-                    ctx.arc(width * 0.95, endY, 5, 0, Math.PI * 2);
-                    ctx.fillStyle = state.tradeResult ? '#00ff88' : '#ff4444';
-                    ctx.fill();
-                }
+                ctx.arc(width * 0.95, endY, 5, 0, Math.PI * 2);
+                ctx.fillStyle = state.tradeResult ? '#00ff88' : '#ff4444';
+                ctx.fill();
             }
         }
 
@@ -1624,6 +1631,9 @@
             state.isAnimating = true;
             dom.longBtn.disabled = true;
             dom.shortBtn.disabled = true;
+            
+            // SOLUZIONE: Reset completo dello stato del trade precedente
+            resetTradeState();
             
             // Pulisci indicatori precedenti PRIMA di iniziare un nuovo trade
             cleanupAllTradeIndicators();
