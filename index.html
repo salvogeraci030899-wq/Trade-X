@@ -309,7 +309,7 @@
             position: absolute;
             left: 0;
             top: 0;
-            transition: width 0.2s ease;
+            transition: width 0.1s ease;
         }
         
         .leverage-fill {
@@ -332,7 +332,7 @@
             z-index: 3;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
             border: 2px solid #000000;
-            transition: left 0.2s ease;
+            transition: left 0.1s ease;
             pointer-events: none;
         }
         
@@ -843,9 +843,62 @@
         .chart-transition {
             transition: all 0.3s ease;
         }
+        
+        /* ===== CHART PRELOADING ===== */
+        .chart-preloader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            transition: opacity 0.3s ease;
+        }
+        
+        .chart-preloader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .preloader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.2);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ===== CHART FIXES ===== */
+        .chart-gradient-fix {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background: linear-gradient(to bottom, 
+                rgba(10, 10, 10, 0) 0%,
+                rgba(10, 10, 10, 0.3) 50%,
+                rgba(10, 10, 10, 0.8) 100%);
+        }
     </style>
 </head>
 <body>
+    <!-- Chart Preloader -->
+    <div class="chart-preloader" id="chartPreloader">
+        <div class="preloader-spinner"></div>
+    </div>
+    
     <!-- Dock -->
     <div class="dock-container">
         <div class="dock-item active" id="dockTrading">
@@ -1072,6 +1125,7 @@
         <div class="chart-section">
             <div class="chart-wrapper">
                 <canvas id="chartCanvas"></canvas>
+                <div class="chart-gradient-fix"></div>
                 <div class="chart-overlay">
                     <div class="chart-badge" id="winProbability">BTC Loading...</div>
                 </div>
@@ -1202,7 +1256,11 @@
             chartAnimationId: null,
             lastFrameTime: 0,
             frameCount: 0,
-            fps: 0
+            fps: 0,
+            
+            // Chart initialization
+            chartInitialized: false,
+            preloaderTimeout: null
         };
 
         // Initialize leverage stats
@@ -1212,6 +1270,7 @@
 
         // ==================== DOM REFERENCES ====================
         const dom = {
+            chartPreloader: document.getElementById('chartPreloader'),
             balanceAmount: document.getElementById('balanceAmount'),
             balanceChange: document.getElementById('balanceChange'),
             changeIcon: document.getElementById('changeIcon'),
@@ -1341,7 +1400,7 @@
             return isWin ? betAmount * leverage : -betAmount * leverage;
         }
 
-        // ==================== ULTRA-FAST BITCOIN CHART ====================
+        // ==================== ULTRA-FAST BITCOIN CHART (FIXED) ====================
         async function fetchBitcoinPrice() {
             try {
                 const now = Date.now();
@@ -1396,6 +1455,11 @@
             }
             
             state.currentPrice = state.chartData[state.chartData.length - 1].price;
+            
+            // Disegna immediatamente il grafico
+            if (dom.chartCtx) {
+                drawUltraFastChart();
+            }
         }
 
         function updateSimulatedPrice() {
@@ -1439,11 +1503,8 @@
             // Clear canvas ottimizzato
             ctx.clearRect(0, 0, width, height);
             
-            // Background gradient
-            const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, '#0a0a0a');
-            gradient.addColorStop(1, '#050505');
-            ctx.fillStyle = gradient;
+            // Background gradient FIXED - no stripes
+            ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(0, 0, width, height);
             
             // Draw grid leggera
@@ -1472,6 +1533,12 @@
             
             // Calcola FPS
             updateFPS();
+            
+            // Mark chart as initialized
+            if (!state.chartInitialized) {
+                state.chartInitialized = true;
+                hidePreloader();
+            }
         }
 
         function drawLightGrid(ctx, width, height) {
@@ -1518,6 +1585,22 @@
                 points.push({ x, y });
             }
             
+            // FIXED: Disegna area sotto la curva PRIMA della linea
+            if (points.length > 10) {
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
+                }
+                ctx.lineTo(points[points.length - 1].x, height);
+                ctx.lineTo(points[0].x, height);
+                ctx.closePath();
+                
+                // FIXED: Usa colore solido invece di gradiente per evitare strisce
+                ctx.fillStyle = isUp ? 'rgba(0, 255, 136, 0.08)' : 'rgba(255, 68, 68, 0.08)';
+                ctx.fill();
+            }
+            
             // Disegna linea principale
             ctx.beginPath();
             ctx.lineWidth = 2.5;
@@ -1531,35 +1614,14 @@
             }
             ctx.stroke();
             
-            // Gradiente sotto la linea (solo se c'è abbastanza dati)
-            if (points.length > 10) {
-                ctx.lineTo(points[points.length - 1].x, height);
-                ctx.lineTo(points[0].x, height);
-                ctx.closePath();
-                
-                const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
-                areaGradient.addColorStop(0, isUp ? 
-                    'rgba(0, 255, 136, 0.15)' : 'rgba(255, 68, 68, 0.15)');
-                areaGradient.addColorStop(1, 'transparent');
-                
-                ctx.fillStyle = areaGradient;
-                ctx.fill();
-            }
-            
             // Punto finale con glow
             const lastPoint = points[points.length - 1];
             
             // Effetto glow
             ctx.beginPath();
             ctx.arc(lastPoint.x, lastPoint.y, 10, 0, Math.PI * 2);
-            const glowGradient = ctx.createRadialGradient(
-                lastPoint.x, lastPoint.y, 0,
-                lastPoint.x, lastPoint.y, 10
-            );
-            glowGradient.addColorStop(0, isUp ? 
-                'rgba(0, 255, 136, 0.4)' : 'rgba(255, 68, 68, 0.4)');
-            glowGradient.addColorStop(1, 'transparent');
-            ctx.fillStyle = glowGradient;
+            ctx.fillStyle = isUp ? 
+                'rgba(0, 255, 136, 0.15)' : 'rgba(255, 68, 68, 0.15)';
             ctx.fill();
             
             // Punto principale
@@ -1654,9 +1716,19 @@
                 state.fps = state.frameCount;
                 state.frameCount = 0;
                 state.lastFrameTime = now;
+            }
+        }
+
+        function hidePreloader() {
+            if (dom.chartPreloader) {
+                dom.chartPreloader.classList.add('hidden');
                 
-                // Debug FPS
-                // console.log(`FPS: ${state.fps}`);
+                // Rimuovi completamente dopo l'animazione
+                setTimeout(() => {
+                    if (dom.chartPreloader.parentNode) {
+                        dom.chartPreloader.style.display = 'none';
+                    }
+                }, 300);
             }
         }
 
@@ -1939,7 +2011,7 @@
             `;
         }
 
-        // ==================== CORE FUNCTIONS ====================
+        // ==================== CORE FUNCTIONS (FIXED) ====================
         function initGame() {
             setupCanvas();
             createLeverageDots();
@@ -1949,8 +2021,16 @@
             updateSliderThumbs();
             updateDockActiveState();
             
-            // Inizializza dati chart
+            // Inizializza dati chart immediatamente
             initChartData();
+            
+            // Forza un ridisegno immediato
+            setTimeout(() => {
+                drawUltraFastChart();
+            }, 50);
+            
+            // Nascondi preloader dopo 1.5 secondi max (in caso di problemi)
+            state.preloaderTimeout = setTimeout(hidePreloader, 1500);
             
             // Avvia aggiornamenti ultra-veloci
             setInterval(updateBitcoinData, CONFIG.UPDATE_INTERVAL);
@@ -1967,7 +2047,7 @@
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             
-            dom.chartCtx = canvas.getContext('2d');
+            dom.chartCtx = canvas.getContext('2d', { alpha: false }); // Disabilita alpha per performance
             dom.chartCtx.scale(dpr, dpr);
             
             canvas.style.width = `${rect.width}px`;
@@ -1994,7 +2074,10 @@
                 state.chartAnimationId = requestAnimationFrame(animateChart);
             }
             
-            animateChart();
+            // Avvia con priorità alta
+            requestAnimationFrame(() => {
+                animateChart();
+            });
         }
 
         function stopChartAnimation() {
@@ -2011,6 +2094,10 @@
             dom.betSlider.addEventListener('input', handleBetChange);
             dom.restartBtn.addEventListener('click', handleRestart);
             
+            // FIXED: Migliore gestione slider
+            dom.leverageSlider.addEventListener('change', handleLeverageChange);
+            dom.betSlider.addEventListener('change', handleBetChange);
+            
             dom.dockTrading.addEventListener('click', () => showTradingPage());
             dom.dockAccount.addEventListener('click', () => openPage(dom.accountPage, 'account'));
             dom.dockRank.addEventListener('click', () => openPage(dom.rankPage, 'rank'));
@@ -2021,14 +2108,20 @@
             dom.hapticToggle.addEventListener('change', handleHapticToggle);
             dom.resetDataBtn.addEventListener('click', handleResetData);
             
+            // Prevenzione zoom su mobile
             document.addEventListener('touchmove', (e) => {
                 if (e.scale !== 1) e.preventDefault();
             }, { passive: false });
             
+            // FIXED: Migliore gestione resize
+            let resizeTimeout;
             window.addEventListener('resize', () => {
-                setupCanvas();
-                drawUltraFastChart();
-                updateSliderThumbs();
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    setupCanvas();
+                    drawUltraFastChart();
+                    updateSliderThumbs();
+                }, 100);
             });
             
             // Gestisci visibilità pagina per performance
@@ -2038,6 +2131,20 @@
                 } else {
                     startChartAnimation();
                 }
+            });
+            
+            // Touch events per slider migliorati
+            const sliders = [dom.leverageSlider, dom.betSlider];
+            sliders.forEach(slider => {
+                slider.addEventListener('touchstart', () => {
+                    slider.style.pointerEvents = 'auto';
+                });
+                
+                slider.addEventListener('touchend', () => {
+                    setTimeout(() => {
+                        slider.style.pointerEvents = 'none';
+                    }, 100);
+                });
             });
         }
 
@@ -2109,19 +2216,25 @@
         }
 
         function updateSliderThumbs() {
-            const leverageSliderWidth = dom.leverageSlider.offsetWidth;
-            const leverageValue = parseInt(dom.leverageSlider.value);
-            const leverageMax = parseInt(dom.leverageSlider.max) || 7;
-            const leveragePercent = (leverageValue / leverageMax) * 100;
-            const leverageThumbPos = (leveragePercent / 100) * leverageSliderWidth;
-            dom.leverageThumb.style.left = `${leverageThumbPos}px`;
+            // FIXED: Calcolo più preciso delle posizioni
+            const leverageSlider = dom.leverageSlider;
+            const betSlider = dom.betSlider;
             
-            const betSliderWidth = dom.betSlider.offsetWidth;
-            const betValue = parseInt(dom.betSlider.value);
-            const betMax = parseInt(dom.betSlider.max) || 100;
-            const betPercent = (betValue / betMax) * 100;
-            const betThumbPos = (betPercent / 100) * betSliderWidth;
-            dom.betThumb.style.left = `${betThumbPos}px`;
+            if (leverageSlider && leverageSlider.offsetWidth > 0) {
+                const leverageValue = parseInt(leverageSlider.value);
+                const leverageMax = parseInt(leverageSlider.max) || 7;
+                const leveragePercent = leverageMax > 0 ? (leverageValue / leverageMax) * 100 : 0;
+                const leverageThumbPos = (leveragePercent / 100) * leverageSlider.offsetWidth;
+                dom.leverageThumb.style.left = `${leverageThumbPos}px`;
+            }
+            
+            if (betSlider && betSlider.offsetWidth > 0) {
+                const betValue = parseInt(betSlider.value);
+                const betMax = parseInt(betSlider.max) || 100;
+                const betPercent = (betValue / betMax) * 100;
+                const betThumbPos = (betPercent / 100) * betSlider.offsetWidth;
+                dom.betThumb.style.left = `${betThumbPos}px`;
+            }
         }
 
         function updateUnlockInfo() {
@@ -2257,17 +2370,27 @@
             });
         }
 
-        // ==================== EVENT HANDLERS ====================
+        // ==================== EVENT HANDLERS (FIXED) ====================
         function handleLeverageChange() {
             state.leverageIndex = parseInt(dom.leverageSlider.value);
             updateUI();
             saveGameState();
+            
+            // Aggiorna immediatamente la posizione del thumb
+            requestAnimationFrame(() => {
+                updateSliderThumbs();
+            });
         }
 
         function handleBetChange() {
             state.betPercentage = parseInt(dom.betSlider.value);
             updateUI();
             saveGameState();
+            
+            // Aggiorna immediatamente la posizione del thumb
+            requestAnimationFrame(() => {
+                updateSliderThumbs();
+            });
         }
 
         function handleRestart() {
@@ -2351,7 +2474,18 @@
         }
 
         // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', initGame);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inizializza immediatamente
+            initGame();
+            
+            // Forza un ridisegno dopo che tutto è caricato
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    drawUltraFastChart();
+                    updateSliderThumbs();
+                }, 100);
+            });
+        });
     </script>
 </body>
 </html>
