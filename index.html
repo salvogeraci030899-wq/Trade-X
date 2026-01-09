@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -39,7 +40,7 @@
             display: flex;
             flex-direction: column;
             background: #000000;
-            padding-bottom: 120px; /* Space for buttons + dock */
+            /* Rimossa la padding-bottom originale */
         }
         
         /* ===== DOCK ===== */
@@ -54,7 +55,7 @@
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
-            z-index: 100;
+            z-index: 1000; /* Aumentato z-index per essere sopra tutto */
         }
         
         .dock-item {
@@ -107,7 +108,7 @@
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 99;
+            z-index: 999; /* Sotto il dock ma sopra il contenuto */
         }
         
         .trade-buttons {
@@ -267,6 +268,7 @@
         .controls-section {
             flex-shrink: 0;
             padding: 0 20px;
+            padding-bottom: 90px; /* Spazio per bottoni + dock */
         }
         
         /* Sliders con pallini */
@@ -426,10 +428,10 @@
             background: #000000;
             display: none;
             flex-direction: column;
-            z-index: 1000;
+            z-index: 800; /* Sotto il dock ma sopra l'app */
             padding: 20px;
             padding-top: 60px;
-            padding-bottom: 120px; /* Space for buttons + dock */
+            padding-bottom: 150px; /* Spazio per il dock (70px dock + 80px buttons) */
             overflow: hidden;
         }
         
@@ -715,10 +717,7 @@
             
             .controls-section {
                 padding: 0 16px;
-            }
-            
-            .app-container {
-                padding-bottom: 115px;
+                padding-bottom: 85px;
             }
             
             .long-short-section {
@@ -727,7 +726,7 @@
             }
             
             .page-overlay {
-                padding-bottom: 115px;
+                padding-bottom: 140px;
             }
         }
         
@@ -748,7 +747,7 @@
             .page-overlay {
                 padding: 15px;
                 padding-top: 50px;
-                padding-bottom: 115px;
+                padding-bottom: 140px;
             }
             
             .dock-label {
@@ -795,7 +794,7 @@
     </style>
 </head>
 <body>
-    <!-- Dock -->
+    <!-- Dock (ORA SEMPRE VISIBILE) -->
     <div class="dock-container">
         <div class="dock-item active" id="dockTrading">
             <div class="dock-icon trading">
@@ -839,8 +838,8 @@
         </div>
     </div>
     
-    <!-- Long/Short Buttons Section -->
-    <div class="long-short-section">
+    <!-- Long/Short Buttons Section (ORA SEMPRE VISIBILE) -->
+    <div class="long-short-section" id="longShortSection">
         <div class="trade-buttons">
             <button class="trade-btn long-btn" id="longBtn">LONG</button>
             <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
@@ -1129,7 +1128,10 @@
             wins: 0,
             gameActive: true,
             isAnimating: false,
-            chartData: [],
+            
+            // Nuova struttura dati per grafico a candele
+            candleData: [],
+            currentCandles: [],
             chartStep: 0,
             decisionPoint: 0,
             userChoice: null,
@@ -1224,6 +1226,7 @@
             gameOverScreen: document.getElementById('gameOverScreen'),
             restartBtn: document.getElementById('restartBtn'),
             appContainer: document.getElementById('appContainer'),
+            longShortSection: document.getElementById('longShortSection'),
             
             // Pages
             accountPage: document.getElementById('accountPage'),
@@ -1299,6 +1302,249 @@
             return isWin ? betAmount * leverage : -betAmount * leverage;
         }
 
+        // ==================== GRAFICO A CANDELA ====================
+        function generateCandleData() {
+            const candles = [];
+            let lastClose = 50;
+            
+            // Genera 30 candele
+            for (let i = 0; i < 30; i++) {
+                // Determina il trend base
+                const trend = (Math.random() - 0.5) * 0.2;
+                
+                // Genera apertura (vicina alla chiusura precedente)
+                const open = lastClose + (Math.random() - 0.5) * 2;
+                
+                // Determina se la candela sarà rialzista (verde) o ribassista (rossa)
+                const isBullish = Math.random() > 0.5;
+                
+                // Calcola chiusura basata su trend e direzione
+                let close;
+                if (isBullish) {
+                    close = open + Math.abs(trend * 10) + Math.random() * 3;
+                } else {
+                    close = open - Math.abs(trend * 10) - Math.random() * 3;
+                }
+                
+                // Calcola massimo e minimo
+                let high, low;
+                if (isBullish) {
+                    high = Math.max(open, close) + Math.random() * 2;
+                    low = Math.min(open, close) - Math.random() * 1;
+                } else {
+                    high = Math.max(open, close) + Math.random() * 1;
+                    low = Math.min(open, close) - Math.random() * 2;
+                }
+                
+                // Assicura che high > low e high > open, high > close, low < open, low < close
+                high = Math.max(open, close, high);
+                low = Math.min(open, close, low);
+                
+                // Aggiusta per evitare valori uguali
+                if (high <= low) high = low + 0.1;
+                if (open === close) close = open + (isBullish ? 0.1 : -0.1);
+                
+                candles.push({
+                    open: open,
+                    high: high,
+                    low: low,
+                    close: close,
+                    isBullish: isBullish,
+                    index: i
+                });
+                
+                lastClose = close;
+            }
+            
+            return candles;
+        }
+
+        function drawCandleChart() {
+            const ctx = dom.chartCtx;
+            const width = dom.chartCanvas.width / (window.devicePixelRatio || 1);
+            const height = dom.chartCanvas.height / (window.devicePixelRatio || 1);
+            
+            // Clear with gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#0a0a0a');
+            gradient.addColorStop(1, '#050505');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            if (state.candleData.length === 0) return;
+            
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            
+            // Horizontal grid lines
+            for (let i = 1; i < 5; i++) {
+                const y = i * (height / 5);
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // Vertical grid lines
+            for (let i = 1; i < 5; i++) {
+                const x = i * (width / 5);
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            
+            // Calcola range di prezzo
+            let minPrice = Infinity;
+            let maxPrice = -Infinity;
+            
+            const visibleCandles = state.candleData.slice(0, state.chartStep);
+            
+            visibleCandles.forEach(candle => {
+                minPrice = Math.min(minPrice, candle.low);
+                maxPrice = Math.max(maxPrice, candle.high);
+            });
+            
+            const priceRange = maxPrice - minPrice;
+            const padding = priceRange * 0.1;
+            minPrice -= padding;
+            maxPrice += padding;
+            const actualRange = maxPrice - minPrice;
+            
+            // Disegna candele
+            const candleWidth = (width * 0.8) / visibleCandles.length;
+            const candleSpacing = candleWidth * 0.3;
+            const actualCandleWidth = candleWidth - candleSpacing;
+            const xOffset = width * 0.1;
+            
+            visibleCandles.forEach((candle, index) => {
+                const x = xOffset + index * candleWidth;
+                
+                // Calcola coordinate Y
+                const yHigh = height - ((candle.high - minPrice) / actualRange * height);
+                const yLow = height - ((candle.low - minPrice) / actualRange * height);
+                const yOpen = height - ((candle.open - minPrice) / actualRange * height);
+                const yClose = height - ((candle.close - minPrice) / actualRange * height);
+                
+                // Colore della candela
+                let color;
+                if (state.tradeResult === true && index >= state.decisionPoint) {
+                    color = '#00ff88'; // Verde per trade vincente
+                } else if (state.tradeResult === false && index >= state.decisionPoint) {
+                    color = '#ff4444'; // Rosso per trade perdente
+                } else {
+                    color = candle.isBullish ? '#00ff88' : '#ff4444';
+                }
+                
+                // Disegna corpo della candela
+                ctx.fillStyle = color;
+                const yTop = Math.min(yOpen, yClose);
+                const yBottom = Math.max(yOpen, yClose);
+                const bodyHeight = Math.max(1, yBottom - yTop);
+                
+                ctx.fillRect(
+                    x + candleSpacing/2, 
+                    yTop, 
+                    actualCandleWidth, 
+                    bodyHeight
+                );
+                
+                // Disegna stoppini (ombre)
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x + actualCandleWidth/2 + candleSpacing/2, yHigh);
+                ctx.lineTo(x + actualCandleWidth/2 + candleSpacing/2, yTop);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(x + actualCandleWidth/2 + candleSpacing/2, yBottom);
+                ctx.lineTo(x + actualCandleWidth/2 + candleSpacing/2, yLow);
+                ctx.stroke();
+                
+                // Bordo del corpo
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 0.5;
+                ctx.strokeRect(
+                    x + candleSpacing/2, 
+                    yTop, 
+                    actualCandleWidth, 
+                    bodyHeight
+                );
+            });
+            
+            // Disegna marker del punto di decisione
+            if (state.userChoice && state.chartStep > state.decisionPoint) {
+                const candle = visibleCandles[state.decisionPoint];
+                const x = xOffset + state.decisionPoint * candleWidth + actualCandleWidth/2 + candleSpacing/2;
+                const y = height - ((candle.close - minPrice) / actualRange * height);
+                
+                ctx.beginPath();
+                ctx.fillStyle = state.tradeResult ? '#00ff88' : '#ff4444';
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Effetto glow
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, Math.PI * 2);
+                ctx.fillStyle = (state.tradeResult ? '#00ff88' : '#ff4444') + '40';
+                ctx.fill();
+            }
+        }
+
+        function modifyCandleTrend(trend) {
+            if (state.candleData.length === 0) return;
+            
+            const startCandle = state.candleData[state.decisionPoint];
+            let lastClose = startCandle.close;
+            
+            for (let i = state.decisionPoint + 1; i < state.candleData.length; i++) {
+                const progress = (i - state.decisionPoint) / (state.candleData.length - state.decisionPoint);
+                
+                // Determina se la candela sarà rialzista o ribassista in base al trend
+                const isBullish = trend > 0 ? Math.random() < 0.7 : Math.random() < 0.3;
+                
+                // Calcola apertura (vicina alla chiusura precedente)
+                const open = lastClose + (Math.random() - 0.5) * 1;
+                
+                // Calcola chiusura in base al trend
+                let close;
+                if (isBullish) {
+                    close = open + Math.abs(trend * 5 * progress) + Math.random() * 2;
+                } else {
+                    close = open - Math.abs(trend * 5 * progress) - Math.random() * 2;
+                }
+                
+                // Calcola massimo e minimo
+                let high, low;
+                if (isBullish) {
+                    high = Math.max(open, close) + Math.random() * 1.5;
+                    low = Math.min(open, close) - Math.random() * 0.5;
+                } else {
+                    high = Math.max(open, close) + Math.random() * 0.5;
+                    low = Math.min(open, close) - Math.random() * 1.5;
+                }
+                
+                // Assicura che high > low
+                high = Math.max(open, close, high);
+                low = Math.min(open, close, low);
+                if (high <= low) high = low + 0.1;
+                
+                // Aggiorna la candela
+                state.candleData[i] = {
+                    open: open,
+                    high: high,
+                    low: low,
+                    close: close,
+                    isBullish: isBullish,
+                    index: i
+                };
+                
+                lastClose = close;
+            }
+        }
+
         // ==================== CORE GAME FUNCTIONS ====================
         function initGame() {
             setupCanvas();
@@ -1365,8 +1611,8 @@
             
             window.addEventListener('resize', () => {
                 setupCanvas();
-                if (state.chartData.length > 0) {
-                    drawChart();
+                if (state.candleData.length > 0) {
+                    drawCandleChart();
                 }
                 updateSliderThumbs();
             });
@@ -1393,21 +1639,12 @@
             dom.longBtn.disabled = true;
             dom.shortBtn.disabled = true;
             
-            // Modify chart trend based on result
+            // Modifica trend delle candele in base al risultato
             const trend = (state.userChoice === 'long' ? 1 : -1) * (state.tradeResult ? 0.08 : -0.08);
-            modifyChartTrend(trend);
+            modifyCandleTrend(trend);
             
             state.isAnimating = true;
             animateChart();
-        }
-
-        function modifyChartTrend(trend) {
-            const startValue = state.chartData[state.decisionPoint];
-            for (let i = state.decisionPoint + 1; i < state.chartData.length; i++) {
-                const progress = (i - state.decisionPoint) / (state.chartData.length - state.decisionPoint);
-                state.chartData[i] = startValue + trend * progress * 30 + (Math.random() - 0.5) * 2;
-                state.chartData[i] = Math.max(20, Math.min(80, state.chartData[i]));
-            }
         }
 
         function completeTrade() {
@@ -1456,166 +1693,10 @@
             console.log('Playing sound:', type);
         }
 
-        // ==================== CHART FUNCTIONS ====================
-        function generateChartData() {
-            const data = [];
-            let value = 50;
-            
-            // Simulate price action
-            for (let i = 0; i < 180; i++) {
-                // Add some randomness with occasional trends
-                if (i < 60) {
-                    // Initial phase - mostly random
-                    value += (Math.random() - 0.48) * 2;
-                } else if (i < 120) {
-                    // Middle phase - slight trend
-                    value += (Math.random() - 0.45) * 2.5;
-                } else {
-                    // Final phase - more volatility
-                    value += (Math.random() - 0.5) * 3;
-                }
-                
-                // Keep value within reasonable bounds
-                value = Math.max(30, Math.min(90, value));
-                data.push(value);
-            }
-            
-            return data;
-        }
-
-        function drawChart() {
-            const ctx = dom.chartCtx;
-            const width = dom.chartCanvas.width / (window.devicePixelRatio || 1);
-            const height = dom.chartCanvas.height / (window.devicePixelRatio || 1);
-            
-            // Clear with gradient background
-            const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, '#0a0a0a');
-            gradient.addColorStop(1, '#050505');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, height);
-            
-            if (state.chartData.length === 0) return;
-            
-            // Draw grid lines
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-            ctx.lineWidth = 1;
-            
-            // Horizontal grid lines
-            for (let i = 1; i < 5; i++) {
-                const y = i * (height / 5);
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(width, y);
-                ctx.stroke();
-            }
-            
-            // Vertical grid lines
-            for (let i = 1; i < 5; i++) {
-                const x = i * (width / 5);
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
-                ctx.stroke();
-            }
-            
-            // Setup
-            const data = state.chartData;
-            const min = Math.min(...data) * 0.95;
-            const max = Math.max(...data) * 1.05;
-            const range = max - min || 1;
-            
-            const xScale = width / (data.length - 1);
-            const yScale = height / range;
-            
-            // Draw filled area under the line
-            if (state.chartStep > 0) {
-                ctx.beginPath();
-                ctx.moveTo(0, height);
-                
-                for (let i = 0; i < Math.min(state.chartStep, data.length); i++) {
-                    const x = i * xScale;
-                    const y = height - ((data[i] - min) * yScale);
-                    
-                    if (i === 0) {
-                        ctx.lineTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                }
-                
-                const lastX = Math.min(state.chartStep - 1, data.length - 1) * xScale;
-                const lastY = height - ((data[Math.min(state.chartStep - 1, data.length - 1)] - min) * yScale);
-                ctx.lineTo(lastX, height);
-                ctx.closePath();
-                
-                // Create gradient for fill
-                const fillGradient = ctx.createLinearGradient(0, 0, 0, height);
-                if (state.tradeResult === true) {
-                    fillGradient.addColorStop(0, 'rgba(0, 255, 136, 0.2)');
-                    fillGradient.addColorStop(1, 'rgba(0, 255, 136, 0.01)');
-                } else if (state.tradeResult === false) {
-                    fillGradient.addColorStop(0, 'rgba(255, 68, 68, 0.2)');
-                    fillGradient.addColorStop(1, 'rgba(255, 68, 68, 0.01)');
-                } else {
-                    fillGradient.addColorStop(0, 'rgba(255, 255, 255, 0.05)');
-                    fillGradient.addColorStop(1, 'rgba(255, 255, 255, 0.01)');
-                }
-                
-                ctx.fillStyle = fillGradient;
-                ctx.fill();
-            }
-            
-            // Draw line
-            ctx.beginPath();
-            ctx.lineWidth = state.tradeResult !== null ? 3.5 : 2.5;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            // Determine color
-            let color = '#ffffff';
-            if (state.tradeResult === true) color = '#00ff88';
-            if (state.tradeResult === false) color = '#ff4444';
-            
-            ctx.strokeStyle = color;
-            
-            // Draw up to current step
-            const steps = Math.min(state.chartStep, data.length);
-            for (let i = 0; i < steps; i++) {
-                const x = i * xScale;
-                const y = height - ((data[i] - min) * yScale);
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            }
-            
-            ctx.stroke();
-            
-            // Draw decision point marker
-            if (state.userChoice && state.chartStep > state.decisionPoint) {
-                const x = state.decisionPoint * xScale;
-                const y = height - ((data[state.decisionPoint] - min) * yScale);
-                
-                ctx.beginPath();
-                ctx.fillStyle = color;
-                ctx.arc(x, y, 6, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Add glow effect
-                ctx.beginPath();
-                ctx.arc(x, y, 10, 0, Math.PI * 2);
-                ctx.fillStyle = color + '40';
-                ctx.fill();
-            }
-        }
-
         function animateChart() {
-            if (state.chartStep < state.chartData.length) {
+            if (state.chartStep < state.candleData.length) {
                 state.chartStep++;
-                drawChart();
+                drawCandleChart();
                 
                 if (state.chartStep === state.decisionPoint + 1 && !state.userChoice) {
                     state.isAnimating = false;
@@ -1625,7 +1706,7 @@
                 
                 if (state.isAnimating || state.userChoice) {
                     requestAnimationFrame(() => {
-                        setTimeout(animateChart, 16);
+                        setTimeout(animateChart, 30);
                     });
                 }
             } else {
@@ -1634,11 +1715,11 @@
         }
 
         function startNewRound() {
-            state.chartData = generateChartData();
+            state.candleData = generateCandleData();
             state.chartStep = 0;
             state.userChoice = null;
             state.tradeResult = null;
-            state.decisionPoint = Math.floor(state.chartData.length * 0.6);
+            state.decisionPoint = Math.floor(state.candleData.length * 0.6);
             state.isAnimating = true;
             
             dom.longBtn.disabled = true;
@@ -1746,7 +1827,6 @@
             const baseProb = CONFIG.LEVERAGES[state.leverageIndex].baseWin * 100;
             const winProb = Math.round(calculateWinProbability() * 100);
             
-            // ORIGINAL FORMAT: Bet: $500 | Probability: 78% (base: 80%)
             dom.tradeInfo.innerHTML = `
                 Bet: <strong>${formatCurrency(betAmount)}</strong> | 
                 Probability: <strong>${winProb}%</strong> (base: ${Math.round(baseProb)}%)
@@ -1779,6 +1859,9 @@
             state.currentPage = 'trading';
             updateDockActiveState();
             
+            // Mostra i bottoni LONG/SHORT
+            dom.longShortSection.style.display = 'block';
+            
             // Resume chart animation if game is active
             if (state.gameActive && !state.userChoice) {
                 state.isAnimating = true;
@@ -1797,6 +1880,9 @@
             page.classList.add('active');
             state.currentPage = pageName;
             updateDockActiveState();
+            
+            // Nascondi i bottoni LONG/SHORT quando si è in una pagina
+            dom.longShortSection.style.display = 'none';
             
             // Pause chart animation
             state.isAnimating = false;
