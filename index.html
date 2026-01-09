@@ -1481,8 +1481,7 @@
             
             drawPriceLine(ctx, width, height, chartMin, chartRange);
             
-            // SOLUZIONE: Disegna i marker SOLO quando c'è un trade attivo
-            // o quando il risultato non è null ma solo per un breve periodo
+            // Draw trade markers only during active trade or for 2.1 seconds after trade ends
             if (state.tradeActive || (state.tradeResult !== null && Date.now() - state.tradeEndTime < 2100)) {
                 drawTradeMarkers(ctx, width, height, chartMin, chartRange);
             }
@@ -1533,17 +1532,19 @@
                 }
             }
             
-            const lastPoint = data[dataLength - 1];
-            const lastX = width;
-            const lastY = height - ((lastPoint.price - chartMin) / chartRange * height);
-            ctx.lineTo(lastX, lastY);
+            // SOLUZIONE: Rimosso il cerchio finale che causava il rettangolo
+            // const lastPoint = data[dataLength - 1];
+            // const lastX = width;
+            // const lastY = height - ((lastPoint.price - chartMin) / chartRange * height);
+            // ctx.lineTo(lastX, lastY);
             
             ctx.stroke();
             
-            ctx.beginPath();
-            ctx.arc(lastX, lastY, 3, 0, Math.PI * 2);
-            ctx.fillStyle = isUp ? '#00ff88' : '#ff4444';
-            ctx.fill();
+            // SOLUZIONE: Non disegnare il cerchio finale
+            // ctx.beginPath();
+            // ctx.arc(lastX, lastY, 3, 0, Math.PI * 2);
+            // ctx.fillStyle = isUp ? '#00ff88' : '#ff4444';
+            // ctx.fill();
         }
 
         function drawTradeMarkers(ctx, width, height, chartMin, chartRange) {
@@ -1568,9 +1569,16 @@
                 const endY = height - ((state.tradeEndPrice - chartMin) / chartRange * height);
                 
                 ctx.beginPath();
-                ctx.arc(width * 0.95, endY, 5, 0, Math.PI * 2);
+                ctx.arc(width * 0.95, endY, 4, 0, Math.PI * 2);
                 ctx.fillStyle = state.tradeResult ? '#00ff88' : '#ff4444';
                 ctx.fill();
+                
+                // Aggiungi un bordo al cerchio per renderlo più visibile
+                ctx.beginPath();
+                ctx.arc(width * 0.95, endY, 4, 0, Math.PI * 2);
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1;
+                ctx.stroke();
             }
         }
 
