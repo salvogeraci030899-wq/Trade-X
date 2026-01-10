@@ -255,10 +255,25 @@
             -webkit-overflow-scrolling: touch;
         }
         
+        /* PAGINA 1: Solo 4 slider senza scroll */
         .controls-section.page-1 {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: hidden !important;
             padding-top: 15px;
+            padding-bottom: 20px;
         }
         
+        .page-1-sliders-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 0;
+        }
+        
+        /* PAGINA 2: Tutto il resto con scroll se necessario */
         .controls-section.page-2 {
             display: flex;
             flex-direction: column;
@@ -292,6 +307,7 @@
             margin-bottom: 12px;
             position: relative;
             transition: opacity 0.3s ease;
+            flex-shrink: 0;
         }
         
         .slider-group.disabled {
@@ -479,7 +495,7 @@
             margin-bottom: 8px;
         }
         
-        /* Real-time P&L display */
+        /* Real-time P&L display - SEMPRE VISIBILE */
         .real-time-pl {
             font-size: 13px;
             font-weight: 700;
@@ -495,6 +511,19 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            color: #888888;
+        }
+        
+        .real-time-pl.active {
+            color: #00ff88;
+            border-color: rgba(0, 255, 136, 0.3);
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .real-time-pl.loss {
+            color: #ff4444;
+            border-color: rgba(255, 68, 68, 0.3);
+            background: rgba(255, 68, 68, 0.1);
         }
         
         /* Unlock info */
@@ -996,7 +1025,12 @@
             }
             
             .slider-group {
-                margin-bottom: 10px;
+                margin-bottom: 8px;
+            }
+            
+            .controls-section.page-1 {
+                padding-top: 12px;
+                padding-bottom: 15px;
             }
             
             .trade-btn {
@@ -1042,6 +1076,15 @@
                 padding: 0 10px 10px;
             }
             
+            .slider-group {
+                margin-bottom: 6px;
+            }
+            
+            .controls-section.page-1 {
+                padding-top: 10px;
+                padding-bottom: 12px;
+            }
+            
             .trade-btn {
                 height: 44px;
                 font-size: 16px;
@@ -1053,7 +1096,7 @@
             }
             
             .slider-header {
-                margin-bottom: 5px;
+                margin-bottom: 4px;
             }
             
             .slider-label {
@@ -1066,8 +1109,9 @@
             
             .real-time-pl {
                 font-size: 12px;
-                padding: 5px;
-                margin: 6px 0;
+                padding: 6px;
+                margin: 6px 0 10px 0;
+                min-height: 36px;
             }
         }
         
@@ -1368,82 +1412,84 @@
         
         <!-- Controls Container con due pagine scorrevoli -->
         <div class="controls-container" id="controlsContainer">
-            <!-- Pagina 1: Solo i 4 slider -->
+            <!-- Pagina 1: Solo i 4 slider SEMPRE VISIBILI SENZA SCROLL -->
             <div class="controls-section page-1" id="controlsPage1">
-                <div class="slider-group">
-                    <div class="slider-header">
-                        <div class="slider-label">LEVERAGE</div>
-                        <div class="slider-value" id="leverageValue" style="color: #00ff88">1x</div>
+                <div class="page-1-sliders-container">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <div class="slider-label">LEVERAGE</div>
+                            <div class="slider-value" id="leverageValue" style="color: #00ff88">1x</div>
+                        </div>
+                        <div class="slider-track">
+                            <div class="slider-fill leverage-fill" id="leverageFill" style="width: 0%"></div>
+                            <div class="slider-dots" id="leverageDots"></div>
+                            <input type="range" min="0" max="7" value="0" id="leverageSlider">
+                            <div class="slider-thumb leverage-thumb" id="leverageThumb"></div>
+                        </div>
                     </div>
-                    <div class="slider-track">
-                        <div class="slider-fill leverage-fill" id="leverageFill" style="width: 0%"></div>
-                        <div class="slider-dots" id="leverageDots"></div>
-                        <input type="range" min="0" max="7" value="0" id="leverageSlider">
-                        <div class="slider-thumb leverage-thumb" id="leverageThumb"></div>
+                    
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <div class="slider-label">BET AMOUNT</div>
+                            <div class="slider-value" id="betPercentageValue" style="color: #00a3ff">5%</div>
+                        </div>
+                        <div class="slider-track">
+                            <div class="slider-fill bet-fill" id="betFill" style="width: 5%"></div>
+                            <input type="range" min="1" max="100" value="5" id="betSlider">
+                            <div class="slider-thumb bet-thumb" id="betThumb"></div>
+                        </div>
+                        <div class="slider-ticks">
+                            <div class="tick">1%</div>
+                            <div class="tick">25%</div>
+                            <div class="tick">50%</div>
+                            <div class="tick">75%</div>
+                            <div class="tick">100%</div>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="slider-group">
-                    <div class="slider-header">
-                        <div class="slider-label">BET AMOUNT</div>
-                        <div class="slider-value" id="betPercentageValue" style="color: #00a3ff">5%</div>
+                    
+                    <div class="slider-group" id="stopLossGroup">
+                        <div class="slider-header">
+                            <div class="slider-label" id="stopLossLabel">STOP LOSS</div>
+                            <div class="slider-value" id="stopLossValue" style="color: #ff4444">-2%</div>
+                        </div>
+                        <div class="slider-track" id="stopLossTrack">
+                            <div class="slider-fill stop-loss-fill" id="stopLossFill" style="width: 20%"></div>
+                            <input type="range" min="1" max="20" value="2" id="stopLossSlider">
+                            <div class="slider-thumb stop-loss-thumb" id="stopLossThumb"></div>
+                        </div>
+                        <div class="slider-ticks">
+                            <div class="tick">1%</div>
+                            <div class="tick">5%</div>
+                            <div class="tick">10%</div>
+                            <div class="tick">15%</div>
+                            <div class="tick">20%</div>
+                        </div>
                     </div>
-                    <div class="slider-track">
-                        <div class="slider-fill bet-fill" id="betFill" style="width: 5%"></div>
-                        <input type="range" min="1" max="100" value="5" id="betSlider">
-                        <div class="slider-thumb bet-thumb" id="betThumb"></div>
-                    </div>
-                    <div class="slider-ticks">
-                        <div class="tick">1%</div>
-                        <div class="tick">25%</div>
-                        <div class="tick">50%</div>
-                        <div class="tick">75%</div>
-                        <div class="tick">100%</div>
-                    </div>
-                </div>
-                
-                <div class="slider-group" id="stopLossGroup">
-                    <div class="slider-header">
-                        <div class="slider-label" id="stopLossLabel">STOP LOSS</div>
-                        <div class="slider-value" id="stopLossValue" style="color: #ff4444">-2%</div>
-                    </div>
-                    <div class="slider-track" id="stopLossTrack">
-                        <div class="slider-fill stop-loss-fill" id="stopLossFill" style="width: 20%"></div>
-                        <input type="range" min="1" max="20" value="2" id="stopLossSlider">
-                        <div class="slider-thumb stop-loss-thumb" id="stopLossThumb"></div>
-                    </div>
-                    <div class="slider-ticks">
-                        <div class="tick">1%</div>
-                        <div class="tick">5%</div>
-                        <div class="tick">10%</div>
-                        <div class="tick">15%</div>
-                        <div class="tick">20%</div>
-                    </div>
-                </div>
-                
-                <div class="slider-group" id="takeProfitGroup">
-                    <div class="slider-header">
-                        <div class="slider-label" id="takeProfitLabel">TAKE PROFIT</div>
-                        <div class="slider-value" id="takeProfitValue" style="color: #00ff88">+5%</div>
-                    </div>
-                    <div class="slider-track" id="takeProfitTrack">
-                        <div class="slider-fill take-profit-fill" id="takeProfitFill" style="width: 25%"></div>
-                        <input type="range" min="1" max="20" value="5" id="takeProfitSlider">
-                        <div class="slider-thumb take-profit-thumb" id="takeProfitThumb"></div>
-                    </div>
-                    <div class="slider-ticks">
-                        <div class="tick">1%</div>
-                        <div class="tick">5%</div>
-                        <div class="tick">10%</div>
-                        <div class="tick">15%</div>
-                        <div class="tick">20%</div>
+                    
+                    <div class="slider-group" id="takeProfitGroup">
+                        <div class="slider-header">
+                            <div class="slider-label" id="takeProfitLabel">TAKE PROFIT</div>
+                            <div class="slider-value" id="takeProfitValue" style="color: #00ff88">+5%</div>
+                        </div>
+                        <div class="slider-track" id="takeProfitTrack">
+                            <div class="slider-fill take-profit-fill" id="takeProfitFill" style="width: 25%"></div>
+                            <input type="range" min="1" max="20" value="5" id="takeProfitSlider">
+                            <div class="slider-thumb take-profit-thumb" id="takeProfitThumb"></div>
+                        </div>
+                        <div class="slider-ticks">
+                            <div class="tick">1%</div>
+                            <div class="tick">5%</div>
+                            <div class="tick">10%</div>
+                            <div class="tick">15%</div>
+                            <div class="tick">20%</div>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <!-- Pagina 2: Tutto il resto -->
             <div class="controls-section page-2" id="controlsPage2">
-                <!-- Real-time P&L Display - sempre visibile ma spento quando non c'è trade -->
+                <!-- Real-time P&L Display - SEMPRE VISIBILE -->
                 <div class="real-time-pl" id="realTimePL">
                     P&L: <span id="plAmount">$0</span> (<span id="plPercent">0.00%</span>)
                 </div>
@@ -2086,6 +2132,9 @@
                 updateRealTimePL();
                 checkTradeConditions();
                 updateTradeDuration();
+            } else {
+                // Aggiorna comunque il P&L anche quando non c'è trade (rimarrà a zero)
+                updateRealTimePL();
             }
         }
 
@@ -2105,8 +2154,7 @@
             state.tradeCloseReason = null;
             state.tradeEndPrice = 0;
             
-            // Mostra real-time P&L
-            dom.realTimePL.style.display = 'flex';
+            // Aggiorna il P&L in tempo reale
             updateRealTimePL();
             
             // Cambia i bottoni per mostrare il pulsante di chiusura
@@ -2185,45 +2233,47 @@
         }
 
         function updateRealTimePL() {
-            if (!state.tradeActive) {
-                // P&L è sempre visibile nella pagina 2, ma nascosto quando non c'è trade
-                dom.realTimePL.style.display = 'none';
-                return;
-            }
+            // Il P&L è SEMPRE VISIBILE, quindi non nascondiamo mai l'elemento
             
-            const currentPrice = state.currentPrice;
-            let priceChangePercent = 0;
-            
-            if (state.tradeDirection === 'long') {
-                priceChangePercent = ((currentPrice - state.tradeStartPrice) / state.tradeStartPrice) * 100;
-            } else {
-                priceChangePercent = ((state.tradeStartPrice - currentPrice) / state.tradeStartPrice) * 100;
-            }
-            
-            const betAmount = calculateBetAmount();
-            const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
-            const plAmount = betAmount * (priceChangePercent / 100) * leverage;
-            
-            state.currentPL = plAmount;
-            state.currentPLPercent = priceChangePercent;
-            
-            // Update display
-            dom.plAmount.textContent = formatCurrency(plAmount);
-            dom.plPercent.textContent = priceChangePercent.toFixed(2) + '%';
-            
-            if (priceChangePercent > 0) {
-                dom.realTimePL.style.color = '#00ff88';
-                dom.realTimePL.style.borderColor = 'rgba(0, 255, 136, 0.3)';
-                dom.realTimePL.style.backgroundColor = 'rgba(0, 255, 136, 0.1)';
-            } else {
-                dom.realTimePL.style.color = '#ff4444';
-                dom.realTimePL.style.borderColor = 'rgba(255, 68, 68, 0.3)';
-                dom.realTimePL.style.backgroundColor = 'rgba(255, 68, 68, 0.1)';
-            }
-            
-            // Assicurati che il P&L sia visibile nella pagina 2
             if (state.tradeActive) {
-                dom.realTimePL.style.display = 'flex';
+                const currentPrice = state.currentPrice;
+                let priceChangePercent = 0;
+                
+                if (state.tradeDirection === 'long') {
+                    priceChangePercent = ((currentPrice - state.tradeStartPrice) / state.tradeStartPrice) * 100;
+                } else {
+                    priceChangePercent = ((state.tradeStartPrice - currentPrice) / state.tradeStartPrice) * 100;
+                }
+                
+                const betAmount = calculateBetAmount();
+                const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
+                const plAmount = betAmount * (priceChangePercent / 100) * leverage;
+                
+                state.currentPL = plAmount;
+                state.currentPLPercent = priceChangePercent;
+                
+                // Update display
+                dom.plAmount.textContent = formatCurrency(plAmount);
+                dom.plPercent.textContent = priceChangePercent.toFixed(2) + '%';
+                
+                // Aggiorna stile in base al profitto/perdita
+                if (priceChangePercent > 0) {
+                    dom.realTimePL.classList.remove('loss');
+                    dom.realTimePL.classList.add('active');
+                } else {
+                    dom.realTimePL.classList.remove('active');
+                    dom.realTimePL.classList.add('loss');
+                }
+            } else {
+                // Nessun trade attivo, mostra zero con stile "spento"
+                state.currentPL = 0;
+                state.currentPLPercent = 0;
+                
+                dom.plAmount.textContent = formatCurrency(0);
+                dom.plPercent.textContent = '0.00%';
+                
+                // Rimuove tutte le classi di stile attivo
+                dom.realTimePL.classList.remove('active', 'loss');
             }
         }
 
@@ -2311,7 +2361,8 @@
             setTimeout(() => {
                 resetTradeState();
                 state.isAnimating = false;
-                dom.realTimePL.style.display = 'none';
+                // Aggiorna il P&L (che rimarrà visibile ma con valori zero)
+                updateRealTimePL();
                 updateTradeUI();
             }, 2000);
         }
@@ -2467,8 +2518,9 @@
             dom.chartWrapper.classList.remove('loading');
             dom.priceIndicator.textContent = 'BTC Loading...';
             
-            // Nascondi il P&L all'inizio
-            dom.realTimePL.style.display = 'none';
+            // Il P&L è SEMPRE VISIBILE, non lo nascondiamo
+            // Aggiorna il P&L all'inizio (mostrerà zero)
+            updateRealTimePL();
             
             setInterval(updateBitcoinData, CONFIG.UPDATE_INTERVAL);
             startChartAnimation();
@@ -2707,10 +2759,8 @@
             updateSliderThumbs();
             updateSLTPUI();
             
-            // Update real-time P&L se c'è un trade attivo
-            if (state.tradeActive) {
-                updateRealTimePL();
-            }
+            // Update real-time P&L (sarà sempre visibile)
+            updateRealTimePL();
         }
 
         function updateChangeIndicator() {
