@@ -209,6 +209,11 @@
             min-height: 0;
             position: relative;
             padding: 15px;
+            transition: padding 0.3s ease;
+        }
+        
+        .chart-section.expanded {
+            padding: 15px;
         }
         
         .chart-wrapper {
@@ -233,6 +238,7 @@
             right: 12px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             pointer-events: none;
             z-index: 10;
         }
@@ -246,6 +252,25 @@
             font-weight: 600;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.2s ease;
+        }
+        
+        /* Chart toggle button */
+        .toggle-controls-btn {
+            pointer-events: auto;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+            transition: all 0.2s ease;
+        }
+        
+        .toggle-controls-btn:active {
+            background: rgba(255, 255, 255, 0.1);
         }
         
         /* Chart grid lines */
@@ -270,12 +295,27 @@
             flex-shrink: 0;
             padding: 0 20px;
             padding-bottom: 140px;
+            transition: all 0.3s ease;
+            max-height: 400px;
+            overflow: hidden;
+        }
+        
+        .controls-section.hidden {
+            max-height: 0;
+            padding: 0 20px;
+            opacity: 0;
+            pointer-events: none;
         }
         
         /* Sliders con pallini */
         .slider-group {
             margin-bottom: 15px;
             position: relative;
+            transition: opacity 0.3s ease;
+        }
+        
+        .slider-group.disabled {
+            opacity: 0.5;
         }
         
         .slider-header {
@@ -289,6 +329,20 @@
             font-size: 14px;
             font-weight: 600;
             color: #ffffff;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .slider-label:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .slider-label.disabled {
+            color: #666666;
+            text-decoration: line-through;
         }
         
         .slider-value {
@@ -302,6 +356,11 @@
             border-radius: 3px;
             position: relative;
             overflow: visible;
+        }
+        
+        .slider-track.disabled {
+            opacity: 0.5;
+            pointer-events: none;
         }
         
         .slider-fill {
@@ -403,6 +462,11 @@
             opacity: 0;
             cursor: pointer;
             z-index: 4;
+        }
+        
+        input[type="range"]:disabled {
+            cursor: default;
+            pointer-events: none;
         }
         
         .slider-ticks {
@@ -956,6 +1020,26 @@
             color: black;
             top: -15px;
         }
+        
+        /* Close trade button */
+        .close-trade-btn {
+            background: linear-gradient(135deg, #ffaa44 0%, #ff7744 100%);
+            color: #000000;
+            box-shadow: 0 4px 12px rgba(255, 170, 68, 0.25);
+            flex: 1;
+            height: 64px;
+            border: none;
+            border-radius: 16px;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .close-trade-btn:active {
+            transform: scale(0.97);
+        }
     </style>
 </head>
 <body>
@@ -1005,7 +1089,7 @@
     
     <!-- Long/Short Buttons -->
     <div class="long-short-section" id="longShortSection">
-        <div class="trade-buttons">
+        <div class="trade-buttons" id="tradeButtons">
             <button class="trade-btn long-btn" id="longBtn">LONG</button>
             <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
         </div>
@@ -1122,8 +1206,8 @@
             <ul>
                 <li><strong>Realistic P&L</strong>: Profit/loss proportional to actual price movement</li>
                 <li><strong>Real Bitcoin Price</strong>: Live BTC/USD price with 250ms updates</li>
-                <li><strong>10-Second Trades</strong>: Choose LONG or SHORT and wait 10 seconds for result</li>
-                <li><strong>Stop Loss & Take Profit</strong>: Set automatic exit levels</li>
+                <li><strong>Open Trades</strong>: Trades remain open until manually closed or hitting Stop Loss/Take Profit</li>
+                <li><strong>Stop Loss & Take Profit</strong>: Set automatic exit levels or disable them</li>
                 <li><strong>Proportional Gains</strong>: Profit = Bet × (Price Change %) × Leverage</li>
             </ul>
             
@@ -1131,10 +1215,17 @@
             <ul>
                 <li><strong>LONG</strong>: Profit if Bitcoin price increases, loss if it decreases</li>
                 <li><strong>SHORT</strong>: Profit if Bitcoin price decreases, loss if it increases</li>
-                <li><strong>Trade Duration</strong>: 10 seconds - watch the chart in real-time!</li>
+                <li><strong>Trade Duration</strong>: Open indefinitely - close manually or with SL/TP</li>
                 <li><strong>P&L Formula</strong>: Bet Amount × (Price Change %) × Leverage</li>
-                <li><strong>Stop Loss</strong>: Automatic exit at specified loss %</li>
-                <li><strong>Take Profit</strong>: Automatic exit at specified profit %</li>
+                <li><strong>Stop Loss</strong>: Automatic exit at specified loss % (optional)</li>
+                <li><strong>Take Profit</strong>: Automatic exit at specified profit % (optional)</li>
+            </ul>
+            
+            <h2>Controls</h2>
+            <ul>
+                <li><strong>Hide/Show Controls</strong>: Tap the "Hide Controls" button on chart to maximize view</li>
+                <li><strong>Toggle SL/TP</strong>: Tap on Stop Loss or Take Profit labels to enable/disable them</li>
+                <li><strong>Close Trade</strong>: When a trade is active, use the CLOSE TRADE button</li>
             </ul>
             
             <h2>Risk Management</h2>
@@ -1209,11 +1300,12 @@
         </div>
         
         <!-- Chart -->
-        <div class="chart-section">
+        <div class="chart-section" id="chartSection">
             <div class="chart-wrapper" id="chartWrapper">
                 <canvas id="chartCanvas"></canvas>
                 <div class="chart-overlay">
                     <div class="chart-badge" id="priceIndicator">BTC Loading...</div>
+                    <div class="toggle-controls-btn" id="toggleControlsBtn">Hide Controls</div>
                 </div>
                 <div class="chart-current-price" id="currentPrice">-</div>
                 <div class="chart-timeframe">REAL-TIME 250ms</div>
@@ -1221,7 +1313,7 @@
         </div>
         
         <!-- Controls -->
-        <div class="controls-section">
+        <div class="controls-section" id="controlsSection">
             <!-- Real-time P&L Display -->
             <div class="real-time-pl" id="realTimePL" style="display: none;">
                 P&L: <span id="plAmount">$0</span> (<span id="plPercent">0.00%</span>)
@@ -1259,12 +1351,12 @@
                 </div>
             </div>
             
-            <div class="slider-group">
+            <div class="slider-group" id="stopLossGroup">
                 <div class="slider-header">
-                    <div class="slider-label">STOP LOSS</div>
+                    <div class="slider-label" id="stopLossLabel">STOP LOSS</div>
                     <div class="slider-value" id="stopLossValue" style="color: #ff4444">-2%</div>
                 </div>
-                <div class="slider-track">
+                <div class="slider-track" id="stopLossTrack">
                     <div class="slider-fill stop-loss-fill" id="stopLossFill" style="width: 20%"></div>
                     <input type="range" min="1" max="20" value="2" id="stopLossSlider">
                     <div class="slider-thumb stop-loss-thumb" id="stopLossThumb"></div>
@@ -1278,12 +1370,12 @@
                 </div>
             </div>
             
-            <div class="slider-group">
+            <div class="slider-group" id="takeProfitGroup">
                 <div class="slider-header">
-                    <div class="slider-label">TAKE PROFIT</div>
+                    <div class="slider-label" id="takeProfitLabel">TAKE PROFIT</div>
                     <div class="slider-value" id="takeProfitValue" style="color: #00ff88">+5%</div>
                 </div>
-                <div class="slider-track">
+                <div class="slider-track" id="takeProfitTrack">
                     <div class="slider-fill take-profit-fill" id="takeProfitFill" style="width: 25%"></div>
                     <input type="range" min="1" max="20" value="5" id="takeProfitSlider">
                     <div class="slider-thumb take-profit-thumb" id="takeProfitThumb"></div>
@@ -1336,7 +1428,6 @@
             
             INITIAL_BALANCE: 10000,
             MIN_BALANCE: 1000,
-            TRADE_DURATION: 10000, // 10 SECONDI per il trade
             BTC_API_URL: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true",
             UPDATE_INTERVAL: 250, // Aggiornamento ogni 250ms
             CHART_HISTORY_SIZE: 100,
@@ -1375,19 +1466,17 @@
             // Trade state - SISTEMA REALISTICO
             tradeActive: false,
             tradeStartTime: 0,
-            tradeEndTime: 0,
-            tradeStartPrice: 0,
-            tradeEndPrice: 0,
             tradeDirection: null,
             tradeResult: null,
-            tradeCountdown: 0,
-            tradeCloseReason: null, // 'time', 'stop_loss', 'take_profit'
+            tradeCloseReason: null, // 'manual', 'stop_loss', 'take_profit'
             
             // Risk management
             leverageIndex: 0,
             betPercentage: 5,
             stopLossPercent: 2,
             takeProfitPercent: 5,
+            stopLossEnabled: true,
+            takeProfitEnabled: true,
             lastBalance: CONFIG.INITIAL_BALANCE,
             leverageStats: {},
             
@@ -1399,6 +1488,9 @@
             hapticEnabled: true,
             username: "Trader",
             currentPage: 'trading',
+            
+            // Controls visibility
+            controlsVisible: true,
             
             // Performance
             chartAnimationId: null,
@@ -1422,11 +1514,14 @@
             chartCanvas: document.getElementById('chartCanvas'),
             chartCtx: null,
             chartWrapper: document.getElementById('chartWrapper'),
+            chartSection: document.getElementById('chartSection'),
             priceIndicator: document.getElementById('priceIndicator'),
             currentPrice: document.getElementById('currentPrice'),
+            toggleControlsBtn: document.getElementById('toggleControlsBtn'),
             
             longBtn: document.getElementById('longBtn'),
             shortBtn: document.getElementById('shortBtn'),
+            tradeButtons: document.getElementById('tradeButtons'),
             
             // Sliders
             leverageSlider: document.getElementById('leverageSlider'),
@@ -1444,11 +1539,17 @@
             stopLossValue: document.getElementById('stopLossValue'),
             stopLossFill: document.getElementById('stopLossFill'),
             stopLossThumb: document.getElementById('stopLossThumb'),
+            stopLossLabel: document.getElementById('stopLossLabel'),
+            stopLossGroup: document.getElementById('stopLossGroup'),
+            stopLossTrack: document.getElementById('stopLossTrack'),
             
             takeProfitSlider: document.getElementById('takeProfitSlider'),
             takeProfitValue: document.getElementById('takeProfitValue'),
             takeProfitFill: document.getElementById('takeProfitFill'),
             takeProfitThumb: document.getElementById('takeProfitThumb'),
+            takeProfitLabel: document.getElementById('takeProfitLabel'),
+            takeProfitGroup: document.getElementById('takeProfitGroup'),
+            takeProfitTrack: document.getElementById('takeProfitTrack'),
             
             tradeInfo: document.getElementById('tradeInfo'),
             riskRewardInfo: document.getElementById('riskRewardInfo'),
@@ -1456,6 +1557,8 @@
             realTimePL: document.getElementById('realTimePL'),
             plAmount: document.getElementById('plAmount'),
             plPercent: document.getElementById('plPercent'),
+            
+            controlsSection: document.getElementById('controlsSection'),
             
             // Dock
             dockTrading: document.getElementById('dockTrading'),
@@ -1552,16 +1655,19 @@
             const betAmount = calculateBetAmount();
             const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
             
-            const maxLoss = betAmount * (state.stopLossPercent / 100) * leverage;
-            const maxGain = betAmount * (state.takeProfitPercent / 100) * leverage;
-            const ratio = (state.takeProfitPercent / state.stopLossPercent).toFixed(1);
+            const stopLoss = state.stopLossEnabled ? state.stopLossPercent : 0;
+            const takeProfit = state.takeProfitEnabled ? state.takeProfitPercent : 0;
+            
+            const maxLoss = stopLoss > 0 ? betAmount * (stopLoss / 100) * leverage : 0;
+            const maxGain = takeProfit > 0 ? betAmount * (takeProfit / 100) * leverage : 0;
+            const ratio = takeProfit > 0 && stopLoss > 0 ? (takeProfit / stopLoss).toFixed(1) : 'N/A';
             
             return {
                 ratio: ratio,
                 maxLoss: maxLoss,
                 maxGain: maxGain,
-                risk: state.stopLossPercent,
-                reward: state.takeProfitPercent
+                risk: stopLoss,
+                reward: takeProfit
             };
         }
 
@@ -1751,37 +1857,41 @@
 
         function drawTradeLevels(ctx, width, height, chartMin, chartRange) {
             if (state.tradeStartPrice > 0 && state.tradeActive) {
-                // Draw stop loss level
-                const stopLossPrice = state.tradeDirection === 'long' 
-                    ? state.tradeStartPrice * (1 - state.stopLossPercent / 100)
-                    : state.tradeStartPrice * (1 + state.stopLossPercent / 100);
+                // Draw stop loss level if enabled
+                if (state.stopLossEnabled && state.stopLossPercent > 0) {
+                    const stopLossPrice = state.tradeDirection === 'long' 
+                        ? state.tradeStartPrice * (1 - state.stopLossPercent / 100)
+                        : state.tradeStartPrice * (1 + state.stopLossPercent / 100);
+                        
+                    const stopLossY = height - ((stopLossPrice - chartMin) / chartRange * height);
                     
-                const stopLossY = height - ((stopLossPrice - chartMin) / chartRange * height);
+                    ctx.beginPath();
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeStyle = 'rgba(255, 68, 68, 0.6)';
+                    ctx.lineWidth = 1.5;
+                    ctx.moveTo(0, stopLossY);
+                    ctx.lineTo(width, stopLossY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
                 
-                ctx.beginPath();
-                ctx.setLineDash([3, 3]);
-                ctx.strokeStyle = 'rgba(255, 68, 68, 0.6)';
-                ctx.lineWidth = 1.5;
-                ctx.moveTo(0, stopLossY);
-                ctx.lineTo(width, stopLossY);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                // Draw take profit level
-                const takeProfitPrice = state.tradeDirection === 'long'
-                    ? state.tradeStartPrice * (1 + state.takeProfitPercent / 100)
-                    : state.tradeStartPrice * (1 - state.takeProfitPercent / 100);
+                // Draw take profit level if enabled
+                if (state.takeProfitEnabled && state.takeProfitPercent > 0) {
+                    const takeProfitPrice = state.tradeDirection === 'long'
+                        ? state.tradeStartPrice * (1 + state.takeProfitPercent / 100)
+                        : state.tradeStartPrice * (1 - state.takeProfitPercent / 100);
+                        
+                    const takeProfitY = height - ((takeProfitPrice - chartMin) / chartRange * height);
                     
-                const takeProfitY = height - ((takeProfitPrice - chartMin) / chartRange * height);
-                
-                ctx.beginPath();
-                ctx.setLineDash([3, 3]);
-                ctx.strokeStyle = 'rgba(0, 255, 136, 0.6)';
-                ctx.lineWidth = 1.5;
-                ctx.moveTo(0, takeProfitY);
-                ctx.lineTo(width, takeProfitY);
-                ctx.stroke();
-                ctx.setLineDash([]);
+                    ctx.beginPath();
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeStyle = 'rgba(0, 255, 136, 0.6)';
+                    ctx.lineWidth = 1.5;
+                    ctx.moveTo(0, takeProfitY);
+                    ctx.lineTo(width, takeProfitY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
             }
         }
 
@@ -1795,7 +1905,7 @@
                 ctx.fillStyle = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
                 ctx.fill();
                 
-                if (state.tradeEndPrice > 0) {
+                if (!state.tradeActive && state.tradeEndPrice > 0) {
                     const endY = height - ((state.tradeEndPrice - chartMin) / chartRange * height);
                     
                     // Draw exit point
@@ -1865,7 +1975,7 @@
             if (state.tradeActive) {
                 updateRealTimePL();
                 checkTradeConditions();
-                updateTradeCountdown();
+                updateTradeDuration();
             }
         }
 
@@ -1881,64 +1991,59 @@
             state.tradeDirection = direction;
             state.tradeActive = true;
             state.tradeStartTime = Date.now();
-            state.tradeEndTime = state.tradeStartTime + CONFIG.TRADE_DURATION;
             state.tradeResult = null;
-            state.tradeCountdown = CONFIG.TRADE_DURATION / 1000;
             state.tradeCloseReason = null;
             
             // Mostra real-time P&L
             dom.realTimePL.style.display = 'block';
             updateRealTimePL();
             
+            // Cambia i bottoni per mostrare il pulsante di chiusura
             updateTradeUI();
             
             const chartOverlay = document.querySelector('.chart-overlay');
-            let countdownBadge = chartOverlay.querySelector('#tradeCountdown');
-            if (!countdownBadge) {
-                countdownBadge = document.createElement('div');
-                countdownBadge.className = 'chart-badge';
-                countdownBadge.id = 'tradeCountdown';
-                countdownBadge.style.backgroundColor = direction === 'long' ? 
+            let tradeBadge = chartOverlay.querySelector('#tradeBadge');
+            if (!tradeBadge) {
+                tradeBadge = document.createElement('div');
+                tradeBadge.className = 'chart-badge';
+                tradeBadge.id = 'tradeBadge';
+                tradeBadge.style.backgroundColor = direction === 'long' ? 
                     'rgba(0, 255, 136, 0.15)' : 'rgba(255, 68, 68, 0.15)';
-                countdownBadge.style.borderColor = direction === 'long' ? 
+                tradeBadge.style.borderColor = direction === 'long' ? 
                     'rgba(0, 255, 136, 0.4)' : 'rgba(255, 68, 68, 0.4)';
-                countdownBadge.style.fontSize = '13px';
-                countdownBadge.style.fontWeight = '700';
-                chartOverlay.appendChild(countdownBadge);
+                tradeBadge.style.fontSize = '12px';
+                tradeBadge.style.fontWeight = '700';
+                chartOverlay.appendChild(tradeBadge);
             }
             
-            const countdownInterval = setInterval(() => {
+            updateTradeBadge();
+            
+            // Aggiorna il badge ogni secondo
+            state.tradeBadgeInterval = setInterval(() => {
                 if (!state.tradeActive) {
-                    clearInterval(countdownInterval);
+                    clearInterval(state.tradeBadgeInterval);
                     return;
                 }
-                
-                const now = Date.now();
-                const remaining = Math.max(0, state.tradeEndTime - now);
-                state.tradeCountdown = (remaining / 1000).toFixed(1);
-                
-                if (countdownBadge) {
-                    const seconds = Math.floor(remaining / 1000);
-                    const milliseconds = Math.floor((remaining % 1000) / 10);
-                    const countdownText = remaining > 1000 ? 
-                        `${seconds}.${milliseconds.toString().padStart(2, '0')}s` : 
-                        `0.${milliseconds.toString().padStart(2, '0')}s`;
-                    
-                    countdownBadge.textContent = `${countdownText}`;
-                    countdownBadge.style.color = direction === 'long' ? '#00ff88' : '#ff4444';
-                    
-                    if (remaining <= 3000 && remaining > 0) {
-                        countdownBadge.style.transform = `scale(${1 + (remaining % 500 < 250 ? 0.05 : 0)})`;
-                    }
-                }
-                
-                if (remaining <= 0 && state.tradeActive) {
-                    clearInterval(countdownInterval);
-                    completeBtcTrade('time');
-                }
-            }, 10);
+                updateTradeBadge();
+            }, 1000);
             
-            state.tradeCountdownInterval = countdownInterval;
+            state.isAnimating = false;
+        }
+
+        function updateTradeBadge() {
+            const tradeBadge = document.getElementById('tradeBadge');
+            if (tradeBadge && state.tradeActive) {
+                const duration = Math.floor((Date.now() - state.tradeStartTime) / 1000);
+                const minutes = Math.floor(duration / 60);
+                const seconds = duration % 60;
+                const durationText = minutes > 0 ? 
+                    `${minutes}m ${seconds}s` : 
+                    `${seconds}s`;
+                
+                const plSign = state.currentPL >= 0 ? '+' : '';
+                tradeBadge.textContent = `${state.tradeDirection.toUpperCase()} | ${durationText} | ${plSign}${formatCurrency(state.currentPL)}`;
+                tradeBadge.style.color = state.currentPL >= 0 ? '#00ff88' : '#ff4444';
+            }
         }
 
         function checkTradeConditions() {
@@ -1953,15 +2058,15 @@
                 priceChangePercent = ((state.tradeStartPrice - currentPrice) / state.tradeStartPrice) * 100;
             }
             
-            // Check stop loss
-            if (priceChangePercent <= -state.stopLossPercent) {
-                completeBtcTrade('stop_loss');
+            // Check stop loss se abilitato
+            if (state.stopLossEnabled && priceChangePercent <= -state.stopLossPercent) {
+                closeTradeManually('stop_loss');
                 return true;
             }
             
-            // Check take profit
-            if (priceChangePercent >= state.takeProfitPercent) {
-                completeBtcTrade('take_profit');
+            // Check take profit se abilitato
+            if (state.takeProfitEnabled && priceChangePercent >= state.takeProfitPercent) {
+                closeTradeManually('take_profit');
                 return true;
             }
             
@@ -2002,7 +2107,7 @@
             }
         }
 
-        async function completeBtcTrade(closeReason = 'time') {
+        function closeTradeManually(closeReason = 'manual') {
             if (!state.tradeActive) return;
             
             state.tradeEndPrice = state.currentPrice;
@@ -2086,16 +2191,14 @@
             setTimeout(() => {
                 resetTradeState();
                 state.isAnimating = false;
-                dom.longBtn.disabled = false;
-                dom.shortBtn.disabled = false;
                 dom.realTimePL.style.display = 'none';
                 updateTradeUI();
             }, 2000);
         }
 
         function showTradeResult(isWin, priceChangePercent, result) {
-            const countdownBadge = document.getElementById('tradeCountdown');
-            if (countdownBadge) {
+            const tradeBadge = document.getElementById('tradeBadge');
+            if (tradeBadge) {
                 const diffSign = priceChangePercent >= 0 ? '+' : '';
                 const resultSign = result >= 0 ? '+' : '';
                 
@@ -2105,13 +2208,15 @@
                     closeReasonText = ' (SL)';
                 } else if (state.tradeCloseReason === 'take_profit') {
                     closeReasonText = ' (TP)';
+                } else if (state.tradeCloseReason === 'manual') {
+                    closeReasonText = ' (Manual)';
                 }
                 
-                countdownBadge.textContent = isWin ? `WIN${closeReasonText}!` : `LOSE${closeReasonText}!`;
-                countdownBadge.style.color = isWin ? '#00ff88' : '#ff4444';
-                countdownBadge.style.backgroundColor = isWin ? 
+                tradeBadge.textContent = isWin ? `WIN${closeReasonText}!` : `LOSE${closeReasonText}!`;
+                tradeBadge.style.color = isWin ? '#00ff88' : '#ff4444';
+                tradeBadge.style.backgroundColor = isWin ? 
                     'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)';
-                countdownBadge.style.fontSize = '14px';
+                tradeBadge.style.fontSize = '14px';
                 
                 // Aggiungi indicatore visivo
                 const resultIndicator = document.createElement('div');
@@ -2124,11 +2229,12 @@
                 
                 setTimeout(() => {
                     resultIndicator.remove();
+                    tradeBadge.remove();
                 }, 2000);
                 
-                countdownBadge.style.transform = 'scale(1.1)';
+                tradeBadge.style.transform = 'scale(1.1)';
                 setTimeout(() => {
-                    countdownBadge.style.transform = 'scale(1)';
+                    tradeBadge.style.transform = 'scale(1)';
                 }, 200);
             }
         }
@@ -2136,58 +2242,62 @@
         function resetTradeState() {
             state.tradeActive = false;
             state.tradeStartTime = 0;
-            state.tradeEndTime = 0;
             state.tradeStartPrice = 0;
             state.tradeEndPrice = 0;
             state.tradeDirection = null;
             state.tradeResult = null;
-            state.tradeCountdown = 0;
             state.tradeCloseReason = null;
             state.currentPL = 0;
             state.currentPLPercent = 0;
             
-            if (state.tradeCountdownInterval) {
-                clearInterval(state.tradeCountdownInterval);
-                state.tradeCountdownInterval = null;
+            if (state.tradeBadgeInterval) {
+                clearInterval(state.tradeBadgeInterval);
+                state.tradeBadgeInterval = null;
             }
             
-            const countdownBadge = document.getElementById('tradeCountdown');
-            if (countdownBadge) {
-                countdownBadge.remove();
+            const tradeBadge = document.getElementById('tradeBadge');
+            if (tradeBadge) {
+                tradeBadge.remove();
             }
         }
 
-        function updateTradeCountdown() {
+        function updateTradeDuration() {
             if (!state.tradeActive) return;
-            
-            const now = Date.now();
-            const remaining = Math.max(0, state.tradeEndTime - now);
-            state.tradeCountdown = (remaining / 1000).toFixed(1);
         }
 
         function updateTradeUI() {
             if (state.tradeActive) {
-                dom.longBtn.textContent = state.tradeDirection === 'long' ? 'WAIT...' : 'LONG';
-                dom.shortBtn.textContent = state.tradeDirection === 'short' ? 'WAIT...' : 'SHORT';
+                // Cambia i bottoni per mostrare solo il pulsante di chiusura
+                dom.tradeButtons.innerHTML = `
+                    <button class="close-trade-btn" id="closeTradeBtn">CLOSE TRADE</button>
+                `;
                 
-                if (state.tradeDirection === 'long') {
-                    dom.longBtn.style.opacity = '0.7';
-                    dom.longBtn.disabled = true;
-                    dom.shortBtn.style.opacity = '0.4';
-                    dom.shortBtn.disabled = true;
-                } else if (state.tradeDirection === 'short') {
-                    dom.shortBtn.style.opacity = '0.7';
-                    dom.shortBtn.disabled = true;
-                    dom.longBtn.style.opacity = '0.4';
-                    dom.longBtn.disabled = true;
-                }
+                const closeBtn = document.getElementById('closeTradeBtn');
+                closeBtn.addEventListener('click', () => closeTradeManually('manual'));
+                
+                // Disabilita gli slider durante il trade
+                dom.leverageSlider.disabled = true;
+                dom.betSlider.disabled = true;
+                dom.stopLossSlider.disabled = true;
+                dom.takeProfitSlider.disabled = true;
             } else {
-                dom.longBtn.textContent = 'LONG';
-                dom.shortBtn.textContent = 'SHORT';
-                dom.longBtn.style.opacity = '1';
-                dom.shortBtn.style.opacity = '1';
-                dom.longBtn.disabled = false;
-                dom.shortBtn.disabled = false;
+                // Ripristina i bottoni originali
+                dom.tradeButtons.innerHTML = `
+                    <button class="trade-btn long-btn" id="longBtn">LONG</button>
+                    <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
+                `;
+                
+                // Re-attach event listeners
+                dom.longBtn = document.getElementById('longBtn');
+                dom.shortBtn = document.getElementById('shortBtn');
+                dom.longBtn.addEventListener('click', () => handleLong());
+                dom.shortBtn.addEventListener('click', () => handleShort());
+                
+                // Riabilita gli slider
+                dom.leverageSlider.disabled = false;
+                dom.betSlider.disabled = false;
+                if (state.stopLossEnabled) dom.stopLossSlider.disabled = false;
+                if (state.takeProfitEnabled) dom.takeProfitSlider.disabled = false;
             }
         }
 
@@ -2198,17 +2308,23 @@
             
             let tradeStatus = '';
             if (state.tradeActive) {
-                tradeStatus = ` | ${state.tradeCountdown}s`;
+                const duration = Math.floor((Date.now() - state.tradeStartTime) / 1000);
+                const minutes = Math.floor(duration / 60);
+                const seconds = duration % 60;
+                tradeStatus = ` | ${minutes}m ${seconds}s`;
             }
+            
+            let slText = state.stopLossEnabled ? `SL: -${state.stopLossPercent}%` : 'SL: OFF';
+            let tpText = state.takeProfitEnabled ? `TP: +${state.takeProfitPercent}%` : 'TP: OFF';
             
             dom.tradeInfo.innerHTML = `
                 Bet: <strong>${formatCurrency(betAmount)}</strong> | 
                 Leverage: <strong>${leverage}x</strong>${tradeStatus}
-                <br><small style="color:#888;font-size:11px;">P&L = Bet × Price Change % × Leverage</small>
+                <br><small style="color:#888;font-size:11px;">${slText} | ${tpText}</small>
             `;
             
             dom.riskRewardInfo.innerHTML = `
-                Risk/Reward: <strong>1:${rr.ratio}</strong> | 
+                Risk/Reward: <strong>${rr.ratio}</strong> | 
                 Max Loss: <strong style="color:#ff4444">${formatCurrency(rr.maxLoss)}</strong> | 
                 Max Gain: <strong style="color:#00ff88">${formatCurrency(rr.maxGain)}</strong>
             `;
@@ -2285,24 +2401,34 @@
         }
 
         function setupEventListeners() {
-            dom.longBtn.addEventListener('click', () => handleLong());
-            dom.shortBtn.addEventListener('click', () => handleShort());
+            // Trade buttons will be attached dynamically in updateTradeUI
+            
             dom.leverageSlider.addEventListener('input', handleLeverageChange);
             dom.betSlider.addEventListener('input', handleBetChange);
             dom.stopLossSlider.addEventListener('input', handleStopLossChange);
             dom.takeProfitSlider.addEventListener('input', handleTakeProfitChange);
             dom.restartBtn.addEventListener('click', handleRestart);
             
+            // Toggle controls visibility
+            dom.toggleControlsBtn.addEventListener('click', toggleControls);
+            
+            // Toggle stop loss and take profit
+            dom.stopLossLabel.addEventListener('click', toggleStopLoss);
+            dom.takeProfitLabel.addEventListener('click', toggleTakeProfit);
+            
+            // Dock navigation
             dom.dockTrading.addEventListener('click', () => showTradingPage());
             dom.dockAccount.addEventListener('click', () => openPage(dom.accountPage, 'account'));
             dom.dockRank.addEventListener('click', () => openPage(dom.rankPage, 'rank'));
             dom.dockSettings.addEventListener('click', () => openPage(dom.settingsPage, 'settings'));
             dom.dockInfo.addEventListener('click', () => openPage(dom.infoPage, 'info'));
             
+            // Settings
             dom.soundToggle.addEventListener('change', handleSoundToggle);
             dom.hapticToggle.addEventListener('change', handleHapticToggle);
             dom.resetDataBtn.addEventListener('click', handleResetData);
             
+            // Window resize
             window.addEventListener('resize', () => {
                 setupCanvas();
                 drawRealTimeChart();
@@ -2313,10 +2439,85 @@
                 updateSliderThumbs();
             }, 100);
             
+            // Update slider thumbs on input
             dom.leverageSlider.addEventListener('input', updateSliderThumbs);
             dom.betSlider.addEventListener('input', updateSliderThumbs);
             dom.stopLossSlider.addEventListener('input', updateSliderThumbs);
             dom.takeProfitSlider.addEventListener('input', updateSliderThumbs);
+        }
+
+        function toggleControls() {
+            state.controlsVisible = !state.controlsVisible;
+            
+            if (state.controlsVisible) {
+                dom.controlsSection.classList.remove('hidden');
+                dom.toggleControlsBtn.textContent = 'Hide Controls';
+                dom.chartSection.classList.remove('expanded');
+            } else {
+                dom.controlsSection.classList.add('hidden');
+                dom.toggleControlsBtn.textContent = 'Show Controls';
+                dom.chartSection.classList.add('expanded');
+            }
+            
+            // Redraw chart after resize
+            setTimeout(() => {
+                setupCanvas();
+                drawRealTimeChart();
+            }, 300);
+        }
+
+        function toggleStopLoss() {
+            if (state.tradeActive) return; // Non permettere di cambiare durante un trade
+            
+            state.stopLossEnabled = !state.stopLossEnabled;
+            updateSLTPUI();
+            saveGameState();
+        }
+
+        function toggleTakeProfit() {
+            if (state.tradeActive) return; // Non permettere di cambiare durante un trade
+            
+            state.takeProfitEnabled = !state.takeProfitEnabled;
+            updateSLTPUI();
+            saveGameState();
+        }
+
+        function updateSLTPUI() {
+            // Stop Loss
+            if (state.stopLossEnabled) {
+                dom.stopLossLabel.classList.remove('disabled');
+                dom.stopLossTrack.classList.remove('disabled');
+                dom.stopLossSlider.disabled = false;
+                dom.stopLossGroup.classList.remove('disabled');
+                dom.stopLossValue.textContent = `-${state.stopLossPercent}%`;
+                dom.stopLossValue.style.color = '#ff4444';
+            } else {
+                dom.stopLossLabel.classList.add('disabled');
+                dom.stopLossTrack.classList.add('disabled');
+                dom.stopLossSlider.disabled = true;
+                dom.stopLossGroup.classList.add('disabled');
+                dom.stopLossValue.textContent = 'OFF';
+                dom.stopLossValue.style.color = '#666666';
+            }
+            
+            // Take Profit
+            if (state.takeProfitEnabled) {
+                dom.takeProfitLabel.classList.remove('disabled');
+                dom.takeProfitTrack.classList.remove('disabled');
+                dom.takeProfitSlider.disabled = false;
+                dom.takeProfitGroup.classList.remove('disabled');
+                dom.takeProfitValue.textContent = `+${state.takeProfitPercent}%`;
+                dom.takeProfitValue.style.color = '#00ff88';
+            } else {
+                dom.takeProfitLabel.classList.add('disabled');
+                dom.takeProfitTrack.classList.add('disabled');
+                dom.takeProfitSlider.disabled = true;
+                dom.takeProfitGroup.classList.add('disabled');
+                dom.takeProfitValue.textContent = 'OFF';
+                dom.takeProfitValue.style.color = '#666666';
+            }
+            
+            updateTradeInfo();
         }
 
         function handleLong() {
@@ -2336,6 +2537,7 @@
             updateTradeInfo();
             updateUnlockInfo();
             updateSliderThumbs();
+            updateSLTPUI();
         }
 
         function updateChangeIndicator() {
@@ -2384,11 +2586,15 @@
             dom.betPercentageValue.textContent = `${state.betPercentage}%`;
             dom.betFill.style.width = `${state.betPercentage}%`;
             
-            dom.stopLossValue.textContent = `-${state.stopLossPercent}%`;
-            dom.stopLossFill.style.width = `${(state.stopLossPercent / 20) * 100}%`;
+            if (state.stopLossEnabled) {
+                dom.stopLossValue.textContent = `-${state.stopLossPercent}%`;
+                dom.stopLossFill.style.width = `${(state.stopLossPercent / 20) * 100}%`;
+            }
             
-            dom.takeProfitValue.textContent = `+${state.takeProfitPercent}%`;
-            dom.takeProfitFill.style.width = `${(state.takeProfitPercent / 20) * 100}%`;
+            if (state.takeProfitEnabled) {
+                dom.takeProfitValue.textContent = `+${state.takeProfitPercent}%`;
+                dom.takeProfitFill.style.width = `${(state.takeProfitPercent / 20) * 100}%`;
+            }
         }
 
         function updateSliderThumbs() {
@@ -2411,7 +2617,7 @@
             }
             
             const stopLossSliderWidth = dom.stopLossSlider.offsetWidth;
-            if (stopLossSliderWidth > 0) {
+            if (stopLossSliderWidth > 0 && state.stopLossEnabled) {
                 const stopLossValue = parseInt(dom.stopLossSlider.value);
                 const stopLossMax = parseInt(dom.stopLossSlider.max) || 20;
                 const stopLossPercent = (stopLossValue / stopLossMax) * 100;
@@ -2420,7 +2626,7 @@
             }
             
             const takeProfitSliderWidth = dom.takeProfitSlider.offsetWidth;
-            if (takeProfitSliderWidth > 0) {
+            if (takeProfitSliderWidth > 0 && state.takeProfitEnabled) {
                 const takeProfitValue = parseInt(dom.takeProfitSlider.value);
                 const takeProfitMax = parseInt(dom.takeProfitSlider.max) || 20;
                 const takeProfitPercent = (takeProfitValue / takeProfitMax) * 100;
@@ -2598,6 +2804,8 @@
             state.betPercentage = 5;
             state.stopLossPercent = 2;
             state.takeProfitPercent = 5;
+            state.stopLossEnabled = true;
+            state.takeProfitEnabled = true;
             
             dom.leverageSlider.value = state.leverageIndex;
             dom.betSlider.value = state.betPercentage;
@@ -2644,10 +2852,13 @@
                 betPercentage: state.betPercentage,
                 stopLossPercent: state.stopLossPercent,
                 takeProfitPercent: state.takeProfitPercent,
+                stopLossEnabled: state.stopLossEnabled,
+                takeProfitEnabled: state.takeProfitEnabled,
                 soundEnabled: state.soundEnabled,
                 hapticEnabled: state.hapticEnabled,
                 username: state.username,
-                leverageStats: state.leverageStats
+                leverageStats: state.leverageStats,
+                controlsVisible: state.controlsVisible
             };
             localStorage.setItem('xtrade_game_state', JSON.stringify(gameState));
         }
@@ -2673,10 +2884,13 @@
                         betPercentage: gameState.betPercentage || 5,
                         stopLossPercent: gameState.stopLossPercent || 2,
                         takeProfitPercent: gameState.takeProfitPercent || 5,
+                        stopLossEnabled: gameState.stopLossEnabled !== undefined ? gameState.stopLossEnabled : true,
+                        takeProfitEnabled: gameState.takeProfitEnabled !== undefined ? gameState.takeProfitEnabled : true,
                         soundEnabled: gameState.soundEnabled !== undefined ? gameState.soundEnabled : true,
                         hapticEnabled: gameState.hapticEnabled !== undefined ? gameState.hapticEnabled : true,
                         username: gameState.username || "Trader",
-                        leverageStats: gameState.leverageStats || {}
+                        leverageStats: gameState.leverageStats || {},
+                        controlsVisible: gameState.controlsVisible !== undefined ? gameState.controlsVisible : true
                     });
                     
                     dom.leverageSlider.value = state.leverageIndex;
@@ -2685,6 +2899,13 @@
                     dom.takeProfitSlider.value = state.takeProfitPercent;
                     dom.soundToggle.checked = state.soundEnabled;
                     dom.hapticToggle.checked = state.hapticEnabled;
+                    
+                    // Apply controls visibility
+                    if (!state.controlsVisible) {
+                        dom.controlsSection.classList.add('hidden');
+                        dom.toggleControlsBtn.textContent = 'Show Controls';
+                        dom.chartSection.classList.add('expanded');
+                    }
                     
                     state.lastBalance = state.balance;
                 }
