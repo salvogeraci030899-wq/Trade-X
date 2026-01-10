@@ -417,16 +417,6 @@
             margin-bottom: 20px;
         }
         
-        /* Cooldown timer */
-        .cooldown-timer {
-            font-size: 12px;
-            color: #00a3ff;
-            text-align: center;
-            margin-top: 10px;
-            min-height: 16px;
-            margin-bottom: 20px;
-        }
-        
         /* ===== PAGINE OVERLAY ===== */
         .page-overlay {
             position: fixed;
@@ -823,6 +813,17 @@
         .pulse-animation {
             animation: pulse 1s infinite;
         }
+        
+        /* Cooldown animation */
+        @keyframes cooldown-pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 0.7; }
+            100% { opacity: 0.4; }
+        }
+        
+        .cooldown-animation {
+            animation: cooldown-pulse 2s infinite;
+        }
     </style>
 </head>
 <body>
@@ -977,19 +978,20 @@
             
             <h2>How It Works</h2>
             <ul>
-                <li><strong>Real Bitcoin Price</strong>: Uses live BTC/USD price from Binance API</li>
+                <li><strong>Real Bitcoin Price</strong>: Uses live BTC/USD price from multiple APIs</li>
                 <li><strong>10-Second Trades</strong>: Choose LONG (price up) or SHORT (price down) and wait 10 seconds</li>
                 <li><strong>Real Price Comparison</strong>: Win if your prediction matches actual price movement</li>
-                <li><strong>No Probability</strong>: Win/loss determined solely by real price direction</li>
-                <li><strong>Cooldown Period</strong>: 10 seconds wait between trades</li>
+                <li><strong>No Probability</strong>: Wins/losses determined solely by actual BTC price direction</li>
+                <li><strong>Cooldown System</strong>: 10 seconds wait between trades</li>
             </ul>
             
             <h2>Trading Rules</h2>
             <ul>
                 <li><strong>LONG</strong>: You win if Bitcoin price increases after 10 seconds</li>
                 <li><strong>SHORT</strong>: You win if Bitcoin price decreases after 10 seconds</li>
+                <li><strong>Draw</strong>: If price doesn't change, trade is canceled (no win/loss)</li>
                 <li><strong>Payout</strong>: Bet Amount × Leverage (if win) / -Bet Amount × Leverage (if lose)</li>
-                <li><strong>Draw</strong>: If price doesn't change, bet is returned</li>
+                <li><strong>Cooldown</strong>: 10 seconds between trades to prevent spam</li>
             </ul>
             
             <h2>Note About Real Trading</h2>
@@ -1003,17 +1005,6 @@
             <h1 class="page-title">Settings</h1>
         </div>
         <div class="page-content">
-            <div class="settings-option">
-                <div>
-                    <div class="settings-label">Cooldown Time</div>
-                    <div class="settings-description">Wait time between trades</div>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button id="cooldown10" class="trade-btn" style="font-size: 14px; height: 36px; background: #00a3ff;">10s</button>
-                    <button id="cooldown20" class="trade-btn" style="font-size: 14px; height: 36px; background: #333;">20s</button>
-                </div>
-            </div>
-            
             <div class="settings-option">
                 <div>
                     <div class="settings-label">Sound Effects</div>
@@ -1063,7 +1054,7 @@
                 <canvas id="chartCanvas"></canvas>
                 <div class="chart-overlay">
                     <div class="chart-badge" id="btcPriceBadge">BTC Loading...</div>
-                    <div class="chart-badge" id="currentDirection">DIRECTION: --</div>
+                    <div class="chart-badge" id="tradeStatusBadge">READY</div>
                 </div>
             </div>
         </div>
@@ -1103,10 +1094,9 @@
             </div>
             
             <div class="trade-info" id="tradeInfo">
-                Bet: $500 | Payout: $500 (1x)
+                Bet: $500 | Leverage: 1x
             </div>
             
-            <div class="cooldown-timer" id="cooldownTimer"></div>
             <div class="unlock-info" id="unlockInfo"></div>
         </div>
     </div>
@@ -1138,11 +1128,11 @@
             
             INITIAL_BALANCE: 10000,
             MIN_BALANCE: 1000,
-            TRADE_DURATION: 10000, // 10 secondi per il trade
-            COOLDOWN_TIME: 10000, // 10 secondi di attesa tra trade
-            API_UPDATE_INTERVAL: 1000, // Aggiorna ogni 1 secondo
-            CHART_UPDATE_INTERVAL: 1000, // Aggiorna il grafico ogni 1 secondo
-            MAX_HISTORY_POINTS: 60 // 60 punti per 1 minuto di storia
+            TRADE_DURATION: 10000, // 10 secondi per il trade (modificato da 30 a 10)
+            COOLDOWN_DURATION: 10000, // 10 secondi di cooldown tra i trade
+            API_UPDATE_INTERVAL: 500, // Aggiorna ogni 500ms
+            CHART_UPDATE_INTERVAL: 50, // Aggiorna il grafico ogni 50ms per fluidità
+            MAX_HISTORY_POINTS: 100
         };
 
         // ==================== STATE ====================
@@ -1173,11 +1163,10 @@
             tradeResult: null,
             tradeCountdown: 0,
             
-            // Cooldown tra trade
+            // Stato del cooldown
             cooldownActive: false,
             cooldownEndTime: 0,
-            cooldownTime: CONFIG.COOLDOWN_TIME,
-            cooldownCountdown: 0,
+            cooldownRemaining: 0,
             
             leverageIndex: 0,
             betPercentage: 5,
@@ -1192,7 +1181,7 @@
             currentPage: 'trading',
             
             // Variabili per la simulazione realistica
-            marketVolatility: 0.001,
+            marketVolatility: 0.001, // 0.1% di volatilità
             marketTrend: 0,
             lastSimulatedPrice: 50000
         };
@@ -1214,7 +1203,7 @@
             // Chart
             chartCanvas: document.getElementById('chartCanvas'),
             chartCtx: null,
-            currentDirection: document.getElementById('currentDirection'),
+            tradeStatusBadge: document.getElementById('tradeStatusBadge'),
             btcPriceBadge: document.getElementById('btcPriceBadge'),
             
             // Controls
@@ -1230,12 +1219,7 @@
             betFill: document.getElementById('betFill'),
             betThumb: document.getElementById('betThumb'),
             tradeInfo: document.getElementById('tradeInfo'),
-            cooldownTimer: document.getElementById('cooldownTimer'),
             unlockInfo: document.getElementById('unlockInfo'),
-            
-            // Cooldown buttons
-            cooldown10: document.getElementById('cooldown10'),
-            cooldown20: document.getElementById('cooldown20'),
             
             // Dock
             dockTrading: document.getElementById('dockTrading'),
@@ -1321,7 +1305,7 @@
             return state.balance * (state.betPercentage / 100);
         }
 
-        function calculatePayout(isWin) {
+        function calculateTradeResult(isWin) {
             const betAmount = calculateBetAmount();
             const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
             return isWin ? betAmount * leverage : -betAmount * leverage;
@@ -1330,9 +1314,13 @@
         // ==================== BITCOIN PRICE FUNCTIONS ====================
         async function fetchRealBitcoinPrice() {
             try {
+                // Prova multiple API per massima affidabilità
                 const apis = [
+                    // Binance API
                     'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT',
+                    // CoinCap API
                     'https://api.coincap.io/v2/assets/bitcoin',
+                    // CoinGecko API (fallback)
                     'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
                 ];
                 
@@ -1361,6 +1349,7 @@
                 console.warn('Real API failed, using simulation');
                 state.apiFailCount++;
                 
+                // Se troppe chiamate API falliscono, passa alla simulazione
                 if (state.apiFailCount > 5) {
                     state.useRealData = false;
                 }
@@ -1373,15 +1362,20 @@
             const now = Date.now();
             const timeDiff = now - state.lastApiSuccess;
             
+            // Simula un trend di mercato realistico
             if (Math.random() < 0.01) {
+                // 1% di probabilità di cambiare trend
                 state.marketTrend = (Math.random() - 0.5) * 0.002;
             }
             
+            // Aggiungi volatilità
             const volatility = state.marketVolatility * (1 + Math.random() * 0.5);
             const randomMove = (Math.random() - 0.5) * volatility;
             const trendMove = state.marketTrend * (timeDiff / 1000);
             
             const newPrice = state.lastSimulatedPrice * (1 + trendMove + randomMove);
+            
+            // Mantieni il prezzo realistico (tra $45k e $65k)
             const boundedPrice = Math.max(45000, Math.min(65000, newPrice));
             
             state.lastSimulatedPrice = boundedPrice;
@@ -1401,6 +1395,7 @@
                 } else {
                     price = simulateRealisticPrice();
                     
+                    // Ogni 30 secondi prova a tornare ai dati reali
                     if (Date.now() - state.lastApiSuccess > 30000) {
                         state.useRealData = true;
                         state.apiFailCount = 0;
@@ -1409,6 +1404,7 @@
                 
                 const now = Date.now();
                 
+                // Calcola la variazione percentuale
                 let priceChange = 0;
                 if (state.btcPriceHistory.length > 0) {
                     const prevPrice = state.btcPriceHistory[state.btcPriceHistory.length - 1].price;
@@ -1419,16 +1415,19 @@
                 state.btcPriceChange = priceChange;
                 state.lastBtcUpdate = now;
                 
+                // Aggiungi il prezzo alla storia
                 state.btcPriceHistory.push({
                     time: now,
                     price: price,
                     change: priceChange
                 });
                 
+                // Mantieni solo gli ultimi punti
                 if (state.btcPriceHistory.length > CONFIG.MAX_HISTORY_POINTS) {
                     state.btcPriceHistory = state.btcPriceHistory.slice(-CONFIG.MAX_HISTORY_POINTS);
                 }
                 
+                // Aggiorna il badge del prezzo
                 updateBtcPriceBadge();
                 
             } catch (error) {
@@ -1449,18 +1448,13 @@
             const changeText = change >= 0 ? `+${changeFormatted}%` : `${changeFormatted}%`;
             const changeColor = change >= 0 ? '#00ff88' : '#ff4444';
             
+            // Aggiungi indicatore se sono dati simulati
             const dataSource = state.useRealData ? '' : ' (SIM)';
             
             dom.btcPriceBadge.innerHTML = `
                 <div>BTC $${priceFormatted}${dataSource}</div>
                 <div style="color: ${changeColor}; margin-left: 8px;">${changeText}</div>
             `;
-            
-            // Aggiorna la direzione corrente
-            const direction = change >= 0 ? 'BULLISH' : 'BEARISH';
-            const directionColor = change >= 0 ? '#00ff88' : '#ff4444';
-            dom.currentDirection.textContent = `DIRECTION: ${direction}`;
-            dom.currentDirection.style.color = directionColor;
         }
 
         // ==================== CHART FUNCTIONS ====================
@@ -1616,67 +1610,19 @@
             }
         }
 
-        // ==================== COOLDOWN FUNCTIONS ====================
-        function startCooldown() {
-            state.cooldownActive = true;
-            state.cooldownEndTime = Date.now() + state.cooldownTime;
-            state.cooldownCountdown = state.cooldownTime / 1000;
-            
-            dom.longBtn.disabled = true;
-            dom.shortBtn.disabled = true;
-            
-            updateCooldownTimer();
-            
-            const cooldownInterval = setInterval(() => {
-                if (!state.cooldownActive) {
-                    clearInterval(cooldownInterval);
-                    return;
-                }
-                
-                const now = Date.now();
-                const remaining = Math.max(0, state.cooldownEndTime - now);
-                state.cooldownCountdown = (remaining / 1000).toFixed(1);
-                
-                updateCooldownTimer();
-                
-                if (remaining <= 0) {
-                    clearInterval(cooldownInterval);
-                    endCooldown();
-                }
-            }, 100);
-        }
-
-        function updateCooldownTimer() {
-            if (state.cooldownActive) {
-                dom.cooldownTimer.textContent = `Next trade in: ${state.cooldownCountdown}s`;
-                dom.cooldownTimer.style.display = 'block';
-            } else {
-                dom.cooldownTimer.style.display = 'none';
-            }
-        }
-
-        function endCooldown() {
-            state.cooldownActive = false;
-            state.cooldownCountdown = 0;
-            
-            if (!state.tradeActive && state.gameActive) {
-                dom.longBtn.disabled = false;
-                dom.shortBtn.disabled = false;
-            }
-            
-            updateCooldownTimer();
-        }
-
         // ==================== TRADE FUNCTIONS ====================
         async function startBtcTrade(direction) {
-            if (!state.gameActive || state.tradeActive || state.cooldownActive || state.isAnimating) return;
+            if (!state.gameActive || state.tradeActive || state.isAnimating || state.cooldownActive) return;
             
+            // Disabilita i bottoni
             dom.longBtn.disabled = true;
             dom.shortBtn.disabled = true;
             state.isAnimating = true;
             
+            // Ottieni il prezzo corrente
             await updateBitcoinPrice();
             
+            // Inizia il trade
             state.tradeActive = true;
             state.tradeStartTime = Date.now();
             state.tradeEndTime = state.tradeStartTime + CONFIG.TRADE_DURATION;
@@ -1685,34 +1631,19 @@
             state.tradeResult = null;
             state.tradeCountdown = CONFIG.TRADE_DURATION / 1000;
             
+            // Aggiorna UI
             updateTradeUI();
-            createTradeCountdownBadge();
+            updateTradeStatusBadge();
             
+            // Avvia il timer per completare il trade
             setTimeout(() => {
                 if (state.tradeActive) {
                     completeBtcTrade();
                 }
             }, CONFIG.TRADE_DURATION);
             
+            // Avvia l'animazione del countdown
             startCountdownAnimation();
-        }
-
-        function createTradeCountdownBadge() {
-            const chartOverlay = document.querySelector('.chart-overlay');
-            let countdownBadge = chartOverlay.querySelector('#tradeCountdown');
-            
-            if (!countdownBadge) {
-                countdownBadge = document.createElement('div');
-                countdownBadge.className = 'chart-badge';
-                countdownBadge.id = 'tradeCountdown';
-                countdownBadge.style.backgroundColor = state.tradeDirection === 'long' ? 
-                    'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)';
-                countdownBadge.style.borderColor = state.tradeDirection === 'long' ? 
-                    'rgba(0, 255, 136, 0.5)' : 'rgba(255, 68, 68, 0.5)';
-                countdownBadge.style.fontSize = '14px';
-                countdownBadge.style.fontWeight = 'bold';
-                chartOverlay.appendChild(countdownBadge);
-            }
         }
 
         function startCountdownAnimation() {
@@ -1726,18 +1657,8 @@
                 const remaining = Math.max(0, state.tradeEndTime - now);
                 state.tradeCountdown = (remaining / 1000).toFixed(1);
                 
-                const countdownBadge = document.getElementById('tradeCountdown');
-                if (countdownBadge) {
-                    countdownBadge.textContent = `${state.tradeCountdown}s`;
-                    
-                    if (remaining > 1000) {
-                        countdownBadge.style.color = state.tradeDirection === 'long' ? 
-                            '#00ff88' : '#ff4444';
-                    } else {
-                        countdownBadge.style.color = '#ffffff';
-                        countdownBadge.classList.add('pulse-animation');
-                    }
-                }
+                // Aggiorna il badge di stato
+                updateTradeStatusBadge();
                 
                 if (remaining <= 0) {
                     clearInterval(countdownInterval);
@@ -1748,50 +1669,61 @@
         async function completeBtcTrade() {
             if (!state.tradeActive) return;
             
+            // Aggiorna il prezzo finale
             await updateBitcoinPrice();
             const finalPrice = state.currentBtcPrice;
             state.tradeEndPrice = finalPrice;
             
+            // Calcola la variazione
             const priceChange = finalPrice - state.tradeStartPrice;
             const priceChangePercent = (priceChange / state.tradeStartPrice) * 100;
             
-            // DETERMINA VITTORIA/SCONFITTA BASATA SOLO SULLA DIREZIONE REALE
-            let isWin = false;
-            let isDraw = false;
+            // Determina se il prezzo è salito o sceso
+            const priceMovedUp = finalPrice > state.tradeStartPrice;
+            const priceMovedDown = finalPrice < state.tradeStartPrice;
             
+            // Verifica se la previsione era corretta (NESSUN ELEMENTO DI PROBABILITÀ)
+            let predictionCorrect = false;
             if (state.tradeDirection === 'long') {
-                isWin = priceChange > 0; // VINCE se il prezzo è salito
-                isDraw = priceChange === 0; // PAREGGIO se il prezzo è invariato
+                predictionCorrect = priceMovedUp;
             } else { // short
-                isWin = priceChange < 0; // VINCE se il prezzo è sceso
-                isDraw = priceChange === 0; // PAREGGIO se il prezzo è invariato
+                predictionCorrect = priceMovedDown;
             }
             
-            state.tradeResult = isWin;
+            // Se il prezzo non è cambiato, annulla il trade
+            if (finalPrice === state.tradeStartPrice) {
+                state.tradeResult = null;
+                showTradeResult(null, 0, 0);
+                
+                // Ripristina lo stato dopo 2 secondi
+                setTimeout(() => {
+                    resetTradeState();
+                    state.isAnimating = false;
+                    dom.longBtn.disabled = false;
+                    dom.shortBtn.disabled = false;
+                    updateTradeUI();
+                    updateTradeStatusBadge();
+                }, 2000);
+                return;
+            }
+            
+            state.tradeResult = predictionCorrect;
             
             // Calcola il risultato finanziario
             const betAmount = calculateBetAmount();
             const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
-            
-            let result = 0;
-            if (isDraw) {
-                result = 0; // Restituisce la puntata in caso di pareggio
-            } else if (isWin) {
-                result = betAmount * leverage;
-            } else {
-                result = -betAmount * leverage;
-            }
+            const result = predictionCorrect ? betAmount * leverage : -betAmount * leverage;
             
             // Aggiorna lo stato
             state.balance += result;
             state.totalTrades++;
             state.leverageStats[leverage].total++;
             
-            if (isWin && !isDraw) {
+            if (predictionCorrect) {
                 state.wins++;
                 state.leverageStats[leverage].wins++;
                 if (state.soundEnabled) playSound('win');
-            } else if (!isDraw) {
+            } else {
                 if (state.soundEnabled) playSound('lose');
             }
             
@@ -1799,6 +1731,7 @@
                 state.bestBalance = state.balance;
             }
             
+            // Controlla bancarotta
             if (state.balance <= 0) {
                 state.gameActive = false;
                 dom.gameOverScreen.style.display = 'flex';
@@ -1806,64 +1739,81 @@
             }
             
             // Mostra il risultato
-            showTradeResult(isWin, isDraw, priceChangePercent, priceChange);
+            showTradeResult(predictionCorrect, priceChangePercent, priceChange);
             
+            // Avvia il cooldown
+            startCooldown();
+            
+            // Salva e aggiorna UI
             saveGameState();
             updateUI();
-            
-            setTimeout(() => {
-                resetTradeState();
-                state.isAnimating = false;
-                
-                // Avvia il cooldown dopo il trade
-                startCooldown();
-                
-                updateTradeUI();
-            }, 2000);
         }
 
-        function showTradeResult(isWin, isDraw, changePercent, changeAmount) {
-            const countdownBadge = document.getElementById('tradeCountdown');
-            if (!countdownBadge) return;
+        function startCooldown() {
+            state.cooldownActive = true;
+            state.cooldownEndTime = Date.now() + CONFIG.COOLDOWN_DURATION;
+            state.cooldownRemaining = CONFIG.COOLDOWN_DURATION / 1000;
             
-            countdownBadge.classList.remove('pulse-animation');
+            // Disabilita i bottoni
+            dom.longBtn.disabled = true;
+            dom.shortBtn.disabled = true;
             
+            // Aggiorna UI
+            updateTradeUI();
+            updateTradeStatusBadge();
+            
+            // Avvia il timer del cooldown
+            const cooldownInterval = setInterval(() => {
+                const now = Date.now();
+                const remaining = Math.max(0, state.cooldownEndTime - now);
+                state.cooldownRemaining = (remaining / 1000).toFixed(1);
+                
+                updateTradeStatusBadge();
+                
+                if (remaining <= 0) {
+                    clearInterval(cooldownInterval);
+                    endCooldown();
+                }
+            }, 100);
+        }
+
+        function endCooldown() {
+            state.cooldownActive = false;
+            state.cooldownEndTime = 0;
+            state.cooldownRemaining = 0;
+            state.isAnimating = false;
+            
+            // Riabilita i bottoni
+            dom.longBtn.disabled = false;
+            dom.shortBtn.disabled = false;
+            
+            updateTradeUI();
+            updateTradeStatusBadge();
+        }
+
+        function showTradeResult(isWin, changePercent, changeAmount) {
             const changeSign = changePercent >= 0 ? '+' : '';
             const changeText = `${changeSign}${changePercent.toFixed(2)}%`;
+            const resultText = isWin === null ? 'DRAW' : (isWin ? 'WIN!' : 'LOSE!');
+            const resultColor = isWin === null ? '#ffaa44' : (isWin ? '#00ff88' : '#ff4444');
             
-            let resultText, resultColor;
-            if (isDraw) {
-                resultText = 'DRAW!';
-                resultColor = '#00a3ff';
-            } else if (isWin) {
-                resultText = 'WIN!';
-                resultColor = '#00ff88';
-            } else {
-                resultText = 'LOSE!';
-                resultColor = '#ff4444';
-            }
-            
-            countdownBadge.innerHTML = `
-                <div style="color: ${resultColor}; font-size: 16px;">${resultText}</div>
+            dom.tradeStatusBadge.innerHTML = `
+                <div style="color: ${resultColor}; font-size: 14px; font-weight: bold;">${resultText}</div>
                 <div style="font-size: 11px; margin-top: 2px;">${changeText}</div>
             `;
+            dom.tradeStatusBadge.style.backgroundColor = isWin === null ? 
+                'rgba(255, 170, 68, 0.3)' : (isWin ? 
+                'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)');
+            dom.tradeStatusBadge.style.borderColor = isWin === null ? 
+                'rgba(255, 170, 68, 0.7)' : (isWin ? 
+                'rgba(0, 255, 136, 0.7)' : 'rgba(255, 68, 68, 0.7)');
             
-            if (isDraw) {
-                countdownBadge.style.backgroundColor = 'rgba(0, 163, 255, 0.3)';
-                countdownBadge.style.borderColor = 'rgba(0, 163, 255, 0.7)';
-            } else if (isWin) {
-                countdownBadge.style.backgroundColor = 'rgba(0, 255, 136, 0.3)';
-                countdownBadge.style.borderColor = 'rgba(0, 255, 136, 0.7)';
-            } else {
-                countdownBadge.style.backgroundColor = 'rgba(255, 68, 68, 0.3)';
-                countdownBadge.style.borderColor = 'rgba(255, 68, 68, 0.7)';
-            }
-            
-            if (isWin) {
-                countdownBadge.style.animation = 'flash-green 0.5s infinite alternate';
-            } else if (!isDraw) {
-                countdownBadge.style.animation = 'flash-red 0.5s infinite alternate';
-            }
+            // Rimuovi l'animazione dopo 2 secondi
+            setTimeout(() => {
+                if (!state.cooldownActive) {
+                    updateTradeStatusBadge();
+                }
+            }, 2000);
         }
 
         function resetTradeState() {
@@ -1875,25 +1825,54 @@
             state.tradeDirection = null;
             state.tradeResult = null;
             state.tradeCountdown = 0;
-            
-            const countdownBadge = document.getElementById('tradeCountdown');
-            if (countdownBadge) {
-                countdownBadge.remove();
-            }
         }
 
         function updateTradeUI() {
             if (state.tradeActive) {
-                dom.longBtn.textContent = state.tradeDirection === 'long' ? 'WAITING...' : 'LONG';
-                dom.shortBtn.textContent = state.tradeDirection === 'short' ? 'WAITING...' : 'SHORT';
+                // Cambia testo dei bottoni durante il trade
+                dom.longBtn.textContent = state.tradeDirection === 'long' ? `${state.tradeCountdown}s` : 'LONG';
+                dom.shortBtn.textContent = state.tradeDirection === 'short' ? `${state.tradeCountdown}s` : 'SHORT';
                 
+                // Cambia opacità
                 dom.longBtn.style.opacity = state.tradeDirection === 'long' ? '0.7' : '0.3';
                 dom.shortBtn.style.opacity = state.tradeDirection === 'short' ? '0.7' : '0.3';
+            } else if (state.cooldownActive) {
+                // Mostra cooldown nei bottoni
+                dom.longBtn.textContent = `CD: ${state.cooldownRemaining}s`;
+                dom.shortBtn.textContent = `CD: ${state.cooldownRemaining}s`;
+                dom.longBtn.style.opacity = '0.5';
+                dom.shortBtn.style.opacity = '0.5';
+                dom.longBtn.classList.add('cooldown-animation');
+                dom.shortBtn.classList.add('cooldown-animation');
             } else {
+                // Ripristina stato normale
                 dom.longBtn.textContent = 'LONG';
                 dom.shortBtn.textContent = 'SHORT';
                 dom.longBtn.style.opacity = '1';
                 dom.shortBtn.style.opacity = '1';
+                dom.longBtn.classList.remove('cooldown-animation');
+                dom.shortBtn.classList.remove('cooldown-animation');
+            }
+        }
+
+        function updateTradeStatusBadge() {
+            if (state.tradeActive) {
+                dom.tradeStatusBadge.textContent = `TRADE: ${state.tradeCountdown}s`;
+                dom.tradeStatusBadge.style.color = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
+                dom.tradeStatusBadge.style.backgroundColor = state.tradeDirection === 'long' ? 
+                    'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)';
+                dom.tradeStatusBadge.style.borderColor = state.tradeDirection === 'long' ? 
+                    'rgba(0, 255, 136, 0.5)' : 'rgba(255, 68, 68, 0.5)';
+            } else if (state.cooldownActive) {
+                dom.tradeStatusBadge.textContent = `COOLDOWN: ${state.cooldownRemaining}s`;
+                dom.tradeStatusBadge.style.color = '#ffaa44';
+                dom.tradeStatusBadge.style.backgroundColor = 'rgba(255, 170, 68, 0.2)';
+                dom.tradeStatusBadge.style.borderColor = 'rgba(255, 170, 68, 0.5)';
+            } else {
+                dom.tradeStatusBadge.textContent = 'READY';
+                dom.tradeStatusBadge.style.color = '#00ff88';
+                dom.tradeStatusBadge.style.backgroundColor = 'rgba(0, 255, 136, 0.2)';
+                dom.tradeStatusBadge.style.borderColor = 'rgba(0, 255, 136, 0.5)';
             }
         }
 
@@ -1906,23 +1885,20 @@
             updateUI();
             updateSliderThumbs();
             updateDockActiveState();
-            updateCooldownButtons();
             
+            // Inizia l'aggiornamento dei dati Bitcoin
             updateBitcoinPrice();
             setInterval(updateBitcoinPrice, CONFIG.API_UPDATE_INTERVAL);
             
+            // Inizia il loop di disegno del grafico
             setInterval(() => {
                 if (state.currentPage === 'trading') {
                     drawBtcChart();
                 }
             }, CONFIG.CHART_UPDATE_INTERVAL);
             
+            // Inizializza la storia del prezzo
             initializePriceHistory();
-            
-            // Avvia il cooldown timer se necessario
-            if (state.cooldownActive) {
-                startCooldown();
-            }
         }
 
         function setupCanvas() {
@@ -1953,11 +1929,12 @@
         }
 
         function initializePriceHistory() {
+            // Crea una storia iniziale di prezzi
             const basePrice = 50000;
             const now = Date.now();
             
-            for (let i = 0; i < 30; i++) {
-                const time = now - (30 - i) * 1000;
+            for (let i = 0; i < 50; i++) {
+                const time = now - (50 - i) * 1000;
                 const price = basePrice + (Math.random() - 0.5) * 1000;
                 
                 state.btcPriceHistory.push({
@@ -1978,10 +1955,6 @@
             dom.leverageSlider.addEventListener('input', handleLeverageChange);
             dom.betSlider.addEventListener('input', handleBetChange);
             dom.restartBtn.addEventListener('click', handleRestart);
-            
-            // Cooldown buttons
-            dom.cooldown10.addEventListener('click', () => setCooldownTime(10000));
-            dom.cooldown20.addEventListener('click', () => setCooldownTime(20000));
             
             // Dock navigation
             dom.dockTrading.addEventListener('click', () => showTradingPage());
@@ -2007,48 +1980,38 @@
             });
         }
 
-        function setCooldownTime(time) {
-            state.cooldownTime = time;
-            
-            // Update button styles
-            if (time === 10000) {
-                dom.cooldown10.style.background = '#00a3ff';
-                dom.cooldown20.style.background = '#333';
-            } else {
-                dom.cooldown10.style.background = '#333';
-                dom.cooldown20.style.background = '#00a3ff';
-            }
-            
-            saveGameState();
-        }
-
-        function updateCooldownButtons() {
-            if (state.cooldownTime === 10000) {
-                dom.cooldown10.style.background = '#00a3ff';
-                dom.cooldown20.style.background = '#333';
-            } else {
-                dom.cooldown10.style.background = '#333';
-                dom.cooldown20.style.background = '#00a3ff';
-            }
-        }
-
         function handleTrade(direction) {
-            if (!state.gameActive || state.tradeActive || state.cooldownActive || state.isAnimating) return;
+            if (!state.gameActive || state.tradeActive || state.isAnimating || state.cooldownActive) return;
             startBtcTrade(direction);
         }
 
         function playSound(type) {
+            // In una implementazione reale, qui ci sarebbero i suoni
             console.log('Playing sound:', type);
         }
 
         // ==================== UI UPDATES ====================
         function updateUI() {
+            // Update balance
             dom.balanceAmount.textContent = formatCurrency(state.balance);
+            
+            // Update change indicator
             updateChangeIndicator();
+            
+            // Update controls
             updateControls();
+            
+            // Update trade info
             updateTradeInfo();
+            
+            // Update unlock info
             updateUnlockInfo();
+            
+            // Update slider thumbs
             updateSliderThumbs();
+            
+            // Update trade status badge
+            updateTradeStatusBadge();
         }
 
         function updateChangeIndicator() {
@@ -2067,6 +2030,7 @@
                 dom.changePercent.textContent = `${Math.abs(percentChange).toFixed(2)}%`;
             }
             
+            // Store for next comparison
             state.lastBalance = state.balance;
         }
 
@@ -2074,6 +2038,7 @@
             const maxLeverageIndex = getMaxLeverageIndex();
             dom.leverageSlider.max = maxLeverageIndex;
             
+            // Cap current leverage if too high
             if (state.leverageIndex > maxLeverageIndex) {
                 state.leverageIndex = maxLeverageIndex;
                 dom.leverageSlider.value = state.leverageIndex;
@@ -2084,6 +2049,7 @@
             dom.leverageValue.style.color = leverage.color;
             dom.leverageFill.style.width = `${(state.leverageIndex / 7) * 100}%`;
             
+            // Update dots
             const dots = dom.leverageDots.querySelectorAll('.slider-dot');
             dots.forEach((dot, index) => {
                 dot.classList.toggle('active', index === state.leverageIndex);
@@ -2097,6 +2063,7 @@
         }
 
         function updateSliderThumbs() {
+            // Update leverage thumb position
             const leverageSliderWidth = dom.leverageSlider.offsetWidth;
             const leverageValue = parseInt(dom.leverageSlider.value);
             const leverageMax = parseInt(dom.leverageSlider.max) || 7;
@@ -2105,6 +2072,7 @@
             
             dom.leverageThumb.style.left = `${leverageThumbPos}px`;
             
+            // Update bet thumb position
             const betSliderWidth = dom.betSlider.offsetWidth;
             const betValue = parseInt(dom.betSlider.value);
             const betMax = parseInt(dom.betSlider.max) || 100;
@@ -2117,8 +2085,7 @@
         function updateTradeInfo() {
             const betAmount = calculateBetAmount();
             const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
-            const payoutWin = betAmount * leverage;
-            const payoutLose = -betAmount * leverage;
+            const payout = betAmount * leverage;
             
             dom.tradeInfo.innerHTML = `
                 <div style="margin-bottom: 4px;">
@@ -2126,8 +2093,7 @@
                     Leverage: <strong>${leverage}x</strong>
                 </div>
                 <div>
-                    Win: <strong style="color: #00ff88">+${formatCurrency(payoutWin)}</strong> | 
-                    Lose: <strong style="color: #ff4444">${formatCurrency(payoutLose)}</strong>
+                    Potential Payout: <strong>${formatCurrency(payout)}</strong>
                 </div>
             `;
         }
@@ -2146,45 +2112,52 @@
 
         // ==================== PAGE MANAGEMENT ====================
         function showTradingPage() {
+            // Close all pages
             dom.accountPage.classList.remove('active');
             dom.rankPage.classList.remove('active');
             dom.infoPage.classList.remove('active');
             dom.settingsPage.classList.remove('active');
             
+            // Update dock active state
             state.currentPage = 'trading';
             updateDockActiveState();
             
+            // Mostra i bottoni LONG/SHORT
             dom.longShortSection.style.display = 'block';
         }
 
         function openPage(page, pageName) {
+            // Close all pages first
             dom.accountPage.classList.remove('active');
             dom.rankPage.classList.remove('active');
             dom.infoPage.classList.remove('active');
             dom.settingsPage.classList.remove('active');
             
+            // Open the requested page
             page.classList.add('active');
             state.currentPage = pageName;
             updateDockActiveState();
             
+            // Nascondi i bottoni LONG/SHORT quando si è in una pagina
             dom.longShortSection.style.display = 'none';
             
+            // Update page content if needed
             if (page === dom.accountPage) {
                 updateAccountPage();
             } else if (page === dom.rankPage) {
                 updateRankPage();
-            } else if (page === dom.settingsPage) {
-                updateCooldownButtons();
             }
         }
 
         function updateDockActiveState() {
+            // Remove active class from all dock items
             dom.dockTrading.classList.remove('active');
             dom.dockAccount.classList.remove('active');
             dom.dockRank.classList.remove('active');
             dom.dockSettings.classList.remove('active');
             dom.dockInfo.classList.remove('active');
             
+            // Add active class to current page
             switch(state.currentPage) {
                 case 'trading':
                     dom.dockTrading.classList.add('active');
@@ -2206,6 +2179,7 @@
 
         // ==================== ACCOUNT PAGE ====================
         function updateAccountPage() {
+            // Update personal stats
             dom.accountBalance.textContent = formatCurrency(state.balance);
             dom.accountBestBalance.textContent = formatCurrency(state.bestBalance);
             dom.accountTotalTrades.textContent = state.totalTrades;
@@ -2217,6 +2191,7 @@
             dom.accountLevel.textContent = level;
             dom.accountLevel.style.color = CONFIG.LEVERAGES[state.leverageIndex].color;
             
+            // Update leverage statistics
             CONFIG.LEVERAGES.forEach(leverage => {
                 const stats = state.leverageStats[leverage.value];
                 const element = dom[`leverage${leverage.value}`];
@@ -2229,6 +2204,7 @@
 
         // ==================== RANK PAGE ====================
         function updateRankPage() {
+            // Simulate some rank data
             const ranks = [
                 { name: state.username, balance: state.bestBalance, level: CONFIG.LEVERAGES[state.leverageIndex].name },
                 { name: "BitcoinKing", balance: 50000, level: "Expert" },
@@ -2239,6 +2215,7 @@
                 { name: "CryptoNewbie", balance: 4000, level: "Novice" }
             ];
             
+            // Sort by balance descending
             ranks.sort((a, b) => b.balance - a.balance);
             
             dom.rankList.innerHTML = '';
@@ -2246,6 +2223,7 @@
                 const rankItem = document.createElement('div');
                 rankItem.className = 'rank-item';
                 
+                // Highlight current player
                 if (player.name === state.username) {
                     rankItem.style.backgroundColor = 'rgba(0, 255, 136, 0.1)';
                     rankItem.style.borderRadius = '8px';
@@ -2284,12 +2262,13 @@
             state.gameActive = true;
             state.leverageIndex = 0;
             state.betPercentage = 5;
+            state.cooldownActive = false;
+            state.tradeActive = false;
             
             dom.leverageSlider.value = state.leverageIndex;
             dom.betSlider.value = state.betPercentage;
             dom.gameOverScreen.style.display = 'none';
             
-            endCooldown();
             updateUI();
             saveGameState();
             resetTradeState();
@@ -2324,8 +2303,7 @@
                 soundEnabled: state.soundEnabled,
                 hapticEnabled: state.hapticEnabled,
                 username: state.username,
-                leverageStats: state.leverageStats,
-                cooldownTime: state.cooldownTime
+                leverageStats: state.leverageStats
             };
             
             localStorage.setItem('xtrade_game_state', JSON.stringify(gameState));
@@ -2337,6 +2315,7 @@
                 if (saved) {
                     const gameState = JSON.parse(saved);
                     
+                    // Load all state properties
                     Object.assign(state, {
                         balance: gameState.balance || CONFIG.INITIAL_BALANCE,
                         bestBalance: gameState.bestBalance || CONFIG.INITIAL_BALANCE,
@@ -2347,13 +2326,14 @@
                         soundEnabled: gameState.soundEnabled !== undefined ? gameState.soundEnabled : true,
                         hapticEnabled: gameState.hapticEnabled !== undefined ? gameState.hapticEnabled : true,
                         username: gameState.username || "Trader",
-                        leverageStats: gameState.leverageStats || {},
-                        cooldownTime: gameState.cooldownTime || CONFIG.COOLDOWN_TIME
+                        leverageStats: gameState.leverageStats || {}
                     });
                     
+                    // Ensure minimum balance
                     state.balance = Math.max(CONFIG.MIN_BALANCE, state.balance);
                     state.bestBalance = Math.max(state.bestBalance, CONFIG.MIN_BALANCE);
                     
+                    // Update UI elements
                     dom.leverageSlider.value = state.leverageIndex;
                     dom.betSlider.value = state.betPercentage;
                     dom.soundToggle.checked = state.soundEnabled;
