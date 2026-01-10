@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>XTRADE - Bitcoin Real Time Trading</title>
+    <title>XTRADE - Bitcoin 30 Second Chart</title>
     <style>
         /* ===== RESET & BASE ===== */
         * {
@@ -238,7 +238,7 @@
             flex: 1;
             min-height: 0;
             position: relative;
-            padding: 20px;
+            padding: 15px;
             background: #050505;
         }
         
@@ -246,7 +246,7 @@
             width: 100%;
             height: 100%;
             background: #0a0a0a;
-            border-radius: 20px;
+            border-radius: 16px;
             overflow: hidden;
             position: relative;
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -261,9 +261,9 @@
         
         .chart-overlay {
             position: absolute;
-            top: 16px;
-            left: 16px;
-            right: 16px;
+            top: 12px;
+            left: 12px;
+            right: 12px;
             display: flex;
             justify-content: space-between;
             pointer-events: none;
@@ -273,9 +273,9 @@
         .chart-badge {
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(20px);
-            padding: 10px 16px;
-            border-radius: 12px;
-            font-size: 13px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12px;
             font-weight: 700;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -285,9 +285,9 @@
         }
         
         .chart-badge .price-change {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 6px;
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 5px;
             font-weight: 600;
         }
         
@@ -299,6 +299,24 @@
         .chart-badge .negative {
             background: rgba(255, 68, 68, 0.2);
             color: #ff4444;
+        }
+        
+        /* Chart time labels */
+        .time-labels {
+            position: absolute;
+            bottom: 8px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        .time-label {
+            font-size: 9px;
+            color: #666666;
+            font-weight: 600;
         }
         
         /* ===== CONTROLS ===== */
@@ -806,7 +824,7 @@
             }
             
             .chart-section {
-                padding: 16px;
+                padding: 12px;
             }
             
             .controls-section {
@@ -956,93 +974,6 @@
             transition: all 0.3s ease;
         }
         
-        /* ===== LOADING INDICATOR ===== */
-        .loading-indicator {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            z-index: 10;
-        }
-        
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #00ff88;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .loading-text {
-            color: #888888;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        /* ===== NOTIFICATION ===== */
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(20px);
-            padding: 16px 24px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            z-index: 1001;
-            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: none;
-            align-items: center;
-            gap: 12px;
-            max-width: 90%;
-        }
-        
-        .notification.show {
-            display: flex;
-        }
-        
-        .notification-icon {
-            font-size: 20px;
-        }
-        
-        .notification-content {
-            flex: 1;
-        }
-        
-        .notification-title {
-            font-weight: 700;
-            margin-bottom: 4px;
-            font-size: 15px;
-        }
-        
-        .notification-message {
-            font-size: 13px;
-            color: #888888;
-        }
-        
-        .notification.success {
-            border-color: rgba(0, 255, 136, 0.3);
-        }
-        
-        .notification.error {
-            border-color: rgba(255, 68, 68, 0.3);
-        }
-        
-        .notification.warning {
-            border-color: rgba(255, 170, 68, 0.3);
-        }
-        
         /* ===== CONNECTION STATUS ===== */
         .connection-status {
             position: fixed;
@@ -1085,6 +1016,51 @@
             background: #ff4444;
             box-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
         }
+        
+        /* ===== PRICE MOVEMENT INDICATOR ===== */
+        .price-movement-indicator {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .price-movement-indicator.up {
+            color: #00ff88;
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+        
+        .price-movement-indicator.down {
+            color: #ff4444;
+            border-color: rgba(255, 68, 68, 0.3);
+        }
+        
+        /* ===== SECOND MARKERS ===== */
+        .second-marker {
+            position: absolute;
+            bottom: 0;
+            width: 1px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+        
+        .second-marker.major {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -1094,18 +1070,15 @@
         <span>LIVE</span>
     </div>
     
-    <!-- Notification -->
-    <div class="notification" id="notification">
-        <div class="notification-icon"></div>
-        <div class="notification-content">
-            <div class="notification-title"></div>
-            <div class="notification-message"></div>
-        </div>
-    </div>
-    
     <!-- Trade Status Indicator -->
     <div class="trade-status-indicator" id="tradeStatusIndicator">
         <div>READY</div>
+    </div>
+    
+    <!-- Price Movement Indicator -->
+    <div class="price-movement-indicator" id="priceMovementIndicator" style="display: none;">
+        <span id="movementIcon">↑</span>
+        <span id="movementText">+$0 (0.00%)</span>
     </div>
     
     <!-- Dock -->
@@ -1259,11 +1232,12 @@
             
             <h2>How It Works</h2>
             <ul>
-                <li><strong>Real Bitcoin Price</strong>: Uses live BTC/USD price from multiple APIs</li>
-                <li><strong>10-Second Trades</strong>: Choose LONG (price up) or SHORT (price down) and wait 10 seconds</li>
+                <li><strong>30-Second Chart</strong>: Real-time BTC price updated every second</li>
+                <li><strong>10-Second Trades</strong>: Choose LONG (price up) or SHORT (price down)</li>
                 <li><strong>Real Price Comparison</strong>: Win if your prediction matches actual price movement</li>
                 <li><strong>No Probability</strong>: Wins/losses determined solely by actual BTC price direction</li>
                 <li><strong>Cooldown System</strong>: 10 seconds wait between trades</li>
+                <li><strong>Clear Chart</strong>: 30-second window shows every price movement clearly</li>
             </ul>
             
             <h2>Trading Rules</h2>
@@ -1274,6 +1248,9 @@
                 <li><strong>Payout</strong>: Bet Amount × Leverage (if win) / -Bet Amount × Leverage (if lose)</li>
                 <li><strong>Cooldown</strong>: 10 seconds between trades to prevent spam</li>
             </ul>
+            
+            <h2>Chart Information</h2>
+            <p>The chart shows the <strong>last 30 seconds</strong> of Bitcoin price data. Each second is clearly visible, making it easy to see price trends and make informed trading decisions.</p>
             
             <h2>Note About Real Trading</h2>
             <p>This is a simulation game. Real Bitcoin trading involves much higher risk and market volatility. Never invest money you cannot afford to lose.</p>
@@ -1339,8 +1316,14 @@
                         <div class="price-change positive">+0.00%</div>
                     </div>
                     <div class="chart-badge" id="timeBadge">
-                        <div>10s TRADE</div>
+                        <div>30s CHART</div>
                     </div>
+                </div>
+                <div class="time-labels" id="timeLabels">
+                    <div class="time-label">30s</div>
+                    <div class="time-label">20s</div>
+                    <div class="time-label">10s</div>
+                    <div class="time-label">NOW</div>
                 </div>
             </div>
         </div>
@@ -1422,9 +1405,10 @@
             MIN_BALANCE: 1000,
             TRADE_DURATION: 10000, // 10 secondi per il trade
             COOLDOWN_DURATION: 10000, // 10 secondi di cooldown tra i trade
+            CHART_TIME_WINDOW: 30000, // 30 secondi di finestra temporale
             API_UPDATE_INTERVAL: 1000, // Aggiorna ogni secondo
             CHART_UPDATE_INTERVAL: 100, // Aggiorna il grafico ogni 100ms per fluidità
-            MAX_HISTORY_POINTS: 200,
+            MAX_HISTORY_POINTS: 60, // Solo 60 punti (30 secondi con aggiornamento ogni 0.5s)
             
             // API endpoints
             API_ENDPOINTS: [
@@ -1480,7 +1464,7 @@
             currentPage: 'trading',
             
             // Variabili per la simulazione realistica
-            marketVolatility: 0.001,
+            marketVolatility: 0.0005, // 0.05% di volatilità per vedere meglio le variazioni
             marketTrend: 0,
             lastSimulatedPrice: 50000,
             priceUpdateInterval: null,
@@ -1488,7 +1472,11 @@
             
             // Connection status
             isOnline: true,
-            lastPriceUpdate: 0
+            lastPriceUpdate: 0,
+            
+            // Price movement tracking
+            lastPriceMovement: 0,
+            priceMovementTimer: null
         };
 
         // Initialize leverage stats
@@ -1511,6 +1499,10 @@
             tradeStatusIndicator: document.getElementById('tradeStatusIndicator'),
             btcPriceBadge: document.getElementById('btcPriceBadge'),
             timeBadge: document.getElementById('timeBadge'),
+            timeLabels: document.getElementById('timeLabels'),
+            priceMovementIndicator: document.getElementById('priceMovementIndicator'),
+            movementIcon: document.getElementById('movementIcon'),
+            movementText: document.getElementById('movementText'),
             
             // Controls
             longBtn: document.getElementById('longBtn'),
@@ -1574,12 +1566,6 @@
             infoPage: document.getElementById('infoPage'),
             settingsPage: document.getElementById('settingsPage'),
             
-            // Notification
-            notification: document.getElementById('notification'),
-            notificationTitle: document.querySelector('.notification-title'),
-            notificationMessage: document.querySelector('.notification-message'),
-            notificationIcon: document.querySelector('.notification-icon'),
-            
             // Connection status
             connectionStatus: document.getElementById('connectionStatus')
         };
@@ -1631,29 +1617,28 @@
             return betAmount * leverage;
         }
 
-        function showNotification(type, title, message, duration = 3000) {
-            const notification = dom.notification;
-            const icon = dom.notificationIcon;
+        function showPriceMovement(change, changePercent) {
+            const indicator = dom.priceMovementIndicator;
+            const icon = dom.movementIcon;
+            const text = dom.movementText;
             
-            notification.className = `notification ${type}`;
-            notification.querySelector('.notification-title').textContent = title;
-            notification.querySelector('.notification-message').textContent = message;
-            
-            // Set icon based on type
-            if (type === 'success') {
-                icon.textContent = '✓';
-            } else if (type === 'error') {
-                icon.textContent = '✗';
-            } else if (type === 'warning') {
-                icon.textContent = '⚠';
+            if (Math.abs(change) < 0.01) {
+                indicator.style.display = 'none';
+                return;
             }
             
-            notification.classList.add('show');
+            const isUp = change > 0;
+            indicator.className = isUp ? 'price-movement-indicator up' : 'price-movement-indicator down';
+            icon.textContent = isUp ? '↑' : '↓';
+            text.textContent = `${isUp ? '+' : ''}$${Math.abs(change).toFixed(2)} (${isUp ? '+' : ''}${changePercent.toFixed(2)}%)`;
             
-            // Auto hide after duration
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, duration);
+            indicator.style.display = 'flex';
+            
+            // Auto hide after 2 seconds
+            clearTimeout(state.priceMovementTimer);
+            state.priceMovementTimer = setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 2000);
         }
 
         // ==================== BITCOIN PRICE FUNCTIONS ====================
@@ -1662,7 +1647,7 @@
             for (const endpoint of CONFIG.API_ENDPOINTS) {
                 try {
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+                    const timeoutId = setTimeout(() => controller.abort(), 2000);
                     
                     const response = await fetch(endpoint, { signal: controller.signal });
                     clearTimeout(timeoutId);
@@ -1692,28 +1677,37 @@
             const now = Date.now();
             const timeDiff = now - state.lastApiSuccess;
             
-            // Random market trend changes
-            if (Math.random() < 0.005) {
-                state.marketTrend = (Math.random() - 0.5) * 0.002;
+            // More frequent trend changes for a 30-second chart
+            if (Math.random() < 0.1) { // 10% chance per update
+                state.marketTrend = (Math.random() - 0.5) * 0.001;
             }
             
-            // Add volatility with occasional spikes
-            const volatility = state.marketVolatility * (1 + Math.random() * 0.8);
+            // Higher volatility for better visibility
+            const volatility = state.marketVolatility * (1 + Math.random() * 2);
             const randomMove = (Math.random() - 0.5) * volatility;
             const trendMove = state.marketTrend * (timeDiff / 1000);
             
-            // Occasionally add market events
+            // Occasionally add market events for more interesting chart
             let eventMove = 0;
-            if (Math.random() < 0.001) {
-                eventMove = (Math.random() - 0.5) * 0.01; // 1% move
+            if (Math.random() < 0.02) { // 2% chance per update
+                eventMove = (Math.random() - 0.5) * 0.002; // 0.2% move
             }
             
             const newPrice = state.lastSimulatedPrice * (1 + trendMove + randomMove + eventMove);
             
-            // Keep price in realistic range
-            const boundedPrice = Math.max(35000, Math.min(75000, newPrice));
+            // Keep price in realistic range but allow more movement
+            const boundedPrice = Math.max(48000, Math.min(52000, newPrice));
             
+            const oldPrice = state.lastSimulatedPrice;
             state.lastSimulatedPrice = boundedPrice;
+            
+            // Show price movement indicator
+            const change = boundedPrice - oldPrice;
+            const changePercent = (change / oldPrice) * 100;
+            if (Math.abs(change) > 0.1) {
+                showPriceMovement(change, changePercent);
+            }
+            
             return boundedPrice;
         }
 
@@ -1735,7 +1729,6 @@
                         if (!state.isOnline) {
                             state.isOnline = true;
                             updateConnectionStatus();
-                            showNotification('success', 'Connected', 'Real-time data restored', 2000);
                         }
                     } catch (error) {
                         console.warn('Real API failed, using simulation');
@@ -1744,12 +1737,11 @@
                         isRealData = false;
                         
                         // Switch to simulation after multiple failures
-                        if (state.apiFailCount > 3) {
+                        if (state.apiFailCount > 2) {
                             state.useRealData = false;
                             if (state.isOnline) {
                                 state.isOnline = false;
                                 updateConnectionStatus();
-                                showNotification('warning', 'Using Simulation', 'Real data unavailable', 3000);
                             }
                         }
                     }
@@ -1788,9 +1780,15 @@
                     isRealData: isRealData
                 });
                 
-                // Keep only recent points
+                // Keep only points within the last 30 seconds
+                const cutoffTime = now - CONFIG.CHART_TIME_WINDOW;
+                state.btcPriceHistory = state.btcPriceHistory.filter(p => p.time >= cutoffTime);
+                
+                // Limit total points for performance
                 if (state.btcPriceHistory.length > CONFIG.MAX_HISTORY_POINTS) {
-                    state.btcPriceHistory = state.btcPriceHistory.slice(-CONFIG.MAX_HISTORY_POINTS);
+                    // Keep points at regular intervals
+                    const step = Math.ceil(state.btcPriceHistory.length / CONFIG.MAX_HISTORY_POINTS);
+                    state.btcPriceHistory = state.btcPriceHistory.filter((_, index) => index % step === 0);
                 }
                 
                 // Update price badge
@@ -1855,155 +1853,185 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
             
-            // Draw subtle grid
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            // Draw time grid (seconds)
+            const now = Date.now();
+            const startTime = now - CONFIG.CHART_TIME_WINDOW;
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
             ctx.lineWidth = 1;
-            ctx.setLineDash([2, 2]);
+            ctx.setLineDash([2, 4]);
             
-            // Horizontal grid lines
-            for (let i = 1; i < 5; i++) {
-                const y = i * (height / 5);
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(width, y);
-                ctx.stroke();
-            }
-            
-            // Vertical grid lines
-            for (let i = 1; i < 5; i++) {
-                const x = i * (width / 5);
+            // Draw second markers
+            for (let i = 0; i <= 30; i += 5) {
+                const time = startTime + (i * 1000);
+                const x = ((time - startTime) / CONFIG.CHART_TIME_WINDOW) * width;
+                
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, height);
                 ctx.stroke();
+                
+                // Draw time labels at bottom
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(`${30 - i}s`, x, height - 20);
             }
             
             ctx.setLineDash([]);
             
-            // Calculate price range with padding
-            const prices = state.btcPriceHistory.map(p => p.price);
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
-            const priceRange = maxPrice - minPrice;
-            const padding = priceRange * 0.15;
-            const chartMin = minPrice - padding;
-            const chartMax = maxPrice + padding;
-            const chartRange = chartMax - chartMin;
-            
-            // Draw price line with gradient
-            const points = state.btcPriceHistory;
-            const pointCount = points.length;
-            
-            // Create gradient for line
-            const lineGradient = ctx.createLinearGradient(0, 0, width, 0);
-            lineGradient.addColorStop(0, state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444');
-            lineGradient.addColorStop(1, state.btcPriceChange >= 0 ? '#00cc6a' : '#cc3636');
-            
-            ctx.beginPath();
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = lineGradient;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            for (let i = 0; i < pointCount; i++) {
-                const point = points[i];
-                const x = (i / (pointCount - 1)) * width * 0.92 + width * 0.04;
-                const y = height - ((point.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
+            // Draw price grid lines
+            if (state.btcPriceHistory.length > 0) {
+                const prices = state.btcPriceHistory.map(p => p.price);
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                const priceRange = maxPrice - minPrice;
+                const padding = priceRange * 0.1;
+                const chartMin = minPrice - padding;
+                const chartMax = maxPrice + padding;
+                const chartRange = chartMax - chartMin;
                 
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
+                // Draw horizontal grid lines
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+                ctx.lineWidth = 1;
+                
+                for (let i = 0; i <= 5; i++) {
+                    const priceLevel = chartMin + (chartRange * (i / 5));
+                    const y = height - (i / 5) * height;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                    ctx.stroke();
+                    
+                    // Draw price labels on the left
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.font = '9px Arial';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`$${priceLevel.toFixed(0)}`, 5, y);
                 }
-            }
-            
-            ctx.stroke();
-            
-            // Draw gradient under line
-            if (pointCount > 1) {
-                const firstPoint = points[0];
-                const lastPoint = points[pointCount - 1];
                 
-                const firstX = width * 0.04;
-                const firstY = height - ((firstPoint.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
-                const lastX = width * 0.96;
-                const lastY = height - ((lastPoint.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
-                
-                const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
-                areaGradient.addColorStop(0, state.btcPriceChange >= 0 ? 
-                    'rgba(0, 255, 136, 0.25)' : 'rgba(255, 68, 68, 0.25)');
-                areaGradient.addColorStop(1, 'transparent');
-                
-                ctx.fillStyle = areaGradient;
+                // Draw the price line
                 ctx.beginPath();
-                ctx.moveTo(firstX, firstY);
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444';
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
                 
-                for (let i = 1; i < pointCount; i++) {
+                const points = state.btcPriceHistory;
+                
+                for (let i = 0; i < points.length; i++) {
                     const point = points[i];
-                    const x = (i / (pointCount - 1)) * width * 0.92 + width * 0.04;
-                    const y = height - ((point.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
-                    ctx.lineTo(x, y);
+                    const x = ((point.time - startTime) / CONFIG.CHART_TIME_WINDOW) * width;
+                    const y = height - ((point.price - chartMin) / chartRange * height);
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
                 }
                 
-                ctx.lineTo(lastX, height);
-                ctx.lineTo(firstX, height);
-                ctx.closePath();
-                ctx.fill();
-            }
-            
-            // Draw current price point with glow
-            if (pointCount > 0) {
-                const lastPoint = points[pointCount - 1];
-                const lastX = width * 0.96;
-                const lastY = height - ((lastPoint.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
-                
-                // Glow effect
-                const glowGradient = ctx.createRadialGradient(lastX, lastY, 0, lastX, lastY, 15);
-                glowGradient.addColorStop(0, state.btcPriceChange >= 0 ? 
-                    'rgba(0, 255, 136, 0.4)' : 'rgba(255, 68, 68, 0.4)');
-                glowGradient.addColorStop(1, 'transparent');
-                
-                ctx.fillStyle = glowGradient;
-                ctx.beginPath();
-                ctx.arc(lastX, lastY, 15, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Outer circle
-                ctx.beginPath();
-                ctx.arc(lastX, lastY, 8, 0, Math.PI * 2);
-                ctx.fillStyle = state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444';
-                ctx.fill();
-                
-                // Inner circle
-                ctx.beginPath();
-                ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffffff';
-                ctx.fill();
-            }
-            
-            // Draw trade start line if active
-            if (state.tradeActive && state.tradeStartPrice > 0) {
-                const startY = height - ((state.tradeStartPrice - chartMin) / chartRange * height) * 0.9 - height * 0.05;
-                
-                ctx.beginPath();
-                ctx.setLineDash([5, 3]);
-                ctx.strokeStyle = state.tradeDirection === 'long' ? 
-                    'rgba(0, 255, 136, 0.8)' : 'rgba(255, 68, 68, 0.8)';
-                ctx.lineWidth = 2;
-                ctx.moveTo(width * 0.04, startY);
-                ctx.lineTo(width * 0.96, startY);
                 ctx.stroke();
-                ctx.setLineDash([]);
                 
-                // Draw start price label
-                ctx.fillStyle = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
-                ctx.font = 'bold 12px Arial';
-                ctx.textAlign = 'left';
-                ctx.fillText(
-                    `Entry: $${state.tradeStartPrice.toLocaleString('en-US', {maximumFractionDigits: 0})}`,
-                    width * 0.04 + 5,
-                    startY - 10
-                );
+                // Draw gradient under line
+                if (points.length > 1) {
+                    const firstPoint = points[0];
+                    const lastPoint = points[points.length - 1];
+                    
+                    const firstX = ((firstPoint.time - startTime) / CONFIG.CHART_TIME_WINDOW) * width;
+                    const firstY = height - ((firstPoint.price - chartMin) / chartRange * height);
+                    const lastX = ((lastPoint.time - startTime) / CONFIG.CHART_TIME_WINDOW) * width;
+                    const lastY = height - ((lastPoint.price - chartMin) / chartRange * height);
+                    
+                    const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
+                    areaGradient.addColorStop(0, state.btcPriceChange >= 0 ? 
+                        'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)');
+                    areaGradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = areaGradient;
+                    ctx.beginPath();
+                    ctx.moveTo(firstX, firstY);
+                    
+                    for (let i = 1; i < points.length; i++) {
+                        const point = points[i];
+                        const x = ((point.time - startTime) / CONFIG.CHART_TIME_WINDOW) * width;
+                        const y = height - ((point.price - chartMin) / chartRange * height);
+                        ctx.lineTo(x, y);
+                    }
+                    
+                    ctx.lineTo(lastX, height);
+                    ctx.lineTo(firstX, height);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                
+                // Draw current price point
+                if (points.length > 0) {
+                    const lastPoint = points[points.length - 1];
+                    const lastX = ((lastPoint.time - startTime) / CONFIG.CHART_TIME_WINDOW) * width;
+                    const lastY = height - ((lastPoint.price - chartMin) / chartRange * height);
+                    
+                    // Glow effect
+                    const glowGradient = ctx.createRadialGradient(lastX, lastY, 0, lastX, lastY, 12);
+                    glowGradient.addColorStop(0, state.btcPriceChange >= 0 ? 
+                        'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)');
+                    glowGradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = glowGradient;
+                    ctx.beginPath();
+                    ctx.arc(lastX, lastY, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Outer circle
+                    ctx.beginPath();
+                    ctx.arc(lastX, lastY, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444';
+                    ctx.fill();
+                    
+                    // Inner circle
+                    ctx.beginPath();
+                    ctx.arc(lastX, lastY, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fill();
+                    
+                    // Draw current price label
+                    ctx.fillStyle = state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444';
+                    ctx.font = 'bold 11px Arial';
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(
+                        `$${lastPoint.price.toLocaleString('en-US', {maximumFractionDigits: 0})}`,
+                        lastX - 8, lastY - 8
+                    );
+                }
+                
+                // Draw trade start line if active
+                if (state.tradeActive && state.tradeStartPrice > 0) {
+                    const startY = height - ((state.tradeStartPrice - chartMin) / chartRange * height);
+                    
+                    ctx.beginPath();
+                    ctx.setLineDash([5, 3]);
+                    ctx.strokeStyle = state.tradeDirection === 'long' ? 
+                        'rgba(0, 255, 136, 0.6)' : 'rgba(255, 68, 68, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(0, startY);
+                    ctx.lineTo(width, startY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Draw start price label
+                    ctx.fillStyle = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
+                    ctx.font = 'bold 10px Arial';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(
+                        `Entry: $${state.tradeStartPrice.toLocaleString('en-US', {maximumFractionDigits: 0})}`,
+                        10, startY - 5
+                    );
+                }
             }
             
             // Request next frame
@@ -2036,10 +2064,6 @@
             // Update UI
             updateTradeUI();
             updateTradeStatusIndicator();
-            
-            // Show notification
-            showNotification('success', 'Trade Started', 
-                `${direction.toUpperCase()} position opened at $${state.tradeStartPrice.toLocaleString()}`, 2000);
             
             // Start trade completion timer
             setTimeout(() => {
@@ -2097,13 +2121,9 @@
             }
             
             // Handle draw (no price change)
-            if (finalPrice === state.tradeStartPrice) {
+            if (Math.abs(priceChange) < 0.01) {
                 state.tradeResult = null;
                 showTradeResult(null, 0, 0);
-                
-                // Show notification
-                showNotification('warning', 'Trade Canceled', 
-                    'No price movement - trade canceled', 3000);
                 
                 // Reset after delay
                 setTimeout(() => {
@@ -2133,12 +2153,8 @@
                 state.wins++;
                 state.leverageStats[leverage].wins++;
                 if (state.soundEnabled) playSound('win');
-                showNotification('success', 'Trade Won!', 
-                    `+${formatCurrency(Math.abs(result))} | ${priceChangePercent.toFixed(2)}%`, 3000);
             } else {
                 if (state.soundEnabled) playSound('lose');
-                showNotification('error', 'Trade Lost', 
-                    `${formatCurrency(result)} | ${priceChangePercent.toFixed(2)}%`, 3000);
             }
             
             if (state.balance > state.bestBalance) {
@@ -2150,7 +2166,6 @@
                 state.gameActive = false;
                 dom.gameOverScreen.style.display = 'flex';
                 if (state.soundEnabled) playSound('bankruptcy');
-                showNotification('error', 'Bankruptcy', 'Balance reached zero', 5000);
             }
             
             // Show trade result
@@ -2204,9 +2219,6 @@
             
             updateTradeUI();
             updateTradeStatusIndicator();
-            
-            // Show notification
-            showNotification('success', 'Ready to Trade', 'Cooldown complete', 2000);
         }
 
         function showTradeResult(isWin, changePercent, changeAmount) {
@@ -2299,21 +2311,15 @@
             updateSliderThumbs();
             updateDockActiveState();
             
-            // Initialize price history
+            // Initialize price history with 30 seconds of data
             initializePriceHistory();
             
-            // Start price updates
+            // Start price updates every second
             updateBitcoinPrice();
             state.priceUpdateInterval = setInterval(updateBitcoinPrice, CONFIG.API_UPDATE_INTERVAL);
             
             // Start chart animation
             drawBtcChart();
-            
-            // Show welcome notification
-            setTimeout(() => {
-                showNotification('success', 'Welcome to XTRADE', 
-                    'Real-time Bitcoin trading simulator', 3000);
-            }, 1000);
         }
 
         function setupCanvas() {
@@ -2344,18 +2350,21 @@
         }
 
         function initializePriceHistory() {
-            // Create initial price history
-            const basePrice = 50000;
+            // Create initial price history for the last 30 seconds
             const now = Date.now();
+            const basePrice = 50000;
             
-            for (let i = 0; i < 100; i++) {
-                const time = now - (100 - i) * 1000;
-                const price = basePrice + (Math.random() - 0.5) * 2000;
+            // Create 30 data points (one per second for 30 seconds)
+            for (let i = 0; i < 30; i++) {
+                const time = now - (30 - i) * 1000; // One second between each point
+                // Simulate some price movement
+                const randomMove = (Math.random() - 0.5) * 100;
+                const price = basePrice + randomMove;
                 
                 state.btcPriceHistory.push({
                     time: time,
                     price: price,
-                    change: (Math.random() - 0.5) * 0.5,
+                    change: 0,
                     isRealData: false
                 });
             }
@@ -2411,8 +2420,6 @@
 
         function handleTrade(direction) {
             if (!state.gameActive || state.tradeActive || state.isAnimating || state.cooldownActive) {
-                showNotification('warning', 'Cannot Trade', 
-                    state.cooldownActive ? 'Wait for cooldown' : 'Trade in progress', 2000);
                 return;
             }
             startBtcTrade(direction);
@@ -2717,8 +2724,6 @@
             updateUI();
             saveGameState();
             resetTradeState();
-            
-            showNotification('success', 'Game Restarted', 'Starting with $1,000', 2000);
         }
 
         function handleSoundToggle() {
@@ -2734,7 +2739,6 @@
         function handleResetData() {
             if (confirm("Are you sure you want to reset all game data? This cannot be undone.")) {
                 localStorage.removeItem('xtrade_game_state');
-                showNotification('success', 'Data Reset', 'All game data has been cleared', 3000);
                 setTimeout(() => {
                     location.reload();
                 }, 1000);
@@ -2791,8 +2795,6 @@
                     dom.hapticToggle.checked = state.hapticEnabled;
                     
                     state.lastBalance = state.balance;
-                    
-                    console.log('Game state loaded successfully');
                 }
             } catch (e) {
                 console.log('No saved game state or error loading:', e);
@@ -2809,6 +2811,9 @@
             }
             if (state.chartAnimationFrame) {
                 cancelAnimationFrame(state.chartAnimationFrame);
+            }
+            if (state.priceMovementTimer) {
+                clearTimeout(state.priceMovementTimer);
             }
         });
     </script>
