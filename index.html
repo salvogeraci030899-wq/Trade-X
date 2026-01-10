@@ -40,6 +40,7 @@
             display: flex;
             flex-direction: column;
             background: #000000;
+            padding-bottom: 70px; /* Spazio per i bottoni long/short */
         }
         
         /* ===== DOCK ===== */
@@ -100,7 +101,7 @@
         /* ===== LONG/SHORT BUTTONS SECTION ===== */
         .long-short-section {
             position: fixed;
-            bottom: 70px;
+            bottom: 70px; /* Sopra il dock */
             left: 0;
             right: 0;
             padding: 15px;
@@ -209,11 +210,11 @@
             min-height: 0;
             position: relative;
             padding: 15px;
-            transition: padding 0.3s ease;
+            transition: flex 0.3s ease;
         }
         
         .chart-section.expanded {
-            padding: 15px;
+            flex: 1.5;
         }
         
         .chart-wrapper {
@@ -293,11 +294,11 @@
         /* ===== CONTROLS ===== */
         .controls-section {
             flex-shrink: 0;
-            padding: 0 20px;
-            padding-bottom: 140px;
+            padding: 0 20px 20px;
             transition: all 0.3s ease;
-            max-height: 400px;
+            max-height: 1000px;
             overflow: hidden;
+            opacity: 1;
         }
         
         .controls-section.hidden {
@@ -519,7 +520,7 @@
             text-align: center;
             margin-top: 8px;
             min-height: 14px;
-            margin-bottom: 15px;
+            margin-bottom: 5px; /* Ridotto per evitare sovrapposizione */
         }
         
         /* ===== PAGINE OVERLAY ===== */
@@ -820,8 +821,7 @@
             }
             
             .controls-section {
-                padding: 0 16px;
-                padding-bottom: 135px;
+                padding: 0 16px 20px;
             }
             
             .long-short-section {
@@ -864,10 +864,6 @@
             
             .dock-icon {
                 font-size: 20px;
-            }
-            
-            .controls-section {
-                padding-bottom: 130px;
             }
         }
         
@@ -1993,6 +1989,7 @@
             state.tradeStartTime = Date.now();
             state.tradeResult = null;
             state.tradeCloseReason = null;
+            state.tradeEndPrice = 0;
             
             // Mostra real-time P&L
             dom.realTimePL.style.display = 'block';
@@ -2341,6 +2338,9 @@
             updateSliderThumbs();
             updateDockActiveState();
             
+            // Re-attach event listeners for LONG/SHORT buttons
+            attachTradeButtonListeners();
+            
             dom.chartWrapper.classList.remove('loading');
             dom.priceIndicator.textContent = 'BTC Loading...';
             
@@ -2400,9 +2400,20 @@
             }
         }
 
+        function attachTradeButtonListeners() {
+            if (dom.longBtn) {
+                dom.longBtn.addEventListener('click', handleLong);
+            }
+            if (dom.shortBtn) {
+                dom.shortBtn.addEventListener('click', handleShort);
+            }
+        }
+
         function setupEventListeners() {
-            // Trade buttons will be attached dynamically in updateTradeUI
+            // Attach trade button listeners
+            attachTradeButtonListeners();
             
+            // Sliders
             dom.leverageSlider.addEventListener('input', handleLeverageChange);
             dom.betSlider.addEventListener('input', handleBetChange);
             dom.stopLossSlider.addEventListener('input', handleStopLossChange);
