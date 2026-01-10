@@ -41,6 +41,8 @@
             flex-direction: column;
             background: #000000;
             padding-bottom: 70px; /* Spazio per il dock */
+            position: relative;
+            overflow: hidden;
         }
         
         /* ===== DOCK ===== */
@@ -234,13 +236,55 @@
             background: rgba(255, 255, 255, 0.05);
         }
         
-        /* ===== CONTROLS ===== */
-        .controls-section {
-            flex: 1; /* Spazio ridotto per i controlli */
+        /* ===== PAGINE CONTROLLI ===== */
+        .controls-container {
+            flex: 1;
             min-height: 0;
+            position: relative;
+            overflow: hidden;
+            width: 200%; /* 2 pagine */
+            display: flex;
+            transition: transform 0.3s ease;
+        }
+        
+        .controls-section {
+            width: 50%; /* Ogni pagina occupa metà del container */
+            height: 100%;
+            padding: 0 15px 15px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            padding: 0 15px 15px;
+        }
+        
+        .controls-section.page-1 {
+            padding-top: 15px;
+        }
+        
+        .controls-section.page-2 {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-indicator {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .page-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: background 0.3s ease;
+        }
+        
+        .page-dot.active {
+            background: #00ff88;
         }
         
         /* Sliders con pallini */
@@ -440,12 +484,17 @@
             font-size: 13px;
             font-weight: 700;
             text-align: center;
-            padding: 6px;
-            margin: 8px 0;
-            border-radius: 6px;
+            padding: 8px;
+            margin: 8px 0 12px 0;
+            border-radius: 8px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
+            min-height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         
         /* Unlock info */
@@ -464,7 +513,8 @@
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding: 10px 15px;
-            margin-top: 5px;
+            margin-top: auto; /* Spinge i bottoni in fondo */
+            flex-shrink: 0;
         }
         
         .trade-buttons {
@@ -824,19 +874,6 @@
             background-clip: text;
             z-index: 5;
             transition: all 0.3s ease;
-        }
-        
-        .chart-timeframe {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 5;
         }
         
         /* Loading indicator */
@@ -1326,107 +1363,118 @@
                     <div class="chart-badge" id="priceIndicator">BTC Loading...</div>
                 </div>
                 <div class="chart-current-price" id="currentPrice">-</div>
-                <div class="chart-timeframe">REAL-TIME 250ms</div>
             </div>
         </div>
         
-        <!-- Controls (with scroll) -->
-        <div class="controls-section" id="controlsSection">
-            <!-- Real-time P&L Display -->
-            <div class="real-time-pl" id="realTimePL" style="display: none;">
-                P&L: <span id="plAmount">$0</span> (<span id="plPercent">0.00%</span>)
-            </div>
-            
-            <div class="slider-group">
-                <div class="slider-header">
-                    <div class="slider-label">LEVERAGE</div>
-                    <div class="slider-value" id="leverageValue" style="color: #00ff88">1x</div>
+        <!-- Controls Container con due pagine scorrevoli -->
+        <div class="controls-container" id="controlsContainer">
+            <!-- Pagina 1: Solo i 4 slider -->
+            <div class="controls-section page-1" id="controlsPage1">
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <div class="slider-label">LEVERAGE</div>
+                        <div class="slider-value" id="leverageValue" style="color: #00ff88">1x</div>
+                    </div>
+                    <div class="slider-track">
+                        <div class="slider-fill leverage-fill" id="leverageFill" style="width: 0%"></div>
+                        <div class="slider-dots" id="leverageDots"></div>
+                        <input type="range" min="0" max="7" value="0" id="leverageSlider">
+                        <div class="slider-thumb leverage-thumb" id="leverageThumb"></div>
+                    </div>
                 </div>
-                <div class="slider-track">
-                    <div class="slider-fill leverage-fill" id="leverageFill" style="width: 0%"></div>
-                    <div class="slider-dots" id="leverageDots"></div>
-                    <input type="range" min="0" max="7" value="0" id="leverageSlider">
-                    <div class="slider-thumb leverage-thumb" id="leverageThumb"></div>
+                
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <div class="slider-label">BET AMOUNT</div>
+                        <div class="slider-value" id="betPercentageValue" style="color: #00a3ff">5%</div>
+                    </div>
+                    <div class="slider-track">
+                        <div class="slider-fill bet-fill" id="betFill" style="width: 5%"></div>
+                        <input type="range" min="1" max="100" value="5" id="betSlider">
+                        <div class="slider-thumb bet-thumb" id="betThumb"></div>
+                    </div>
+                    <div class="slider-ticks">
+                        <div class="tick">1%</div>
+                        <div class="tick">25%</div>
+                        <div class="tick">50%</div>
+                        <div class="tick">75%</div>
+                        <div class="tick">100%</div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="slider-group">
-                <div class="slider-header">
-                    <div class="slider-label">BET AMOUNT</div>
-                    <div class="slider-value" id="betPercentageValue" style="color: #00a3ff">5%</div>
+                
+                <div class="slider-group" id="stopLossGroup">
+                    <div class="slider-header">
+                        <div class="slider-label" id="stopLossLabel">STOP LOSS</div>
+                        <div class="slider-value" id="stopLossValue" style="color: #ff4444">-2%</div>
+                    </div>
+                    <div class="slider-track" id="stopLossTrack">
+                        <div class="slider-fill stop-loss-fill" id="stopLossFill" style="width: 20%"></div>
+                        <input type="range" min="1" max="20" value="2" id="stopLossSlider">
+                        <div class="slider-thumb stop-loss-thumb" id="stopLossThumb"></div>
+                    </div>
+                    <div class="slider-ticks">
+                        <div class="tick">1%</div>
+                        <div class="tick">5%</div>
+                        <div class="tick">10%</div>
+                        <div class="tick">15%</div>
+                        <div class="tick">20%</div>
+                    </div>
                 </div>
-                <div class="slider-track">
-                    <div class="slider-fill bet-fill" id="betFill" style="width: 5%"></div>
-                    <input type="range" min="1" max="100" value="5" id="betSlider">
-                    <div class="slider-thumb bet-thumb" id="betThumb"></div>
-                </div>
-                <div class="slider-ticks">
-                    <div class="tick">1%</div>
-                    <div class="tick">25%</div>
-                    <div class="tick">50%</div>
-                    <div class="tick">75%</div>
-                    <div class="tick">100%</div>
-                </div>
-            </div>
-            
-            <div class="slider-group" id="stopLossGroup">
-                <div class="slider-header">
-                    <div class="slider-label" id="stopLossLabel">STOP LOSS</div>
-                    <div class="slider-value" id="stopLossValue" style="color: #ff4444">-2%</div>
-                </div>
-                <div class="slider-track" id="stopLossTrack">
-                    <div class="slider-fill stop-loss-fill" id="stopLossFill" style="width: 20%"></div>
-                    <input type="range" min="1" max="20" value="2" id="stopLossSlider">
-                    <div class="slider-thumb stop-loss-thumb" id="stopLossThumb"></div>
-                </div>
-                <div class="slider-ticks">
-                    <div class="tick">1%</div>
-                    <div class="tick">5%</div>
-                    <div class="tick">10%</div>
-                    <div class="tick">15%</div>
-                    <div class="tick">20%</div>
-                </div>
-            </div>
-            
-            <div class="slider-group" id="takeProfitGroup">
-                <div class="slider-header">
-                    <div class="slider-label" id="takeProfitLabel">TAKE PROFIT</div>
-                    <div class="slider-value" id="takeProfitValue" style="color: #00ff88">+5%</div>
-                </div>
-                <div class="slider-track" id="takeProfitTrack">
-                    <div class="slider-fill take-profit-fill" id="takeProfitFill" style="width: 25%"></div>
-                    <input type="range" min="1" max="20" value="5" id="takeProfitSlider">
-                    <div class="slider-thumb take-profit-thumb" id="takeProfitThumb"></div>
-                </div>
-                <div class="slider-ticks">
-                    <div class="tick">1%</div>
-                    <div class="tick">5%</div>
-                    <div class="tick">10%</div>
-                    <div class="tick">15%</div>
-                    <div class="tick">20%</div>
+                
+                <div class="slider-group" id="takeProfitGroup">
+                    <div class="slider-header">
+                        <div class="slider-label" id="takeProfitLabel">TAKE PROFIT</div>
+                        <div class="slider-value" id="takeProfitValue" style="color: #00ff88">+5%</div>
+                    </div>
+                    <div class="slider-track" id="takeProfitTrack">
+                        <div class="slider-fill take-profit-fill" id="takeProfitFill" style="width: 25%"></div>
+                        <input type="range" min="1" max="20" value="5" id="takeProfitSlider">
+                        <div class="slider-thumb take-profit-thumb" id="takeProfitThumb"></div>
+                    </div>
+                    <div class="slider-ticks">
+                        <div class="tick">1%</div>
+                        <div class="tick">5%</div>
+                        <div class="tick">10%</div>
+                        <div class="tick">15%</div>
+                        <div class="tick">20%</div>
+                    </div>
                 </div>
             </div>
             
-            <div class="trade-info" id="tradeInfo">
-                Loading Bitcoin data...
-            </div>
-            
-            <div class="risk-reward-info" id="riskRewardInfo">
-                Risk/Reward: 1:2.5 | Max Loss: $100 | Max Gain: $250
-            </div>
-            
-            <div class="unlock-info" id="unlockInfo"></div>
-            
-            <!-- Long/Short Buttons - Ora dentro i controlli -->
-            <div class="long-short-section">
-                <div class="trade-buttons" id="tradeButtons">
-                    <button class="trade-btn long-btn" id="longBtn">LONG</button>
-                    <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
+            <!-- Pagina 2: Tutto il resto -->
+            <div class="controls-section page-2" id="controlsPage2">
+                <!-- Real-time P&L Display - sempre visibile ma spento quando non c'è trade -->
+                <div class="real-time-pl" id="realTimePL">
+                    P&L: <span id="plAmount">$0</span> (<span id="plPercent">0.00%</span>)
                 </div>
+                
+                <div class="trade-info" id="tradeInfo">
+                    Loading Bitcoin data...
+                </div>
+                
+                <div class="risk-reward-info" id="riskRewardInfo">
+                    Risk/Reward: 1:2.5 | Max Loss: $100 | Max Gain: $250
+                </div>
+                
+                <div class="unlock-info" id="unlockInfo"></div>
+                
+                <!-- Long/Short Buttons -->
+                <div class="long-short-section">
+                    <div class="trade-buttons" id="tradeButtons">
+                        <button class="trade-btn long-btn" id="longBtn">LONG</button>
+                        <button class="trade-btn short-btn" id="shortBtn">SHORT</button>
+                    </div>
+                </div>
+                
+                <!-- Spacer per il dock -->
+                <div class="spacer"></div>
             </div>
-            
-            <!-- Spacer per il dock -->
-            <div class="spacer"></div>
+        </div>
+        
+        <!-- Indicatore di pagina -->
+        <div class="page-indicator">
+            <div class="page-dot active" id="pageDot1"></div>
+            <div class="page-dot" id="pageDot2"></div>
         </div>
     </div>
 
@@ -1495,6 +1543,8 @@
             // Trade state - SISTEMA REALISTICO
             tradeActive: false,
             tradeStartTime: 0,
+            tradeStartPrice: 0,
+            tradeEndPrice: 0,
             tradeDirection: null,
             tradeResult: null,
             tradeCloseReason: null, // 'manual', 'stop_loss', 'take_profit'
@@ -1518,13 +1568,18 @@
             username: "Trader",
             currentPage: 'trading',
             
-            // Controls visibility
-            controlsVisible: true,
+            // Controls page state
+            currentControlsPage: 0, // 0 = pagina 1, 1 = pagina 2
             
             // Performance
             chartAnimationId: null,
             chartInitialized: false,
-            chartReady: false
+            chartReady: false,
+            
+            // Touch handling for page swiping
+            touchStartX: 0,
+            touchStartY: 0,
+            isSwiping: false
         };
 
         // Initialize leverage stats
@@ -1587,7 +1642,14 @@
             plAmount: document.getElementById('plAmount'),
             plPercent: document.getElementById('plPercent'),
             
-            controlsSection: document.getElementById('controlsSection'),
+            // Controls container and pages
+            controlsContainer: document.getElementById('controlsContainer'),
+            controlsPage1: document.getElementById('controlsPage1'),
+            controlsPage2: document.getElementById('controlsPage2'),
+            
+            // Page dots
+            pageDot1: document.getElementById('pageDot1'),
+            pageDot2: document.getElementById('pageDot2'),
             
             // Dock
             dockTrading: document.getElementById('dockTrading'),
@@ -1626,7 +1688,6 @@
             gameOverScreen: document.getElementById('gameOverScreen'),
             restartBtn: document.getElementById('restartBtn'),
             appContainer: document.getElementById('appContainer'),
-            longShortSection: document.getElementById('longShortSection'),
             
             // Pages
             accountPage: document.getElementById('accountPage'),
@@ -1698,6 +1759,26 @@
                 risk: stopLoss,
                 reward: takeProfit
             };
+        }
+
+        // ==================== PAGE NAVIGATION ====================
+        function goToControlsPage(pageIndex) {
+            state.currentControlsPage = pageIndex;
+            dom.controlsContainer.style.transform = `translateX(-${pageIndex * 50}%)`;
+            
+            // Update page dots
+            dom.pageDot1.classList.toggle('active', pageIndex === 0);
+            dom.pageDot2.classList.toggle('active', pageIndex === 1);
+        }
+
+        function nextControlsPage() {
+            const nextPage = (state.currentControlsPage + 1) % 2;
+            goToControlsPage(nextPage);
+        }
+
+        function prevControlsPage() {
+            const prevPage = (state.currentControlsPage - 1 + 2) % 2;
+            goToControlsPage(prevPage);
         }
 
         // ==================== REAL BITCOIN PRICE SYSTEM ====================
@@ -2025,7 +2106,7 @@
             state.tradeEndPrice = 0;
             
             // Mostra real-time P&L
-            dom.realTimePL.style.display = 'block';
+            dom.realTimePL.style.display = 'flex';
             updateRealTimePL();
             
             // Cambia i bottoni per mostrare il pulsante di chiusura
@@ -2104,7 +2185,11 @@
         }
 
         function updateRealTimePL() {
-            if (!state.tradeActive) return;
+            if (!state.tradeActive) {
+                // P&L è sempre visibile nella pagina 2, ma nascosto quando non c'è trade
+                dom.realTimePL.style.display = 'none';
+                return;
+            }
             
             const currentPrice = state.currentPrice;
             let priceChangePercent = 0;
@@ -2134,6 +2219,11 @@
                 dom.realTimePL.style.color = '#ff4444';
                 dom.realTimePL.style.borderColor = 'rgba(255, 68, 68, 0.3)';
                 dom.realTimePL.style.backgroundColor = 'rgba(255, 68, 68, 0.1)';
+            }
+            
+            // Assicurati che il P&L sia visibile nella pagina 2
+            if (state.tradeActive) {
+                dom.realTimePL.style.display = 'flex';
             }
         }
 
@@ -2377,6 +2467,9 @@
             dom.chartWrapper.classList.remove('loading');
             dom.priceIndicator.textContent = 'BTC Loading...';
             
+            // Nascondi il P&L all'inizio
+            dom.realTimePL.style.display = 'none';
+            
             setInterval(updateBitcoinData, CONFIG.UPDATE_INTERVAL);
             startChartAnimation();
             
@@ -2476,6 +2569,15 @@
                 updateSliderThumbs();
             });
             
+            // Touch events for page swiping
+            dom.controlsContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+            dom.controlsContainer.addEventListener('touchmove', handleTouchMove, { passive: true });
+            dom.controlsContainer.addEventListener('touchend', handleTouchEnd);
+            
+            // Click on page dots
+            dom.pageDot1.addEventListener('click', () => goToControlsPage(0));
+            dom.pageDot2.addEventListener('click', () => goToControlsPage(1));
+            
             setTimeout(() => {
                 updateSliderThumbs();
             }, 100);
@@ -2485,6 +2587,51 @@
             dom.betSlider.addEventListener('input', updateSliderThumbs);
             dom.stopLossSlider.addEventListener('input', updateSliderThumbs);
             dom.takeProfitSlider.addEventListener('input', updateSliderThumbs);
+        }
+
+        // ==================== TOUCH HANDLING FOR PAGE SWIPING ====================
+        function handleTouchStart(e) {
+            state.touchStartX = e.touches[0].clientX;
+            state.touchStartY = e.touches[0].clientY;
+            state.isSwiping = false;
+        }
+
+        function handleTouchMove(e) {
+            if (!state.touchStartX || !state.touchStartY) return;
+            
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            
+            const diffX = state.touchStartX - touchX;
+            const diffY = state.touchStartY - touchY;
+            
+            // Check if it's mainly horizontal swipe
+            if (Math.abs(diffX) > Math.abs(diffY) * 2) {
+                state.isSwiping = true;
+                e.preventDefault();
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!state.isSwiping || !state.touchStartX) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const diffX = state.touchStartX - touchEndX;
+            
+            // Swipe threshold
+            if (Math.abs(diffX) > 50) {
+                if (diffX > 0) {
+                    // Swipe left, go to next page
+                    nextControlsPage();
+                } else {
+                    // Swipe right, go to previous page
+                    prevControlsPage();
+                }
+            }
+            
+            state.touchStartX = 0;
+            state.touchStartY = 0;
+            state.isSwiping = false;
         }
 
         function toggleStopLoss() {
@@ -2559,6 +2706,11 @@
             updateUnlockInfo();
             updateSliderThumbs();
             updateSLTPUI();
+            
+            // Update real-time P&L se c'è un trade attivo
+            if (state.tradeActive) {
+                updateRealTimePL();
+            }
         }
 
         function updateChangeIndicator() {
@@ -2676,7 +2828,6 @@
             
             state.currentPage = 'trading';
             updateDockActiveState();
-            dom.longShortSection.style.display = 'block';
             
             startChartAnimation();
         }
@@ -2690,7 +2841,6 @@
             page.classList.add('active');
             state.currentPage = pageName;
             updateDockActiveState();
-            dom.longShortSection.style.display = 'none';
             
             stopChartAnimation();
             
@@ -2879,7 +3029,7 @@
                 hapticEnabled: state.hapticEnabled,
                 username: state.username,
                 leverageStats: state.leverageStats,
-                controlsVisible: state.controlsVisible
+                currentControlsPage: state.currentControlsPage
             };
             localStorage.setItem('xtrade_game_state', JSON.stringify(gameState));
         }
@@ -2911,7 +3061,7 @@
                         hapticEnabled: gameState.hapticEnabled !== undefined ? gameState.hapticEnabled : true,
                         username: gameState.username || "Trader",
                         leverageStats: gameState.leverageStats || {},
-                        controlsVisible: gameState.controlsVisible !== undefined ? gameState.controlsVisible : true
+                        currentControlsPage: gameState.currentControlsPage || 0
                     });
                     
                     dom.leverageSlider.value = state.leverageIndex;
@@ -2921,12 +3071,8 @@
                     dom.soundToggle.checked = state.soundEnabled;
                     dom.hapticToggle.checked = state.hapticEnabled;
                     
-                    // Apply controls visibility
-                    if (!state.controlsVisible) {
-                        dom.controlsSection.classList.add('hidden');
-                        dom.toggleControlsBtn.textContent = 'Show Controls';
-                        dom.chartSection.classList.add('expanded');
-                    }
+                    // Go to saved page
+                    goToControlsPage(state.currentControlsPage);
                     
                     state.lastBalance = state.balance;
                 }
