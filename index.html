@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>XTRADE - Bitcoin Real Time</title>
+    <title>XTRADE - Bitcoin Real Time Trading</title>
     <style>
         /* ===== RESET & BASE ===== */
         * {
@@ -21,7 +21,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
             background: #000000;
             color: #ffffff;
-            touch-action: none;
+            touch-action: manipulation;
         }
         
         /* Prevent selection */
@@ -40,6 +40,7 @@
             display: flex;
             flex-direction: column;
             background: #000000;
+            position: relative;
         }
         
         /* ===== DOCK ===== */
@@ -48,12 +49,12 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(20px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-around;
-            padding: 10px 0;
+            padding: 12px 0 16px;
             z-index: 1000;
         }
         
@@ -62,35 +63,40 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 8px;
+            padding: 8px 4px;
             border-radius: 12px;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             flex: 1;
             max-width: 80px;
+            position: relative;
         }
         
         .dock-item:active {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             transform: scale(0.95);
         }
         
         .dock-icon {
             font-size: 22px;
-            margin-bottom: 4px;
-            transition: all 0.2s ease;
+            margin-bottom: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .dock-label {
             font-size: 10px;
             font-weight: 600;
             color: #888888;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.3px;
         }
         
         .dock-item.active .dock-icon {
             color: #00ff88;
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.1);
         }
         
         .dock-item.active .dock-label {
@@ -100,60 +106,81 @@
         /* ===== LONG/SHORT BUTTONS SECTION ===== */
         .long-short-section {
             position: fixed;
-            bottom: 70px;
+            bottom: 80px;
             left: 0;
             right: 0;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 100%);
+            backdrop-filter: blur(20px);
             z-index: 999;
         }
         
         .trade-buttons {
             display: flex;
-            gap: 12px;
+            gap: 16px;
         }
         
         .trade-btn {
             flex: 1;
-            height: 64px;
+            height: 70px;
             border: none;
-            border-radius: 16px;
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+            border-radius: 18px;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            text-transform: uppercase;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .trade-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.2s;
         }
         
         .trade-btn:active {
             transform: scale(0.97);
         }
         
+        .trade-btn:active::before {
+            opacity: 1;
+        }
+        
         .trade-btn:disabled {
-            opacity: 0.4;
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none !important;
+        }
+        
+        .trade-btn:disabled::before {
+            opacity: 0;
         }
         
         .long-btn {
             background: linear-gradient(135deg, #00cc6a 0%, #00ff88 100%);
             color: #000000;
-            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
         }
         
         .short-btn {
             background: linear-gradient(135deg, #cc3636 0%, #ff4444 100%);
             color: #000000;
-            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.25);
+            box-shadow: 0 8px 32px rgba(255, 68, 68, 0.3);
         }
         
         /* ===== HEADER/BALANCE ===== */
         .header-section {
-            padding: 20px 20px 25px;
+            padding: 24px 20px 20px;
             background: #0a0a0a;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             flex-shrink: 0;
@@ -161,30 +188,32 @@
         
         .balance-display {
             text-align: left;
-            margin-bottom: 8px;
         }
         
         .balance-amount {
-            font-size: 48px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -1px;
             background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             line-height: 1;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
         
         .balance-change {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 14px;
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             margin-bottom: 8px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
         
         .change-positive {
@@ -198,9 +227,10 @@
         }
         
         .balance-label {
-            font-size: 13px;
+            font-size: 14px;
             color: #888888;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
+            font-weight: 500;
         }
         
         /* ===== CHART ===== */
@@ -208,16 +238,19 @@
             flex: 1;
             min-height: 0;
             position: relative;
-            padding: 15px;
+            padding: 20px;
+            background: #050505;
         }
         
         .chart-wrapper {
             width: 100%;
             height: 100%;
             background: #0a0a0a;
-            border-radius: 16px;
+            border-radius: 20px;
             overflow: hidden;
             position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
         
         #chartCanvas {
@@ -228,51 +261,57 @@
         
         .chart-overlay {
             position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
+            top: 16px;
+            left: 16px;
+            right: 16px;
             display: flex;
             justify-content: space-between;
             pointer-events: none;
+            z-index: 2;
         }
         
         .chart-badge {
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(20px);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        /* Chart grid lines */
-        .chart-grid {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+        .chart-badge .price-change {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 600;
         }
         
-        .grid-line {
-            position: absolute;
-            width: 100%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.05);
+        .chart-badge .positive {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .chart-badge .negative {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
         }
         
         /* ===== CONTROLS ===== */
         .controls-section {
             flex-shrink: 0;
-            padding: 0 20px;
-            padding-bottom: 90px;
+            padding: 20px;
+            padding-bottom: 100px;
+            background: rgba(10, 10, 10, 0.95);
         }
         
         /* Sliders con pallini */
         .slider-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             position: relative;
         }
         
@@ -280,35 +319,39 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         
         .slider-label {
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             color: #ffffff;
+            letter-spacing: 0.5px;
         }
         
         .slider-value {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
         
         .slider-track {
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 5px;
             position: relative;
             overflow: visible;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .slider-fill {
             height: 100%;
-            border-radius: 4px;
+            border-radius: 5px;
             position: absolute;
             left: 0;
             top: 0;
-            transition: width 0.2s ease;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
         }
         
         .leverage-fill {
@@ -323,26 +366,23 @@
         .slider-thumb {
             position: absolute;
             top: 50%;
-            width: 24px;
-            height: 24px;
-            background: #ffffff;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            transform: translateY(-50%) translateX(-12px);
+            transform: translateY(-50%) translateX(-14px);
             z-index: 3;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-            border: 2px solid #000000;
-            transition: left 0.2s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+            border: 3px solid #000000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
         }
         
         .leverage-thumb {
             background: #00ff88;
-            border-color: #000000;
         }
         
         .bet-thumb {
             background: #00a3ff;
-            border-color: #000000;
         }
         
         /* Pallini per le leve */
@@ -359,20 +399,23 @@
         }
         
         .slider-dot {
-            width: 12px;
-            height: 12px;
-            background: rgba(255, 255, 255, 0.3);
+            width: 14px;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             transform: translateY(-2px);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
         
         .slider-dot.active {
             background: #ffffff;
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px) scale(1.2);
         }
         
         .slider-dot.disabled {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             opacity: 0.3;
         }
         
@@ -388,33 +431,39 @@
         .slider-ticks {
             display: flex;
             justify-content: space-between;
-            margin-top: 8px;
+            margin-top: 10px;
         }
         
         .tick {
-            font-size: 10px;
+            font-size: 11px;
             color: #666666;
-            font-weight: 500;
+            font-weight: 600;
         }
         
         /* Info */
         .trade-info {
-            font-size: 13px;
-            color: #888888;
+            font-size: 14px;
+            color: #cccccc;
             text-align: center;
-            line-height: 1.4;
-            margin-top: 15px;
-            margin-bottom: 20px;
+            line-height: 1.5;
+            margin-top: 20px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         /* Unlock info */
         .unlock-info {
-            font-size: 12px;
+            font-size: 13px;
             color: #ffaa44;
             text-align: center;
-            margin-top: 10px;
-            min-height: 16px;
+            margin-top: 12px;
+            min-height: 18px;
             margin-bottom: 20px;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
         
         /* ===== PAGINE OVERLAY ===== */
@@ -427,11 +476,17 @@
             background: #000000;
             display: none;
             flex-direction: column;
-            z-index: 800;
+            z-index: 900;
             padding: 20px;
-            padding-top: 60px;
-            padding-bottom: 150px;
+            padding-top: 70px;
+            padding-bottom: 160px;
             overflow: hidden;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
         .page-overlay.active {
@@ -442,16 +497,17 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             flex-shrink: 0;
         }
         
         .page-title {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
             color: #ffffff;
+            letter-spacing: -0.5px;
         }
         
         .page-content {
@@ -463,12 +519,26 @@
             line-height: 1.6;
         }
         
+        .page-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .page-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+        }
+        
+        .page-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+        
         .page-content h2 {
             color: #ffffff;
-            font-size: 18px;
-            font-weight: 600;
-            margin: 25px 0 15px 0;
-            padding-top: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 30px 0 20px 0;
+            padding-top: 15px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
@@ -478,16 +548,19 @@
         }
         
         .page-content p {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            line-height: 1.7;
         }
         
         .page-content ul {
             padding-left: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .page-content li {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-size: 15px;
         }
         
         /* Settings specific */
@@ -495,27 +568,33 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
+            padding: 22px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.2s;
+        }
+        
+        .settings-option:active {
+            background: rgba(255, 255, 255, 0.05);
         }
         
         .settings-label {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 600;
             color: #ffffff;
         }
         
         .settings-description {
-            font-size: 13px;
+            font-size: 14px;
             color: #888888;
-            margin-top: 4px;
+            margin-top: 6px;
         }
         
         /* Toggle switch */
         .toggle-switch {
             position: relative;
-            width: 50px;
-            height: 26px;
+            width: 54px;
+            height: 30px;
+            flex-shrink: 0;
         }
         
         .toggle-switch input {
@@ -539,12 +618,12 @@
         .toggle-slider:before {
             position: absolute;
             content: "";
-            height: 18px;
-            width: 18px;
+            height: 22px;
+            width: 22px;
             left: 4px;
             bottom: 4px;
             background-color: white;
-            transition: .4s;
+            transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 50%;
         }
         
@@ -560,23 +639,24 @@
         /* Account page */
         .account-stats {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
         .account-stats h3 {
             color: #ffffff;
-            font-size: 16px;
-            margin-bottom: 15px;
-            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 700;
         }
         
         .stat-row {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 14px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
@@ -586,25 +666,32 @@
         
         .stat-label {
             color: #888888;
+            font-size: 15px;
         }
         
         .stat-value {
             color: #ffffff;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 16px;
         }
         
         /* Rank page */
         .rank-item {
             display: flex;
             align-items: center;
-            padding: 15px 0;
+            padding: 18px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.2s;
+        }
+        
+        .rank-item:active {
+            background: rgba(255, 255, 255, 0.05);
         }
         
         .rank-position {
-            font-size: 18px;
-            font-weight: 700;
-            min-width: 40px;
+            font-size: 20px;
+            font-weight: 800;
+            min-width: 50px;
             color: #888888;
         }
         
@@ -613,20 +700,20 @@
         }
         
         .rank-name {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 600;
             color: #ffffff;
         }
         
         .rank-level {
-            font-size: 12px;
+            font-size: 13px;
             color: #888888;
-            margin-top: 2px;
+            margin-top: 4px;
         }
         
         .rank-balance {
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 18px;
+            font-weight: 800;
             color: #00ff88;
         }
         
@@ -643,36 +730,44 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         .game-over h2 {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 15px;
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 20px;
             background: linear-gradient(135deg, #ff4444 0%, #ff0000 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            text-shadow: 0 4px 8px rgba(255, 0, 0, 0.3);
         }
         
         .game-over p {
-            font-size: 16px;
+            font-size: 18px;
             color: #888888;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             text-align: center;
-            max-width: 280px;
+            max-width: 300px;
         }
         
         .restart-btn {
-            padding: 16px 32px;
+            padding: 20px 40px;
             background: linear-gradient(135deg, #00cc6a 0%, #00ff88 100%);
             border: none;
-            border-radius: 16px;
+            border-radius: 20px;
             color: #000000;
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s;
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
         }
         
         .restart-btn:active {
@@ -684,14 +779,14 @@
             background: rgba(255, 68, 68, 0.1);
             border: 1px solid rgba(255, 68, 68, 0.3);
             color: #ff4444;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 16px;
+            padding: 20px;
+            border-radius: 16px;
+            font-size: 17px;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
-            margin-top: 20px;
-            transition: all 0.15s;
+            margin-top: 30px;
+            transition: all 0.2s;
         }
         
         .reset-button:active {
@@ -702,51 +797,51 @@
         /* ===== RESPONSIVE ===== */
         @media (max-height: 700px) {
             .balance-amount {
-                font-size: 42px;
+                font-size: 46px;
             }
             
             .trade-btn {
-                height: 58px;
-                font-size: 20px;
+                height: 65px;
+                font-size: 22px;
             }
             
             .chart-section {
-                padding: 12px;
+                padding: 16px;
             }
             
             .controls-section {
-                padding: 0 16px;
-                padding-bottom: 85px;
+                padding: 16px;
+                padding-bottom: 90px;
             }
             
             .long-short-section {
-                bottom: 65px;
-                padding: 12px;
+                bottom: 75px;
+                padding: 16px;
             }
             
             .page-overlay {
-                padding-bottom: 140px;
+                padding-bottom: 150px;
             }
         }
         
         @media (max-width: 350px) {
             .balance-amount {
-                font-size: 40px;
+                font-size: 44px;
             }
             
             .trade-btn {
-                height: 56px;
-                font-size: 19px;
+                height: 62px;
+                font-size: 21px;
             }
             
             .slider-value {
-                font-size: 16px;
+                font-size: 18px;
             }
             
             .page-overlay {
-                padding: 15px;
-                padding-top: 50px;
-                padding-bottom: 140px;
+                padding: 16px;
+                padding-top: 60px;
+                padding-bottom: 150px;
             }
             
             .dock-label {
@@ -754,7 +849,7 @@
             }
             
             .dock-icon {
-                font-size: 20px;
+                font-size: 21px;
             }
         }
         
@@ -771,14 +866,15 @@
         
         /* ===== DOCK ICONS (SVG) ===== */
         .dock-icon svg {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             fill: #888888;
-            transition: fill 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .dock-item.active .dock-icon svg {
             fill: #00ff88;
+            filter: drop-shadow(0 2px 4px rgba(0, 255, 136, 0.3));
         }
         
         .dock-icon.trading svg {
@@ -810,24 +906,209 @@
             100% { background-color: rgba(255, 68, 68, 0.1); }
         }
         
-        .pulse-animation {
-            animation: pulse 1s infinite;
-        }
-        
-        /* Cooldown animation */
         @keyframes cooldown-pulse {
             0% { opacity: 0.4; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.8; }
             100% { opacity: 0.4; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        .pulse-animation {
+            animation: pulse 1s infinite;
         }
         
         .cooldown-animation {
             animation: cooldown-pulse 2s infinite;
         }
+        
+        .shimmer {
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.1) 50%, 
+                rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        
+        /* ===== TRADE STATUS INDICATOR ===== */
+        .trade-status-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 3;
+            transition: all 0.3s ease;
+        }
+        
+        /* ===== LOADING INDICATOR ===== */
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            z-index: 10;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #888888;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* ===== NOTIFICATION ===== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            z-index: 1001;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            max-width: 90%;
+        }
+        
+        .notification.show {
+            display: flex;
+        }
+        
+        .notification-icon {
+            font-size: 20px;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+        
+        .notification-message {
+            font-size: 13px;
+            color: #888888;
+        }
+        
+        .notification.success {
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+        
+        .notification.error {
+            border-color: rgba(255, 68, 68, 0.3);
+        }
+        
+        .notification.warning {
+            border-color: rgba(255, 170, 68, 0.3);
+        }
+        
+        /* ===== CONNECTION STATUS ===== */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 1001;
+            backdrop-filter: blur(20px);
+        }
+        
+        .connection-status.online {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+        }
+        
+        .connection-status.offline {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.online {
+            background: #00ff88;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+        }
+        
+        .status-dot.offline {
+            background: #ff4444;
+            box-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
+        }
     </style>
 </head>
 <body>
-    <!-- Dock (ORA SEMPRE VISIBILE) -->
+    <!-- Connection Status -->
+    <div class="connection-status online" id="connectionStatus">
+        <div class="status-dot online"></div>
+        <span>LIVE</span>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-icon"></div>
+        <div class="notification-content">
+            <div class="notification-title"></div>
+            <div class="notification-message"></div>
+        </div>
+    </div>
+    
+    <!-- Trade Status Indicator -->
+    <div class="trade-status-indicator" id="tradeStatusIndicator">
+        <div>READY</div>
+    </div>
+    
+    <!-- Dock -->
     <div class="dock-container">
         <div class="dock-item active" id="dockTrading">
             <div class="dock-icon trading">
@@ -871,7 +1152,7 @@
         </div>
     </div>
     
-    <!-- Long/Short Buttons Section (ORA SEMPRE VISIBILE) -->
+    <!-- Long/Short Buttons Section -->
     <div class="long-short-section" id="longShortSection">
         <div class="trade-buttons">
             <button class="trade-btn long-btn" id="longBtn">LONG</button>
@@ -882,7 +1163,7 @@
     <!-- Game Over -->
     <div class="game-over" id="gameOverScreen">
         <h2>BANKRUPTCY</h2>
-        <p>Balance reached zero</p>
+        <p>Your balance reached zero</p>
         <button class="restart-btn" id="restartBtn">TRY AGAIN</button>
     </div>
     
@@ -896,11 +1177,11 @@
                 <h3>Personal Statistics</h3>
                 <div class="stat-row">
                     <span class="stat-label">Current Balance:</span>
-                    <span class="stat-value" id="accountBalance">$10k</span>
+                    <span class="stat-value" id="accountBalance">$10,000</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Best Balance:</span>
-                    <span class="stat-value" id="accountBestBalance">$10k</span>
+                    <span class="stat-value" id="accountBestBalance">$10,000</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Total Trades:</span>
@@ -1038,7 +1319,7 @@
         <!-- Header -->
         <div class="header-section">
             <div class="balance-display">
-                <div class="balance-amount" id="balanceAmount">$10k</div>
+                <div class="balance-amount" id="balanceAmount">$10,000</div>
                 <div class="balance-change change-positive" id="balanceChange">
                     <span id="changeIcon">↑</span>
                     <span id="changeAmount">+$0</span>
@@ -1053,8 +1334,13 @@
             <div class="chart-wrapper">
                 <canvas id="chartCanvas"></canvas>
                 <div class="chart-overlay">
-                    <div class="chart-badge" id="btcPriceBadge">BTC Loading...</div>
-                    <div class="chart-badge" id="tradeStatusBadge">READY</div>
+                    <div class="chart-badge" id="btcPriceBadge">
+                        <div>BTC $50,000</div>
+                        <div class="price-change positive">+0.00%</div>
+                    </div>
+                    <div class="chart-badge" id="timeBadge">
+                        <div>10s TRADE</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1094,7 +1380,13 @@
             </div>
             
             <div class="trade-info" id="tradeInfo">
-                Bet: $500 | Leverage: 1x
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Bet: <strong id="betAmount">$500</strong></span>
+                    <span>Leverage: <strong id="leverageAmount">1x</strong></span>
+                </div>
+                <div style="text-align: center;">
+                    Potential Payout: <strong id="payoutAmount">$500</strong>
+                </div>
             </div>
             
             <div class="unlock-info" id="unlockInfo"></div>
@@ -1128,11 +1420,18 @@
             
             INITIAL_BALANCE: 10000,
             MIN_BALANCE: 1000,
-            TRADE_DURATION: 10000, // 10 secondi per il trade (modificato da 30 a 10)
+            TRADE_DURATION: 10000, // 10 secondi per il trade
             COOLDOWN_DURATION: 10000, // 10 secondi di cooldown tra i trade
-            API_UPDATE_INTERVAL: 500, // Aggiorna ogni 500ms
-            CHART_UPDATE_INTERVAL: 50, // Aggiorna il grafico ogni 50ms per fluidità
-            MAX_HISTORY_POINTS: 100
+            API_UPDATE_INTERVAL: 1000, // Aggiorna ogni secondo
+            CHART_UPDATE_INTERVAL: 100, // Aggiorna il grafico ogni 100ms per fluidità
+            MAX_HISTORY_POINTS: 200,
+            
+            // API endpoints
+            API_ENDPOINTS: [
+                'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT',
+                'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+                'https://api.coincap.io/v2/assets/bitcoin'
+            ]
         };
 
         // ==================== STATE ====================
@@ -1181,9 +1480,15 @@
             currentPage: 'trading',
             
             // Variabili per la simulazione realistica
-            marketVolatility: 0.001, // 0.1% di volatilità
+            marketVolatility: 0.001,
             marketTrend: 0,
-            lastSimulatedPrice: 50000
+            lastSimulatedPrice: 50000,
+            priceUpdateInterval: null,
+            chartAnimationFrame: null,
+            
+            // Connection status
+            isOnline: true,
+            lastPriceUpdate: 0
         };
 
         // Initialize leverage stats
@@ -1203,8 +1508,9 @@
             // Chart
             chartCanvas: document.getElementById('chartCanvas'),
             chartCtx: null,
-            tradeStatusBadge: document.getElementById('tradeStatusBadge'),
+            tradeStatusIndicator: document.getElementById('tradeStatusIndicator'),
             btcPriceBadge: document.getElementById('btcPriceBadge'),
+            timeBadge: document.getElementById('timeBadge'),
             
             // Controls
             longBtn: document.getElementById('longBtn'),
@@ -1220,6 +1526,9 @@
             betThumb: document.getElementById('betThumb'),
             tradeInfo: document.getElementById('tradeInfo'),
             unlockInfo: document.getElementById('unlockInfo'),
+            betAmount: document.getElementById('betAmount'),
+            leverageAmount: document.getElementById('leverageAmount'),
+            payoutAmount: document.getElementById('payoutAmount'),
             
             // Dock
             dockTrading: document.getElementById('dockTrading'),
@@ -1263,17 +1572,28 @@
             accountPage: document.getElementById('accountPage'),
             rankPage: document.getElementById('rankPage'),
             infoPage: document.getElementById('infoPage'),
-            settingsPage: document.getElementById('settingsPage')
+            settingsPage: document.getElementById('settingsPage'),
+            
+            // Notification
+            notification: document.getElementById('notification'),
+            notificationTitle: document.querySelector('.notification-title'),
+            notificationMessage: document.querySelector('.notification-message'),
+            notificationIcon: document.querySelector('.notification-icon'),
+            
+            // Connection status
+            connectionStatus: document.getElementById('connectionStatus')
         };
 
         // ==================== UTILITY FUNCTIONS ====================
         function formatCurrency(amount) {
             if (amount >= 1000000) {
-                return '$' + (amount / 1000000).toFixed(1) + 'M';
+                return '$' + (amount / 1000000).toFixed(2) + 'M';
+            } else if (amount >= 100000) {
+                return '$' + (amount / 1000).toFixed(0) + 'K';
             } else if (amount >= 1000) {
-                return '$' + (amount / 1000).toFixed(1) + 'k';
+                return '$' + (amount / 1000).toFixed(1) + 'K';
             }
-            return '$' + Math.round(amount);
+            return '$' + Math.round(amount).toLocaleString();
         }
 
         function getMaxLeverageIndex() {
@@ -1305,78 +1625,93 @@
             return state.balance * (state.betPercentage / 100);
         }
 
-        function calculateTradeResult(isWin) {
+        function calculatePayout() {
             const betAmount = calculateBetAmount();
             const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
-            return isWin ? betAmount * leverage : -betAmount * leverage;
+            return betAmount * leverage;
+        }
+
+        function showNotification(type, title, message, duration = 3000) {
+            const notification = dom.notification;
+            const icon = dom.notificationIcon;
+            
+            notification.className = `notification ${type}`;
+            notification.querySelector('.notification-title').textContent = title;
+            notification.querySelector('.notification-message').textContent = message;
+            
+            // Set icon based on type
+            if (type === 'success') {
+                icon.textContent = '✓';
+            } else if (type === 'error') {
+                icon.textContent = '✗';
+            } else if (type === 'warning') {
+                icon.textContent = '⚠';
+            }
+            
+            notification.classList.add('show');
+            
+            // Auto hide after duration
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, duration);
         }
 
         // ==================== BITCOIN PRICE FUNCTIONS ====================
         async function fetchRealBitcoinPrice() {
-            try {
-                // Prova multiple API per massima affidabilità
-                const apis = [
-                    // Binance API
-                    'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT',
-                    // CoinCap API
-                    'https://api.coincap.io/v2/assets/bitcoin',
-                    // CoinGecko API (fallback)
-                    'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
-                ];
-                
-                for (const apiUrl of apis) {
-                    try {
-                        const response = await fetch(apiUrl);
-                        if (!response.ok) continue;
-                        
-                        const data = await response.json();
-                        
-                        if (apiUrl.includes('binance.com')) {
-                            return parseFloat(data.price);
-                        } else if (apiUrl.includes('coincap.io')) {
-                            return parseFloat(data.data.priceUsd);
-                        } else if (apiUrl.includes('coingecko.com')) {
-                            return parseFloat(data.bitcoin.usd);
-                        }
-                    } catch (e) {
-                        continue;
+            // Try multiple API endpoints for reliability
+            for (const endpoint of CONFIG.API_ENDPOINTS) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+                    
+                    const response = await fetch(endpoint, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) continue;
+                    
+                    const data = await response.json();
+                    
+                    if (endpoint.includes('binance.com')) {
+                        return parseFloat(data.price);
+                    } else if (endpoint.includes('coingecko.com')) {
+                        return parseFloat(data.bitcoin.usd);
+                    } else if (endpoint.includes('coincap.io')) {
+                        return parseFloat(data.data.priceUsd);
                     }
+                } catch (error) {
+                    console.log(`API ${endpoint} failed:`, error);
+                    continue;
                 }
-                
-                throw new Error('All APIs failed');
-                
-            } catch (error) {
-                console.warn('Real API failed, using simulation');
-                state.apiFailCount++;
-                
-                // Se troppe chiamate API falliscono, passa alla simulazione
-                if (state.apiFailCount > 5) {
-                    state.useRealData = false;
-                }
-                
-                return simulateRealisticPrice();
             }
+            
+            // All APIs failed
+            throw new Error('All APIs failed');
         }
 
         function simulateRealisticPrice() {
             const now = Date.now();
             const timeDiff = now - state.lastApiSuccess;
             
-            // Simula un trend di mercato realistico
-            if (Math.random() < 0.01) {
-                // 1% di probabilità di cambiare trend
+            // Random market trend changes
+            if (Math.random() < 0.005) {
                 state.marketTrend = (Math.random() - 0.5) * 0.002;
             }
             
-            // Aggiungi volatilità
-            const volatility = state.marketVolatility * (1 + Math.random() * 0.5);
+            // Add volatility with occasional spikes
+            const volatility = state.marketVolatility * (1 + Math.random() * 0.8);
             const randomMove = (Math.random() - 0.5) * volatility;
             const trendMove = state.marketTrend * (timeDiff / 1000);
             
-            const newPrice = state.lastSimulatedPrice * (1 + trendMove + randomMove);
+            // Occasionally add market events
+            let eventMove = 0;
+            if (Math.random() < 0.001) {
+                eventMove = (Math.random() - 0.5) * 0.01; // 1% move
+            }
             
-            // Mantieni il prezzo realistico (tra $45k e $65k)
-            const boundedPrice = Math.max(45000, Math.min(65000, newPrice));
+            const newPrice = state.lastSimulatedPrice * (1 + trendMove + randomMove + eventMove);
+            
+            // Keep price in realistic range
+            const boundedPrice = Math.max(35000, Math.min(75000, newPrice));
             
             state.lastSimulatedPrice = boundedPrice;
             return boundedPrice;
@@ -1387,15 +1722,42 @@
             
             try {
                 let price;
+                let isRealData = state.useRealData;
                 
                 if (state.useRealData) {
-                    price = await fetchRealBitcoinPrice();
-                    state.apiFailCount = 0;
-                    state.lastApiSuccess = Date.now();
+                    try {
+                        price = await fetchRealBitcoinPrice();
+                        state.apiFailCount = 0;
+                        state.lastApiSuccess = Date.now();
+                        isRealData = true;
+                        
+                        // Update connection status
+                        if (!state.isOnline) {
+                            state.isOnline = true;
+                            updateConnectionStatus();
+                            showNotification('success', 'Connected', 'Real-time data restored', 2000);
+                        }
+                    } catch (error) {
+                        console.warn('Real API failed, using simulation');
+                        state.apiFailCount++;
+                        price = simulateRealisticPrice();
+                        isRealData = false;
+                        
+                        // Switch to simulation after multiple failures
+                        if (state.apiFailCount > 3) {
+                            state.useRealData = false;
+                            if (state.isOnline) {
+                                state.isOnline = false;
+                                updateConnectionStatus();
+                                showNotification('warning', 'Using Simulation', 'Real data unavailable', 3000);
+                            }
+                        }
+                    }
                 } else {
                     price = simulateRealisticPrice();
+                    isRealData = false;
                     
-                    // Ogni 30 secondi prova a tornare ai dati reali
+                    // Try to return to real data every 30 seconds
                     if (Date.now() - state.lastApiSuccess > 30000) {
                         state.useRealData = true;
                         state.apiFailCount = 0;
@@ -1404,30 +1766,34 @@
                 
                 const now = Date.now();
                 
-                // Calcola la variazione percentuale
+                // Calculate price change
                 let priceChange = 0;
+                let priceChangePercent = 0;
+                
                 if (state.btcPriceHistory.length > 0) {
                     const prevPrice = state.btcPriceHistory[state.btcPriceHistory.length - 1].price;
-                    priceChange = ((price - prevPrice) / prevPrice) * 100;
+                    priceChange = price - prevPrice;
+                    priceChangePercent = (priceChange / prevPrice) * 100;
                 }
                 
                 state.currentBtcPrice = price;
-                state.btcPriceChange = priceChange;
-                state.lastBtcUpdate = now;
+                state.btcPriceChange = priceChangePercent;
+                state.lastPriceUpdate = now;
                 
-                // Aggiungi il prezzo alla storia
+                // Add price to history
                 state.btcPriceHistory.push({
                     time: now,
                     price: price,
-                    change: priceChange
+                    change: priceChangePercent,
+                    isRealData: isRealData
                 });
                 
-                // Mantieni solo gli ultimi punti
+                // Keep only recent points
                 if (state.btcPriceHistory.length > CONFIG.MAX_HISTORY_POINTS) {
                     state.btcPriceHistory = state.btcPriceHistory.slice(-CONFIG.MAX_HISTORY_POINTS);
                 }
                 
-                // Aggiorna il badge del prezzo
+                // Update price badge
                 updateBtcPriceBadge();
                 
             } catch (error) {
@@ -1444,17 +1810,32 @@
                 maximumFractionDigits: 0
             });
             
-            const changeFormatted = change.toFixed(2);
-            const changeText = change >= 0 ? `+${changeFormatted}%` : `${changeFormatted}%`;
-            const changeColor = change >= 0 ? '#00ff88' : '#ff4444';
+            const changeFormatted = Math.abs(change).toFixed(2);
+            const changeText = change >= 0 ? `+${changeFormatted}%` : `-${changeFormatted}%`;
+            const changeClass = change >= 0 ? 'positive' : 'negative';
             
-            // Aggiungi indicatore se sono dati simulati
             const dataSource = state.useRealData ? '' : ' (SIM)';
             
             dom.btcPriceBadge.innerHTML = `
                 <div>BTC $${priceFormatted}${dataSource}</div>
-                <div style="color: ${changeColor}; margin-left: 8px;">${changeText}</div>
+                <div class="price-change ${changeClass}">${changeText}</div>
             `;
+            
+            // Update connection status badge
+            updateConnectionStatus();
+        }
+
+        function updateConnectionStatus() {
+            const status = dom.connectionStatus;
+            const dot = status.querySelector('.status-dot');
+            
+            if (state.isOnline && state.useRealData) {
+                status.className = 'connection-status online';
+                status.innerHTML = '<div class="status-dot online"></div><span>LIVE</span>';
+            } else {
+                status.className = 'connection-status offline';
+                status.innerHTML = '<div class="status-dot offline"></div><span>SIM</span>';
+            }
         }
 
         // ==================== CHART FUNCTIONS ====================
@@ -1462,20 +1843,24 @@
             if (!dom.chartCtx || state.btcPriceHistory.length < 2) return;
             
             const ctx = dom.chartCtx;
-            const width = dom.chartCanvas.width / (window.devicePixelRatio || 1);
-            const height = dom.chartCanvas.height / (window.devicePixelRatio || 1);
+            const canvas = dom.chartCanvas;
+            const width = canvas.width / (window.devicePixelRatio || 1);
+            const height = canvas.height / (window.devicePixelRatio || 1);
             
-            // Clear canvas
+            // Clear canvas with gradient background
             const gradient = ctx.createLinearGradient(0, 0, 0, height);
             gradient.addColorStop(0, '#0a0a0a');
+            gradient.addColorStop(0.5, '#080808');
             gradient.addColorStop(1, '#050505');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
             
             // Draw subtle grid
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
             ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
             
+            // Horizontal grid lines
             for (let i = 1; i < 5; i++) {
                 const y = i * (height / 5);
                 ctx.beginPath();
@@ -1484,6 +1869,7 @@
                 ctx.stroke();
             }
             
+            // Vertical grid lines
             for (let i = 1; i < 5; i++) {
                 const x = i * (width / 5);
                 ctx.beginPath();
@@ -1492,30 +1878,37 @@
                 ctx.stroke();
             }
             
-            // Calculate price range
+            ctx.setLineDash([]);
+            
+            // Calculate price range with padding
             const prices = state.btcPriceHistory.map(p => p.price);
             const minPrice = Math.min(...prices);
             const maxPrice = Math.max(...prices);
             const priceRange = maxPrice - minPrice;
-            const padding = priceRange * 0.1;
+            const padding = priceRange * 0.15;
             const chartMin = minPrice - padding;
             const chartMax = maxPrice + padding;
             const chartRange = chartMax - chartMin;
             
-            // Draw price line
-            ctx.beginPath();
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444';
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
+            // Draw price line with gradient
             const points = state.btcPriceHistory;
             const pointCount = points.length;
             
+            // Create gradient for line
+            const lineGradient = ctx.createLinearGradient(0, 0, width, 0);
+            lineGradient.addColorStop(0, state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444');
+            lineGradient.addColorStop(1, state.btcPriceChange >= 0 ? '#00cc6a' : '#cc3636');
+            
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = lineGradient;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
             for (let i = 0; i < pointCount; i++) {
                 const point = points[i];
-                const x = (i / (pointCount - 1)) * width * 0.9 + width * 0.05;
-                const y = height - ((point.price - chartMin) / chartRange * height);
+                const x = (i / (pointCount - 1)) * width * 0.92 + width * 0.04;
+                const y = height - ((point.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
                 
                 if (i === 0) {
                     ctx.moveTo(x, y);
@@ -1531,14 +1924,14 @@
                 const firstPoint = points[0];
                 const lastPoint = points[pointCount - 1];
                 
-                const firstX = width * 0.05;
-                const firstY = height - ((firstPoint.price - chartMin) / chartRange * height);
-                const lastX = width * 0.95;
-                const lastY = height - ((lastPoint.price - chartMin) / chartRange * height);
+                const firstX = width * 0.04;
+                const firstY = height - ((firstPoint.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
+                const lastX = width * 0.96;
+                const lastY = height - ((lastPoint.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
                 
                 const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
                 areaGradient.addColorStop(0, state.btcPriceChange >= 0 ? 
-                    'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)');
+                    'rgba(0, 255, 136, 0.25)' : 'rgba(255, 68, 68, 0.25)');
                 areaGradient.addColorStop(1, 'transparent');
                 
                 ctx.fillStyle = areaGradient;
@@ -1547,8 +1940,8 @@
                 
                 for (let i = 1; i < pointCount; i++) {
                     const point = points[i];
-                    const x = (i / (pointCount - 1)) * width * 0.9 + width * 0.05;
-                    const y = height - ((point.price - chartMin) / chartRange * height);
+                    const x = (i / (pointCount - 1)) * width * 0.92 + width * 0.04;
+                    const y = height - ((point.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
                     ctx.lineTo(x, y);
                 }
                 
@@ -1558,71 +1951,80 @@
                 ctx.fill();
             }
             
-            // Draw current price point
+            // Draw current price point with glow
             if (pointCount > 0) {
                 const lastPoint = points[pointCount - 1];
-                const lastX = width * 0.95;
-                const lastY = height - ((lastPoint.price - chartMin) / chartRange * height);
+                const lastX = width * 0.96;
+                const lastY = height - ((lastPoint.price - chartMin) / chartRange * height) * 0.9 - height * 0.05;
                 
                 // Glow effect
+                const glowGradient = ctx.createRadialGradient(lastX, lastY, 0, lastX, lastY, 15);
+                glowGradient.addColorStop(0, state.btcPriceChange >= 0 ? 
+                    'rgba(0, 255, 136, 0.4)' : 'rgba(255, 68, 68, 0.4)');
+                glowGradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = glowGradient;
                 ctx.beginPath();
-                ctx.arc(lastX, lastY, 10, 0, Math.PI * 2);
-                ctx.fillStyle = state.btcPriceChange >= 0 ? 
-                    'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)';
+                ctx.arc(lastX, lastY, 15, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Point
+                // Outer circle
                 ctx.beginPath();
-                ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+                ctx.arc(lastX, lastY, 8, 0, Math.PI * 2);
                 ctx.fillStyle = state.btcPriceChange >= 0 ? '#00ff88' : '#ff4444';
                 ctx.fill();
                 
-                // White center
+                // Inner circle
                 ctx.beginPath();
-                ctx.arc(lastX, lastY, 2, 0, Math.PI * 2);
+                ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
                 ctx.fillStyle = '#ffffff';
                 ctx.fill();
             }
             
             // Draw trade start line if active
             if (state.tradeActive && state.tradeStartPrice > 0) {
-                const startY = height - ((state.tradeStartPrice - chartMin) / chartRange * height);
+                const startY = height - ((state.tradeStartPrice - chartMin) / chartRange * height) * 0.9 - height * 0.05;
                 
                 ctx.beginPath();
                 ctx.setLineDash([5, 3]);
                 ctx.strokeStyle = state.tradeDirection === 'long' ? 
-                    'rgba(0, 255, 136, 0.7)' : 'rgba(255, 68, 68, 0.7)';
+                    'rgba(0, 255, 136, 0.8)' : 'rgba(255, 68, 68, 0.8)';
                 ctx.lineWidth = 2;
-                ctx.moveTo(width * 0.05, startY);
-                ctx.lineTo(width * 0.95, startY);
+                ctx.moveTo(width * 0.04, startY);
+                ctx.lineTo(width * 0.96, startY);
                 ctx.stroke();
                 ctx.setLineDash([]);
                 
                 // Draw start price label
                 ctx.fillStyle = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
-                ctx.font = 'bold 11px Arial';
+                ctx.font = 'bold 12px Arial';
                 ctx.textAlign = 'left';
                 ctx.fillText(
-                    `Start: $${state.tradeStartPrice.toLocaleString('en-US', {maximumFractionDigits: 0})}`,
-                    width * 0.05 + 5,
-                    startY - 8
+                    `Entry: $${state.tradeStartPrice.toLocaleString('en-US', {maximumFractionDigits: 0})}`,
+                    width * 0.04 + 5,
+                    startY - 10
                 );
             }
+            
+            // Request next frame
+            state.chartAnimationFrame = requestAnimationFrame(drawBtcChart);
         }
 
         // ==================== TRADE FUNCTIONS ====================
         async function startBtcTrade(direction) {
-            if (!state.gameActive || state.tradeActive || state.isAnimating || state.cooldownActive) return;
+            if (!state.gameActive || state.tradeActive || state.isAnimating || state.cooldownActive) {
+                return;
+            }
             
-            // Disabilita i bottoni
+            // Disable buttons
             dom.longBtn.disabled = true;
             dom.shortBtn.disabled = true;
             state.isAnimating = true;
             
-            // Ottieni il prezzo corrente
+            // Get current price
             await updateBitcoinPrice();
             
-            // Inizia il trade
+            // Start trade
             state.tradeActive = true;
             state.tradeStartTime = Date.now();
             state.tradeEndTime = state.tradeStartTime + CONFIG.TRADE_DURATION;
@@ -1631,18 +2033,22 @@
             state.tradeResult = null;
             state.tradeCountdown = CONFIG.TRADE_DURATION / 1000;
             
-            // Aggiorna UI
+            // Update UI
             updateTradeUI();
-            updateTradeStatusBadge();
+            updateTradeStatusIndicator();
             
-            // Avvia il timer per completare il trade
+            // Show notification
+            showNotification('success', 'Trade Started', 
+                `${direction.toUpperCase()} position opened at $${state.tradeStartPrice.toLocaleString()}`, 2000);
+            
+            // Start trade completion timer
             setTimeout(() => {
                 if (state.tradeActive) {
                     completeBtcTrade();
                 }
             }, CONFIG.TRADE_DURATION);
             
-            // Avvia l'animazione del countdown
+            // Start countdown animation
             startCountdownAnimation();
         }
 
@@ -1657,8 +2063,8 @@
                 const remaining = Math.max(0, state.tradeEndTime - now);
                 state.tradeCountdown = (remaining / 1000).toFixed(1);
                 
-                // Aggiorna il badge di stato
-                updateTradeStatusBadge();
+                updateTradeUI();
+                updateTradeStatusIndicator();
                 
                 if (remaining <= 0) {
                     clearInterval(countdownInterval);
@@ -1669,20 +2075,20 @@
         async function completeBtcTrade() {
             if (!state.tradeActive) return;
             
-            // Aggiorna il prezzo finale
+            // Get final price
             await updateBitcoinPrice();
             const finalPrice = state.currentBtcPrice;
             state.tradeEndPrice = finalPrice;
             
-            // Calcola la variazione
+            // Calculate price change
             const priceChange = finalPrice - state.tradeStartPrice;
             const priceChangePercent = (priceChange / state.tradeStartPrice) * 100;
             
-            // Determina se il prezzo è salito o sceso
+            // Determine if price moved up or down
             const priceMovedUp = finalPrice > state.tradeStartPrice;
             const priceMovedDown = finalPrice < state.tradeStartPrice;
             
-            // Verifica se la previsione era corretta (NESSUN ELEMENTO DI PROBABILITÀ)
+            // Check if prediction was correct (NO PROBABILITY INVOLVED)
             let predictionCorrect = false;
             if (state.tradeDirection === 'long') {
                 predictionCorrect = priceMovedUp;
@@ -1690,31 +2096,35 @@
                 predictionCorrect = priceMovedDown;
             }
             
-            // Se il prezzo non è cambiato, annulla il trade
+            // Handle draw (no price change)
             if (finalPrice === state.tradeStartPrice) {
                 state.tradeResult = null;
                 showTradeResult(null, 0, 0);
                 
-                // Ripristina lo stato dopo 2 secondi
+                // Show notification
+                showNotification('warning', 'Trade Canceled', 
+                    'No price movement - trade canceled', 3000);
+                
+                // Reset after delay
                 setTimeout(() => {
                     resetTradeState();
                     state.isAnimating = false;
                     dom.longBtn.disabled = false;
                     dom.shortBtn.disabled = false;
                     updateTradeUI();
-                    updateTradeStatusBadge();
+                    updateTradeStatusIndicator();
                 }, 2000);
                 return;
             }
             
             state.tradeResult = predictionCorrect;
             
-            // Calcola il risultato finanziario
+            // Calculate financial result
             const betAmount = calculateBetAmount();
             const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
             const result = predictionCorrect ? betAmount * leverage : -betAmount * leverage;
             
-            // Aggiorna lo stato
+            // Update state
             state.balance += result;
             state.totalTrades++;
             state.leverageStats[leverage].total++;
@@ -1723,28 +2133,33 @@
                 state.wins++;
                 state.leverageStats[leverage].wins++;
                 if (state.soundEnabled) playSound('win');
+                showNotification('success', 'Trade Won!', 
+                    `+${formatCurrency(Math.abs(result))} | ${priceChangePercent.toFixed(2)}%`, 3000);
             } else {
                 if (state.soundEnabled) playSound('lose');
+                showNotification('error', 'Trade Lost', 
+                    `${formatCurrency(result)} | ${priceChangePercent.toFixed(2)}%`, 3000);
             }
             
             if (state.balance > state.bestBalance) {
                 state.bestBalance = state.balance;
             }
             
-            // Controlla bancarotta
+            // Check for bankruptcy
             if (state.balance <= 0) {
                 state.gameActive = false;
                 dom.gameOverScreen.style.display = 'flex';
                 if (state.soundEnabled) playSound('bankruptcy');
+                showNotification('error', 'Bankruptcy', 'Balance reached zero', 5000);
             }
             
-            // Mostra il risultato
+            // Show trade result
             showTradeResult(predictionCorrect, priceChangePercent, priceChange);
             
-            // Avvia il cooldown
+            // Start cooldown
             startCooldown();
             
-            // Salva e aggiorna UI
+            // Save and update UI
             saveGameState();
             updateUI();
         }
@@ -1754,21 +2169,21 @@
             state.cooldownEndTime = Date.now() + CONFIG.COOLDOWN_DURATION;
             state.cooldownRemaining = CONFIG.COOLDOWN_DURATION / 1000;
             
-            // Disabilita i bottoni
+            // Disable buttons
             dom.longBtn.disabled = true;
             dom.shortBtn.disabled = true;
             
-            // Aggiorna UI
+            // Update UI
             updateTradeUI();
-            updateTradeStatusBadge();
+            updateTradeStatusIndicator();
             
-            // Avvia il timer del cooldown
+            // Start cooldown timer
             const cooldownInterval = setInterval(() => {
                 const now = Date.now();
                 const remaining = Math.max(0, state.cooldownEndTime - now);
                 state.cooldownRemaining = (remaining / 1000).toFixed(1);
                 
-                updateTradeStatusBadge();
+                updateTradeStatusIndicator();
                 
                 if (remaining <= 0) {
                     clearInterval(cooldownInterval);
@@ -1783,12 +2198,15 @@
             state.cooldownRemaining = 0;
             state.isAnimating = false;
             
-            // Riabilita i bottoni
+            // Re-enable buttons
             dom.longBtn.disabled = false;
             dom.shortBtn.disabled = false;
             
             updateTradeUI();
-            updateTradeStatusBadge();
+            updateTradeStatusIndicator();
+            
+            // Show notification
+            showNotification('success', 'Ready to Trade', 'Cooldown complete', 2000);
         }
 
         function showTradeResult(isWin, changePercent, changeAmount) {
@@ -1797,23 +2215,16 @@
             const resultText = isWin === null ? 'DRAW' : (isWin ? 'WIN!' : 'LOSE!');
             const resultColor = isWin === null ? '#ffaa44' : (isWin ? '#00ff88' : '#ff4444');
             
-            dom.tradeStatusBadge.innerHTML = `
-                <div style="color: ${resultColor}; font-size: 14px; font-weight: bold;">${resultText}</div>
-                <div style="font-size: 11px; margin-top: 2px;">${changeText}</div>
+            dom.tradeStatusIndicator.innerHTML = `
+                <div style="color: ${resultColor}; font-size: 14px; font-weight: 800;">${resultText}</div>
+                <div style="font-size: 12px; margin-top: 2px; color: #888888;">${changeText}</div>
             `;
-            dom.tradeStatusBadge.style.backgroundColor = isWin === null ? 
-                'rgba(255, 170, 68, 0.3)' : (isWin ? 
-                'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)');
-            dom.tradeStatusBadge.style.borderColor = isWin === null ? 
-                'rgba(255, 170, 68, 0.7)' : (isWin ? 
-                'rgba(0, 255, 136, 0.7)' : 'rgba(255, 68, 68, 0.7)');
-            
-            // Rimuovi l'animazione dopo 2 secondi
-            setTimeout(() => {
-                if (!state.cooldownActive) {
-                    updateTradeStatusBadge();
-                }
-            }, 2000);
+            dom.tradeStatusIndicator.style.backgroundColor = isWin === null ? 
+                'rgba(255, 170, 68, 0.2)' : (isWin ? 
+                'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)');
+            dom.tradeStatusIndicator.style.borderColor = isWin === null ? 
+                'rgba(255, 170, 68, 0.5)' : (isWin ? 
+                'rgba(0, 255, 136, 0.5)' : 'rgba(255, 68, 68, 0.5)');
         }
 
         function resetTradeState() {
@@ -1829,23 +2240,25 @@
 
         function updateTradeUI() {
             if (state.tradeActive) {
-                // Cambia testo dei bottoni durante il trade
-                dom.longBtn.textContent = state.tradeDirection === 'long' ? `${state.tradeCountdown}s` : 'LONG';
-                dom.shortBtn.textContent = state.tradeDirection === 'short' ? `${state.tradeCountdown}s` : 'SHORT';
+                // Update buttons during trade
+                const countdownText = `${state.tradeCountdown}s`;
+                dom.longBtn.textContent = state.tradeDirection === 'long' ? countdownText : 'LONG';
+                dom.shortBtn.textContent = state.tradeDirection === 'short' ? countdownText : 'SHORT';
                 
-                // Cambia opacità
-                dom.longBtn.style.opacity = state.tradeDirection === 'long' ? '0.7' : '0.3';
-                dom.shortBtn.style.opacity = state.tradeDirection === 'short' ? '0.7' : '0.3';
+                // Change opacity
+                dom.longBtn.style.opacity = state.tradeDirection === 'long' ? '0.8' : '0.3';
+                dom.shortBtn.style.opacity = state.tradeDirection === 'short' ? '0.8' : '0.3';
             } else if (state.cooldownActive) {
-                // Mostra cooldown nei bottoni
-                dom.longBtn.textContent = `CD: ${state.cooldownRemaining}s`;
-                dom.shortBtn.textContent = `CD: ${state.cooldownRemaining}s`;
+                // Show cooldown in buttons
+                const cooldownText = `CD: ${state.cooldownRemaining}s`;
+                dom.longBtn.textContent = cooldownText;
+                dom.shortBtn.textContent = cooldownText;
                 dom.longBtn.style.opacity = '0.5';
                 dom.shortBtn.style.opacity = '0.5';
                 dom.longBtn.classList.add('cooldown-animation');
                 dom.shortBtn.classList.add('cooldown-animation');
             } else {
-                // Ripristina stato normale
+                // Restore normal state
                 dom.longBtn.textContent = 'LONG';
                 dom.shortBtn.textContent = 'SHORT';
                 dom.longBtn.style.opacity = '1';
@@ -1855,24 +2268,24 @@
             }
         }
 
-        function updateTradeStatusBadge() {
+        function updateTradeStatusIndicator() {
             if (state.tradeActive) {
-                dom.tradeStatusBadge.textContent = `TRADE: ${state.tradeCountdown}s`;
-                dom.tradeStatusBadge.style.color = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
-                dom.tradeStatusBadge.style.backgroundColor = state.tradeDirection === 'long' ? 
+                dom.tradeStatusIndicator.textContent = `TRADE: ${state.tradeCountdown}s`;
+                dom.tradeStatusIndicator.style.color = state.tradeDirection === 'long' ? '#00ff88' : '#ff4444';
+                dom.tradeStatusIndicator.style.backgroundColor = state.tradeDirection === 'long' ? 
                     'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)';
-                dom.tradeStatusBadge.style.borderColor = state.tradeDirection === 'long' ? 
+                dom.tradeStatusIndicator.style.borderColor = state.tradeDirection === 'long' ? 
                     'rgba(0, 255, 136, 0.5)' : 'rgba(255, 68, 68, 0.5)';
             } else if (state.cooldownActive) {
-                dom.tradeStatusBadge.textContent = `COOLDOWN: ${state.cooldownRemaining}s`;
-                dom.tradeStatusBadge.style.color = '#ffaa44';
-                dom.tradeStatusBadge.style.backgroundColor = 'rgba(255, 170, 68, 0.2)';
-                dom.tradeStatusBadge.style.borderColor = 'rgba(255, 170, 68, 0.5)';
+                dom.tradeStatusIndicator.textContent = `COOLDOWN: ${state.cooldownRemaining}s`;
+                dom.tradeStatusIndicator.style.color = '#ffaa44';
+                dom.tradeStatusIndicator.style.backgroundColor = 'rgba(255, 170, 68, 0.2)';
+                dom.tradeStatusIndicator.style.borderColor = 'rgba(255, 170, 68, 0.5)';
             } else {
-                dom.tradeStatusBadge.textContent = 'READY';
-                dom.tradeStatusBadge.style.color = '#00ff88';
-                dom.tradeStatusBadge.style.backgroundColor = 'rgba(0, 255, 136, 0.2)';
-                dom.tradeStatusBadge.style.borderColor = 'rgba(0, 255, 136, 0.5)';
+                dom.tradeStatusIndicator.textContent = 'READY';
+                dom.tradeStatusIndicator.style.color = '#00ff88';
+                dom.tradeStatusIndicator.style.backgroundColor = 'rgba(0, 255, 136, 0.2)';
+                dom.tradeStatusIndicator.style.borderColor = 'rgba(0, 255, 136, 0.5)';
             }
         }
 
@@ -1886,19 +2299,21 @@
             updateSliderThumbs();
             updateDockActiveState();
             
-            // Inizia l'aggiornamento dei dati Bitcoin
-            updateBitcoinPrice();
-            setInterval(updateBitcoinPrice, CONFIG.API_UPDATE_INTERVAL);
-            
-            // Inizia il loop di disegno del grafico
-            setInterval(() => {
-                if (state.currentPage === 'trading') {
-                    drawBtcChart();
-                }
-            }, CONFIG.CHART_UPDATE_INTERVAL);
-            
-            // Inizializza la storia del prezzo
+            // Initialize price history
             initializePriceHistory();
+            
+            // Start price updates
+            updateBitcoinPrice();
+            state.priceUpdateInterval = setInterval(updateBitcoinPrice, CONFIG.API_UPDATE_INTERVAL);
+            
+            // Start chart animation
+            drawBtcChart();
+            
+            // Show welcome notification
+            setTimeout(() => {
+                showNotification('success', 'Welcome to XTRADE', 
+                    'Real-time Bitcoin trading simulator', 3000);
+            }, 1000);
         }
 
         function setupCanvas() {
@@ -1929,18 +2344,19 @@
         }
 
         function initializePriceHistory() {
-            // Crea una storia iniziale di prezzi
+            // Create initial price history
             const basePrice = 50000;
             const now = Date.now();
             
-            for (let i = 0; i < 50; i++) {
-                const time = now - (50 - i) * 1000;
-                const price = basePrice + (Math.random() - 0.5) * 1000;
+            for (let i = 0; i < 100; i++) {
+                const time = now - (100 - i) * 1000;
+                const price = basePrice + (Math.random() - 0.5) * 2000;
                 
                 state.btcPriceHistory.push({
                     time: time,
                     price: price,
-                    change: (Math.random() - 0.5) * 0.5
+                    change: (Math.random() - 0.5) * 0.5,
+                    isRealData: false
                 });
             }
             
@@ -1975,18 +2391,35 @@
             
             window.addEventListener('resize', () => {
                 setupCanvas();
-                drawBtcChart();
                 updateSliderThumbs();
+            });
+            
+            // Handle visibility change
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    if (state.chartAnimationFrame) {
+                        cancelAnimationFrame(state.chartAnimationFrame);
+                        state.chartAnimationFrame = null;
+                    }
+                } else {
+                    if (!state.chartAnimationFrame) {
+                        drawBtcChart();
+                    }
+                }
             });
         }
 
         function handleTrade(direction) {
-            if (!state.gameActive || state.tradeActive || state.isAnimating || state.cooldownActive) return;
+            if (!state.gameActive || state.tradeActive || state.isAnimating || state.cooldownActive) {
+                showNotification('warning', 'Cannot Trade', 
+                    state.cooldownActive ? 'Wait for cooldown' : 'Trade in progress', 2000);
+                return;
+            }
             startBtcTrade(direction);
         }
 
         function playSound(type) {
-            // In una implementazione reale, qui ci sarebbero i suoni
+            // In a real implementation, play sound effects
             console.log('Playing sound:', type);
         }
 
@@ -2010,8 +2443,8 @@
             // Update slider thumbs
             updateSliderThumbs();
             
-            // Update trade status badge
-            updateTradeStatusBadge();
+            // Update trade status indicator
+            updateTradeStatusIndicator();
         }
 
         function updateChangeIndicator() {
@@ -2026,8 +2459,13 @@
             } else if (change < 0) {
                 dom.balanceChange.className = 'balance-change change-negative';
                 dom.changeIcon.textContent = '↓';
-                dom.changeAmount.textContent = `-${formatCurrency(Math.abs(change))}`;
+                dom.changeAmount.textContent = `${formatCurrency(change)}`;
                 dom.changePercent.textContent = `${Math.abs(percentChange).toFixed(2)}%`;
+            } else {
+                dom.balanceChange.className = 'balance-change';
+                dom.changeIcon.textContent = '→';
+                dom.changeAmount.textContent = '$0';
+                dom.changePercent.textContent = '0.00%';
             }
             
             // Store for next comparison
@@ -2064,38 +2502,38 @@
 
         function updateSliderThumbs() {
             // Update leverage thumb position
-            const leverageSliderWidth = dom.leverageSlider.offsetWidth;
-            const leverageValue = parseInt(dom.leverageSlider.value);
-            const leverageMax = parseInt(dom.leverageSlider.max) || 7;
+            const leverageSlider = dom.leverageSlider;
+            const leverageSliderWidth = leverageSlider.offsetWidth || 300;
+            const leverageValue = parseInt(leverageSlider.value);
+            const leverageMax = parseInt(leverageSlider.max) || 7;
             const leveragePercent = (leverageValue / leverageMax) * 100;
             const leverageThumbPos = (leveragePercent / 100) * leverageSliderWidth;
             
-            dom.leverageThumb.style.left = `${leverageThumbPos}px`;
+            if (dom.leverageThumb) {
+                dom.leverageThumb.style.left = `${leverageThumbPos}px`;
+            }
             
             // Update bet thumb position
-            const betSliderWidth = dom.betSlider.offsetWidth;
-            const betValue = parseInt(dom.betSlider.value);
-            const betMax = parseInt(dom.betSlider.max) || 100;
+            const betSlider = dom.betSlider;
+            const betSliderWidth = betSlider.offsetWidth || 300;
+            const betValue = parseInt(betSlider.value);
+            const betMax = parseInt(betSlider.max) || 100;
             const betPercent = (betValue / betMax) * 100;
             const betThumbPos = (betPercent / 100) * betSliderWidth;
             
-            dom.betThumb.style.left = `${betThumbPos}px`;
+            if (dom.betThumb) {
+                dom.betThumb.style.left = `${betThumbPos}px`;
+            }
         }
 
         function updateTradeInfo() {
             const betAmount = calculateBetAmount();
             const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
-            const payout = betAmount * leverage;
+            const payout = calculatePayout();
             
-            dom.tradeInfo.innerHTML = `
-                <div style="margin-bottom: 4px;">
-                    Bet: <strong>${formatCurrency(betAmount)}</strong> | 
-                    Leverage: <strong>${leverage}x</strong>
-                </div>
-                <div>
-                    Potential Payout: <strong>${formatCurrency(payout)}</strong>
-                </div>
-            `;
+            dom.betAmount.textContent = formatCurrency(betAmount);
+            dom.leverageAmount.textContent = `${leverage}x`;
+            dom.payoutAmount.textContent = formatCurrency(payout);
         }
 
         function updateUnlockInfo() {
@@ -2122,8 +2560,13 @@
             state.currentPage = 'trading';
             updateDockActiveState();
             
-            // Mostra i bottoni LONG/SHORT
+            // Show LONG/SHORT buttons
             dom.longShortSection.style.display = 'block';
+            
+            // Restart chart animation if needed
+            if (!state.chartAnimationFrame) {
+                drawBtcChart();
+            }
         }
 
         function openPage(page, pageName) {
@@ -2138,7 +2581,7 @@
             state.currentPage = pageName;
             updateDockActiveState();
             
-            // Nascondi i bottoni LONG/SHORT quando si è in una pagina
+            // Hide LONG/SHORT buttons
             dom.longShortSection.style.display = 'none';
             
             // Update page content if needed
@@ -2204,15 +2647,15 @@
 
         // ==================== RANK PAGE ====================
         function updateRankPage() {
-            // Simulate some rank data
+            // Simulate rank data
             const ranks = [
                 { name: state.username, balance: state.bestBalance, level: CONFIG.LEVERAGES[state.leverageIndex].name },
-                { name: "BitcoinKing", balance: 50000, level: "Expert" },
-                { name: "CryptoWhale", balance: 25000, level: "High Risk" },
-                { name: "Satoshi", balance: 15000, level: "Intermediate" },
-                { name: "HODLer", balance: 8000, level: "Beginner" },
-                { name: "TraderPro", balance: 6000, level: "Beginner" },
-                { name: "CryptoNewbie", balance: 4000, level: "Novice" }
+                { name: "BitcoinKing", balance: 125000, level: "Insane" },
+                { name: "CryptoWhale", balance: 87500, level: "Extreme" },
+                { name: "Satoshi", balance: 65000, level: "High Risk" },
+                { name: "HODLer", balance: 42000, level: "Risky" },
+                { name: "TraderPro", balance: 28500, level: "Expert" },
+                { name: "CryptoNewbie", balance: 15000, level: "Intermediate" }
             ];
             
             // Sort by balance descending
@@ -2225,15 +2668,17 @@
                 
                 // Highlight current player
                 if (player.name === state.username) {
-                    rankItem.style.backgroundColor = 'rgba(0, 255, 136, 0.1)';
-                    rankItem.style.borderRadius = '8px';
-                    rankItem.style.paddingLeft = '10px';
-                    rankItem.style.paddingRight = '10px';
-                    rankItem.style.margin = '0 -10px';
+                    rankItem.style.background = 'linear-gradient(90deg, rgba(0,255,136,0.1) 0%, rgba(0,255,136,0.05) 100%)';
+                    rankItem.style.borderRadius = '12px';
+                    rankItem.style.padding = '18px 12px';
+                    rankItem.style.margin = '0 -12px';
+                    rankItem.style.borderLeft = '4px solid #00ff88';
                 }
                 
                 rankItem.innerHTML = `
-                    <div class="rank-position" style="color: ${index < 3 ? '#00ff88' : '#888888'}">${index + 1}</div>
+                    <div class="rank-position" style="color: ${index < 3 ? '#00ff88' : '#888888'}">
+                        ${index < 3 ? ['🥇', '🥈', '🥉'][index] : index + 1}
+                    </div>
                     <div class="rank-user">
                         <div class="rank-name">${player.name}</div>
                         <div class="rank-level">${player.level}</div>
@@ -2272,6 +2717,8 @@
             updateUI();
             saveGameState();
             resetTradeState();
+            
+            showNotification('success', 'Game Restarted', 'Starting with $1,000', 2000);
         }
 
         function handleSoundToggle() {
@@ -2287,7 +2734,10 @@
         function handleResetData() {
             if (confirm("Are you sure you want to reset all game data? This cannot be undone.")) {
                 localStorage.removeItem('xtrade_game_state');
-                location.reload();
+                showNotification('success', 'Data Reset', 'All game data has been cleared', 3000);
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
             }
         }
 
@@ -2315,23 +2765,24 @@
                 if (saved) {
                     const gameState = JSON.parse(saved);
                     
-                    // Load all state properties
-                    Object.assign(state, {
-                        balance: gameState.balance || CONFIG.INITIAL_BALANCE,
-                        bestBalance: gameState.bestBalance || CONFIG.INITIAL_BALANCE,
-                        totalTrades: gameState.totalTrades || 0,
-                        wins: gameState.wins || 0,
-                        leverageIndex: gameState.leverageIndex || 0,
-                        betPercentage: gameState.betPercentage || 5,
-                        soundEnabled: gameState.soundEnabled !== undefined ? gameState.soundEnabled : true,
-                        hapticEnabled: gameState.hapticEnabled !== undefined ? gameState.hapticEnabled : true,
-                        username: gameState.username || "Trader",
-                        leverageStats: gameState.leverageStats || {}
-                    });
+                    // Load state properties
+                    state.balance = Math.max(CONFIG.MIN_BALANCE, gameState.balance || CONFIG.INITIAL_BALANCE);
+                    state.bestBalance = Math.max(state.balance, gameState.bestBalance || CONFIG.INITIAL_BALANCE);
+                    state.totalTrades = gameState.totalTrades || 0;
+                    state.wins = gameState.wins || 0;
+                    state.leverageIndex = gameState.leverageIndex || 0;
+                    state.betPercentage = gameState.betPercentage || 5;
+                    state.soundEnabled = gameState.soundEnabled !== undefined ? gameState.soundEnabled : true;
+                    state.hapticEnabled = gameState.hapticEnabled !== undefined ? gameState.hapticEnabled : true;
+                    state.username = gameState.username || "Trader";
+                    state.leverageStats = gameState.leverageStats || {};
                     
-                    // Ensure minimum balance
-                    state.balance = Math.max(CONFIG.MIN_BALANCE, state.balance);
-                    state.bestBalance = Math.max(state.bestBalance, CONFIG.MIN_BALANCE);
+                    // Initialize missing leverage stats
+                    CONFIG.LEVERAGES.forEach(leverage => {
+                        if (!state.leverageStats[leverage.value]) {
+                            state.leverageStats[leverage.value] = { total: 0, wins: 0 };
+                        }
+                    });
                     
                     // Update UI elements
                     dom.leverageSlider.value = state.leverageIndex;
@@ -2340,6 +2791,8 @@
                     dom.hapticToggle.checked = state.hapticEnabled;
                     
                     state.lastBalance = state.balance;
+                    
+                    console.log('Game state loaded successfully');
                 }
             } catch (e) {
                 console.log('No saved game state or error loading:', e);
@@ -2348,6 +2801,16 @@
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', initGame);
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (state.priceUpdateInterval) {
+                clearInterval(state.priceUpdateInterval);
+            }
+            if (state.chartAnimationFrame) {
+                cancelAnimationFrame(state.chartAnimationFrame);
+            }
+        });
     </script>
 </body>
 </html>
