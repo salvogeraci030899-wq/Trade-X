@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>XTRADE - Bitcoin Trading</title>
+    <title>XTRADE - Bitcoin Trading Platform</title>
     <style>
         /* ===== RESET & BASE ===== */
         * {
@@ -71,7 +71,7 @@
             transition: all 0.2s ease;
             cursor: pointer;
             flex: 1;
-            max-width: 75px;
+            max-width: 100px;
         }
         
         .dock-item:active {
@@ -969,6 +969,153 @@
             stroke: #00ff88;
         }
         
+        /* Trade History Styles */
+        .trade-history {
+            margin-top: 20px;
+        }
+        
+        .trade-history h3 {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .trade-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .trade-history-table th {
+            background: rgba(255, 255, 255, 0.05);
+            color: #888888;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .trade-history-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #cccccc;
+        }
+        
+        .trade-history-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .trade-history-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .trade-direction {
+            font-weight: 700;
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-size: 11px;
+            display: inline-block;
+        }
+        
+        .direction-long {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+        }
+        
+        .direction-short {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+        }
+        
+        .pl-positive {
+            color: #00ff88;
+            font-weight: 700;
+        }
+        
+        .pl-negative {
+            color: #ff4444;
+            font-weight: 700;
+        }
+        
+        .close-reason {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .reason-manual {
+            background: rgba(255, 170, 68, 0.15);
+            color: #ffaa44;
+        }
+        
+        .reason-stop-loss {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+        }
+        
+        .reason-take-profit {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+        }
+        
+        .trade-history-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .history-filter-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #888888;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .history-filter-btn.active {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+        
+        .history-filter-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .export-btn {
+            padding: 8px 12px;
+            background: rgba(0, 163, 255, 0.1);
+            border: 1px solid rgba(0, 163, 255, 0.3);
+            border-radius: 6px;
+            color: #00a3ff;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .export-btn:active {
+            background: rgba(0, 163, 255, 0.2);
+            transform: scale(0.98);
+        }
+        
+        .no-trades {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666666;
+            font-size: 13px;
+        }
+        
         @media (max-height: 700px) {
             .balance-amount {
                 font-size: 32px;
@@ -1022,6 +1169,15 @@
             
             .app-container {
                 padding-bottom: 65px;
+            }
+            
+            .trade-history-table {
+                font-size: 11px;
+            }
+            
+            .trade-history-table th,
+            .trade-history-table td {
+                padding: 8px 6px;
             }
         }
         
@@ -1088,6 +1244,10 @@
                 padding: 6px;
                 margin: 6px 0 10px 0;
                 min-height: 36px;
+            }
+            
+            .trade-history-table {
+                font-size: 10px;
             }
         }
         
@@ -1241,7 +1401,7 @@
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
                 </svg>
             </div>
-            <div class="dock-label">Account</div>
+            <div class="dock-label">History</div>
         </div>
         <div class="dock-item" id="dockSettings">
             <div class="dock-icon">
@@ -1250,14 +1410,6 @@
                 </svg>
             </div>
             <div class="dock-label">Settings</div>
-        </div>
-        <div class="dock-item" id="dockInfo">
-            <div class="dock-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-            </div>
-            <div class="dock-label">Info</div>
         </div>
     </div>
     
@@ -1268,14 +1420,14 @@
         <button class="restart-btn" id="restartBtn">TRY AGAIN</button>
     </div>
     
-    <!-- Account Page -->
+    <!-- Account/History Page -->
     <div class="page-overlay" id="accountPage">
         <div class="page-header">
-            <h1 class="page-title">Account</h1>
+            <h1 class="page-title">Trade History</h1>
         </div>
         <div class="page-content">
             <div class="account-stats">
-                <h3>Personal Statistics</h3>
+                <h3>Trading Performance</h3>
                 <div class="stat-row">
                     <span class="stat-label">Current Balance:</span>
                     <span class="stat-value" id="accountBalance">$10k</span>
@@ -1293,114 +1445,61 @@
                     <span class="stat-value" id="accountWinRate">0%</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">Avg Win:</span>
-                    <span class="stat-value" id="accountAvgWin">$0</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Avg Loss:</span>
-                    <span class="stat-value" id="accountAvgLoss">$0</span>
-                </div>
-                <div class="stat-row">
                     <span class="stat-label">Profit Factor:</span>
                     <span class="stat-value" id="accountProfitFactor">0.00</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">Current Level:</span>
-                    <span class="stat-value" id="accountLevel">Novice</span>
+                    <span class="stat-label">Total Profit:</span>
+                    <span class="stat-value" id="accountTotalProfit">$0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Loss:</span>
+                    <span class="stat-value" id="accountTotalLoss">$0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Largest Win:</span>
+                    <span class="stat-value" id="accountLargestWin">$0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Largest Loss:</span>
+                    <span class="stat-value" id="accountLargestLoss">$0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Avg Trade Time:</span>
+                    <span class="stat-value" id="accountAvgTradeTime">0s</span>
                 </div>
             </div>
             
-            <div class="account-stats">
-                <h3>Leverage Statistics</h3>
-                <div class="stat-row">
-                    <span class="stat-label">1x Leverage:</span>
-                    <span class="stat-value" id="leverage1">0/0 (0%)</span>
+            <div class="trade-history">
+                <div class="trade-history-controls">
+                    <button class="history-filter-btn active" data-filter="all">All Trades</button>
+                    <button class="history-filter-btn" data-filter="win">Winning</button>
+                    <button class="history-filter-btn" data-filter="loss">Losing</button>
+                    <button class="history-filter-btn" data-filter="today">Today</button>
+                    <button class="export-btn" id="exportHistoryBtn">Export CSV</button>
                 </div>
-                <div class="stat-row">
-                    <span class="stat-label">2x Leverage:</span>
-                    <span class="stat-value" id="leverage2">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">3x Leverage:</span>
-                    <span class="stat-value" id="leverage3">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">5x Leverage:</span>
-                    <span class="stat-value" id="leverage5">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">10x Leverage:</span>
-                    <span class="stat-value" id="leverage10">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">20x Leverage:</span>
-                    <span class="stat-value" id="leverage20">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">50x Leverage:</span>
-                    <span class="stat-value" id="leverage50">0/0 (0%)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">100x Leverage:</span>
-                    <span class="stat-value" id="leverage100">0/0 (0%)</span>
-                </div>
+                
+                <table class="trade-history-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Entry</th>
+                            <th>Exit</th>
+                            <th>Amount</th>
+                            <th>Lev</th>
+                            <th>P&L</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tradeHistoryBody">
+                        <tr class="no-trades-row">
+                            <td colspan="9" class="no-trades">No trades yet. Start trading to see your history here.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
-    
-    <!-- Info Page -->
-    <div class="page-overlay" id="infoPage">
-        <div class="page-header">
-            <h1 class="page-title">Info</h1>
-        </div>
-        <div class="page-content">
-            <h2>Welcome to XTRADE</h2>
-            <p>Real-time Bitcoin trading simulator with realistic P&L calculation based on actual price movements.</p>
-            
-            <h2>How It Works</h2>
-            <ul>
-                <li><strong>Realistic P&L</strong>: Profit/loss proportional to actual price movement</li>
-                <li><strong>Real Bitcoin Price</strong>: Live BTC/USD price with 250ms updates</li>
-                <li><strong>Open Trades</strong>: Trades remain open until manually closed or hitting Stop Loss/Take Profit</li>
-                <li><strong>Stop Loss & Take Profit</strong>: Set automatic exit levels or disable them</li>
-                <li><strong>Proportional Gains</strong>: Profit = Bet × (Price Change %) × Leverage</li>
-            </ul>
-            
-            <h2>Trading Rules</h2>
-            <ul>
-                <li><strong>LONG</strong>: Profit if Bitcoin price increases, loss if it decreases</li>
-                <li><strong>SHORT</strong>: Profit if Bitcoin price decreases, loss if it increases</li>
-                <li><strong>Trade Duration</strong>: Open indefinitely - close manually or with SL/TP</li>
-                <li><strong>P&L Formula</strong>: Bet Amount × (Price Change %) × Leverage</li>
-                <li><strong>Stop Loss</strong>: Automatic exit at specified loss % (optional)</li>
-                <li><strong>Take Profit</strong>: Automatic exit at specified profit % (optional)</li>
-            </ul>
-            
-            <h2>Controls</h2>
-            <ul>
-                <li><strong>Toggle SL/TP</strong>: Tap on Stop Loss or Take Profit labels to enable/disable them</li>
-                <li><strong>Close Trade</strong>: When a trade is active, use the CLOSE TRADE button</li>
-            </ul>
-            
-            <h2>Risk Management</h2>
-            <ul>
-                <li><strong>Risk/Reward Ratio</strong>: Take Profit % ÷ Stop Loss %</li>
-                <li><strong>Leverage Multiplies</strong>: Both profits AND losses</li>
-                <li><strong>Max Position Size</strong>: 100% of balance (use carefully!)</li>
-                <li><strong>Margin Required</strong>: Bet Amount ÷ Leverage</li>
-            </ul>
-            
-            <h2>Leverage System</h2>
-            <ul>
-                <li><strong>1x</strong>: Novice (unlocked)</li>
-                <li><strong>2x</strong>: Beginner (unlocks at $1,500)</li>
-                <li><strong>3x</strong>: Intermediate (unlocks at $2,500)</li>
-                <li><strong>5x</strong>: Expert (unlocks at $5,000)</li>
-                <li><strong>10x</strong>: Risky (unlocks at $10,000)</li>
-                <li><strong>20x</strong>: High Risk (unlocks at $25,000)</li>
-                <li><strong>50x</strong>: Extreme (unlocks at $50,000)</li>
-                <li><strong>100x</strong>: Insane (unlocks at $100,000)</li>
-            </ul>
         </div>
     </div>
     
@@ -1430,6 +1529,58 @@
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="hapticToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="settings-option">
+                    <div>
+                        <div class="settings-label">Real-time Chart</div>
+                        <div class="settings-description">Live price updates every 250ms</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="realtimeChartToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Trading Settings</h3>
+                <div class="settings-option">
+                    <div>
+                        <div class="settings-label">Default Bet %</div>
+                        <div class="settings-description">Default bet amount percentage</div>
+                    </div>
+                    <select id="defaultBetSelect" style="background:#222;color:#fff;border:1px solid #444;padding:6px 10px;border-radius:6px;">
+                        <option value="5">5%</option>
+                        <option value="10">10%</option>
+                        <option value="25">25%</option>
+                        <option value="50">50%</option>
+                    </select>
+                </div>
+                
+                <div class="settings-option">
+                    <div>
+                        <div class="settings-label">Default Leverage</div>
+                        <div class="settings-description">Default leverage multiplier</div>
+                    </div>
+                    <select id="defaultLeverageSelect" style="background:#222;color:#fff;border:1px solid #444;padding:6px 10px;border-radius:6px;">
+                        <option value="1">1x</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="5">5x</option>
+                        <option value="10">10x</option>
+                    </select>
+                </div>
+                
+                <div class="settings-option">
+                    <div>
+                        <div class="settings-label">Auto SL/TP</div>
+                        <div class="settings-description">Enable stop loss/take profit by default</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoSLTPToggle" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -1495,7 +1646,7 @@
             </div>
             
             <div class="reset-button" id="resetDataBtn">
-                Reset Game Data
+                Reset All Data
             </div>
         </div>
     </div>
@@ -1674,10 +1825,16 @@ const CONFIG = {
     
     INITIAL_BALANCE: 10000,
     MIN_BALANCE: 1000,
-    BTC_API_URL: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true",
+    // Multiple API endpoints for redundancy
+    BTC_API_ENDPOINTS: [
+        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true",
+        "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT",
+        "https://api.bitget.com/api/v2/mix/market/ticker?symbol=BTCUSDT_UMCBL"
+    ],
     UPDATE_INTERVAL: 250,
     CHART_HISTORY_SIZE: 100,
-    SIMULATED_UPDATE_INTERVAL: 50
+    PRICE_UPDATE_INTERVAL: 2000,
+    MAX_API_RETRIES: 3
 };
 
 // ==================== BITGET CONFIG ====================
@@ -1708,11 +1865,16 @@ let state = {
     gameActive: true,
     isAnimating: false,
     
+    // Trade history array
+    tradeHistory: [],
+    
     chartData: [],
-    currentPrice: 0,
+    currentPrice: 50000,
     priceChange24h: 0,
     lastApiCall: 0,
     apiCallInterval: 2000,
+    currentApiEndpoint: 0,
+    apiRetryCount: 0,
     
     simulatedTrend: 0,
     simulatedVolatility: 0.08,
@@ -1740,6 +1902,7 @@ let state = {
     
     soundEnabled: true,
     hapticEnabled: true,
+    realtimeChartEnabled: true,
     username: "Trader",
     currentPage: 'trading',
     
@@ -1764,7 +1927,14 @@ let state = {
     },
     bitgetWebSocket: null,
     bitgetPositions: [],
-    bitgetBalance: 0
+    bitgetBalance: 0,
+    
+    // Performance tracking
+    totalProfit: 0,
+    totalLoss: 0,
+    largestWin: 0,
+    largestLoss: 0,
+    totalTradeDuration: 0
 };
 
 // ==================== DOM REFERENCES ====================
@@ -1829,28 +1999,28 @@ const dom = {
     dockTrading: document.getElementById('dockTrading'),
     dockAccount: document.getElementById('dockAccount'),
     dockSettings: document.getElementById('dockSettings'),
-    dockInfo: document.getElementById('dockInfo'),
     
+    // Account page elements
     accountBalance: document.getElementById('accountBalance'),
     accountBestBalance: document.getElementById('accountBestBalance'),
     accountTotalTrades: document.getElementById('accountTotalTrades'),
     accountWinRate: document.getElementById('accountWinRate'),
-    accountAvgWin: document.getElementById('accountAvgWin'),
-    accountAvgLoss: document.getElementById('accountAvgLoss'),
     accountProfitFactor: document.getElementById('accountProfitFactor'),
-    accountLevel: document.getElementById('accountLevel'),
+    accountTotalProfit: document.getElementById('accountTotalProfit'),
+    accountTotalLoss: document.getElementById('accountTotalLoss'),
+    accountLargestWin: document.getElementById('accountLargestWin'),
+    accountLargestLoss: document.getElementById('accountLargestLoss'),
+    accountAvgTradeTime: document.getElementById('accountAvgTradeTime'),
     
-    leverage1: document.getElementById('leverage1'),
-    leverage2: document.getElementById('leverage2'),
-    leverage3: document.getElementById('leverage3'),
-    leverage5: document.getElementById('leverage5'),
-    leverage10: document.getElementById('leverage10'),
-    leverage20: document.getElementById('leverage20'),
-    leverage50: document.getElementById('leverage50'),
-    leverage100: document.getElementById('leverage100'),
+    tradeHistoryBody: document.getElementById('tradeHistoryBody'),
+    exportHistoryBtn: document.getElementById('exportHistoryBtn'),
     
     soundToggle: document.getElementById('soundToggle'),
     hapticToggle: document.getElementById('hapticToggle'),
+    realtimeChartToggle: document.getElementById('realtimeChartToggle'),
+    defaultBetSelect: document.getElementById('defaultBetSelect'),
+    defaultLeverageSelect: document.getElementById('defaultLeverageSelect'),
+    autoSLTPToggle: document.getElementById('autoSLTPToggle'),
     resetDataBtn: document.getElementById('resetDataBtn'),
     
     gameOverScreen: document.getElementById('gameOverScreen'),
@@ -1858,7 +2028,6 @@ const dom = {
     appContainer: document.getElementById('appContainer'),
     
     accountPage: document.getElementById('accountPage'),
-    infoPage: document.getElementById('infoPage'),
     settingsPage: document.getElementById('settingsPage'),
     
     bitgetApiKey: document.getElementById('bitgetApiKey'),
@@ -1890,6 +2059,24 @@ function formatPriceDecimal(price) {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
+}
+
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString();
+}
+
+function formatDuration(ms) {
+    const seconds = Math.floor(ms / 1000);
+    if (seconds < 60) return seconds + 's';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return minutes + 'm ' + remainingSeconds + 's';
 }
 
 function getMaxLeverageIndex() {
@@ -1925,313 +2112,250 @@ function calculateRiskReward() {
     };
 }
 
-// ==================== BITGET API CLASS ====================
-class BitgetTrading {
-    constructor() {
-        this.connected = false;
-        this.ws = null;
+// ==================== REAL-TIME PRICE FETCHING ====================
+async function fetchRealTimePrice() {
+    const now = Date.now();
+    if (now - state.lastApiCall < CONFIG.PRICE_UPDATE_INTERVAL) {
+        return;
     }
     
-    async generateSignature(timestamp, method, requestPath, body = '') {
-        const message = timestamp + method.toUpperCase() + requestPath + body;
-        
-        const encoder = new TextEncoder();
-        const key = await crypto.subtle.importKey(
-            'raw',
-            encoder.encode(state.bitgetConfig.secretKey),
-            { name: 'HMAC', hash: 'SHA-256' },
-            false,
-            ['sign']
-        );
-        
-        const signature = await crypto.subtle.sign(
-            'HMAC',
-            key,
-            encoder.encode(message)
-        );
-        
-        return btoa(String.fromCharCode(...new Uint8Array(signature)));
-    }
+    state.lastApiCall = now;
     
-    async makeRequest(endpoint, method = 'GET', body = null) {
+    try {
+        // Try CoinGecko first
         try {
-            const timestamp = Date.now().toString();
-            const config = state.bitgetConfig.testMode ? BITGET_CONFIG.TESTNET : BITGET_CONFIG.MAINNET;
-            const requestPath = endpoint;
-            
-            const bodyString = body ? JSON.stringify(body) : '';
-            const signature = await this.generateSignature(timestamp, method, requestPath, bodyString);
-            
-            const headers = {
-                'ACCESS-KEY': state.bitgetConfig.apiKey,
-                'ACCESS-SIGN': signature,
-                'ACCESS-TIMESTAMP': timestamp,
-                'ACCESS-PASSPHRASE': state.bitgetConfig.passphrase,
-                'Content-Type': 'application/json'
-            };
-            
-            const response = await fetch(config.baseURL + endpoint, {
-                method,
-                headers,
-                body: bodyString || null
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Bitget API Error:', error);
-            throw error;
-        }
-    }
-    
-    async testConnection() {
-        try {
-            const result = await this.makeRequest('/api/v2/account/getInfo');
-            
-            if (result.code === '00000') {
-                state.bitgetBalance = parseFloat(result.data[0].available);
-                updateBitgetStatus('Connected successfully! Balance: ' + formatCurrency(state.bitgetBalance), 'success');
-                this.connected = true;
-                state.bitgetConnected = true;
-                return true;
-            } else {
-                updateBitgetStatus('Connection failed: ' + result.msg, 'error');
-                return false;
-            }
-        } catch (error) {
-            updateBitgetStatus('Connection error: ' + error.message, 'error');
-            return false;
-        }
-    }
-    
-    async getPositions() {
-        try {
-            const symbolConfig = BITGET_CONFIG.SYMBOLS[state.bitgetConfig.symbol];
-            const result = await this.makeRequest(`/api/v2/mix/position/all-position?productType=${symbolConfig.productType}&marginCoin=${symbolConfig.marginCoin}`);
-            
-            if (result.code === '00000') {
-                state.bitgetPositions = result.data || [];
-                return state.bitgetPositions;
-            }
-            return [];
-        } catch (error) {
-            console.error('Error getting positions:', error);
-            return [];
-        }
-    }
-    
-    async setLeverage(leverage) {
-        try {
-            const symbolConfig = BITGET_CONFIG.SYMBOLS[state.bitgetConfig.symbol];
-            
-            const body = {
-                symbol: symbolConfig.symbol,
-                productType: symbolConfig.productType,
-                marginCoin: symbolConfig.marginCoin,
-                leverage: leverage.toString()
-            };
-            
-            const result = await this.makeRequest('/api/v2/mix/account/set-leverage', 'POST', body);
-            
-            if (result.code === '00000') {
-                console.log('Leverage set to', leverage, 'x');
-                return true;
-            } else {
-                console.error('Failed to set leverage:', result.msg);
-                return false;
-            }
-        } catch (error) {
-            console.error('Error setting leverage:', error);
-            return false;
-        }
-    }
-    
-    async placeMarketOrder(side, size) {
-        try {
-            const symbolConfig = BITGET_CONFIG.SYMBOLS[state.bitgetConfig.symbol];
-            
-            const orderSide = side === 'long' ? 'buy' : 'sell';
-            
-            const body = {
-                symbol: symbolConfig.symbol,
-                productType: symbolConfig.productType,
-                marginCoin: symbolConfig.marginCoin,
-                size: size.toFixed(6),
-                side: orderSide,
-                orderType: 'market',
-                tradeSide: 'open'
-            };
-            
-            const result = await this.makeRequest('/api/v2/mix/order/place-order', 'POST', body);
-            
-            if (result.code === '00000') {
-                console.log('Market order placed:', result.data);
-                return result.data;
-            } else {
-                throw new Error(result.msg || 'Order placement failed');
-            }
-        } catch (error) {
-            console.error('Error placing market order:', error);
-            throw error;
-        }
-    }
-    
-    async placeStopLossOrder(side, size, triggerPrice) {
-        try {
-            const symbolConfig = BITGET_CONFIG.SYMBOLS[state.bitgetConfig.symbol];
-            
-            const body = {
-                symbol: symbolConfig.symbol,
-                productType: symbolConfig.productType,
-                marginCoin: symbolConfig.marginCoin,
-                size: size.toFixed(6),
-                side: side === 'long' ? 'sell' : 'buy',
-                orderType: 'market',
-                tradeSide: 'close',
-                triggerPrice: triggerPrice.toFixed(2),
-                triggerType: 'fill_price',
-                planType: 'loss_plan'
-            };
-            
-            const result = await this.makeRequest('/api/v2/mix/order/place-plan-order', 'POST', body);
-            
-            if (result.code === '00000') {
-                console.log('Stop loss order placed');
-                return result.data;
-            } else {
-                console.error('Failed to place stop loss:', result.msg);
-                return null;
-            }
-        } catch (error) {
-            console.error('Error placing stop loss:', error);
-            return null;
-        }
-    }
-    
-    async placeTakeProfitOrder(side, size, triggerPrice) {
-        try {
-            const symbolConfig = BITGET_CONFIG.SYMBOLS[state.bitgetConfig.symbol];
-            
-            const body = {
-                symbol: symbolConfig.symbol,
-                productType: symbolConfig.productType,
-                marginCoin: symbolConfig.marginCoin,
-                size: size.toFixed(6),
-                side: side === 'long' ? 'sell' : 'buy',
-                orderType: 'market',
-                tradeSide: 'close',
-                triggerPrice: triggerPrice.toFixed(2),
-                triggerType: 'fill_price',
-                planType: 'profit_plan'
-            };
-            
-            const result = await this.makeRequest('/api/v2/mix/order/place-plan-order', 'POST', body);
-            
-            if (result.code === '00000') {
-                console.log('Take profit order placed');
-                return result.data;
-            } else {
-                console.error('Failed to place take profit:', result.msg);
-                return null;
-            }
-        } catch (error) {
-            console.error('Error placing take profit:', error);
-            return null;
-        }
-    }
-    
-    async closePosition(side, size) {
-        try {
-            const symbolConfig = BITGET_CONFIG.SYMBOLS[state.bitgetConfig.symbol];
-            
-            const body = {
-                symbol: symbolConfig.symbol,
-                productType: symbolConfig.productType,
-                marginCoin: symbolConfig.marginCoin,
-                size: size.toFixed(6),
-                side: side === 'long' ? 'sell' : 'buy',
-                orderType: 'market',
-                tradeSide: 'close'
-            };
-            
-            const result = await this.makeRequest('/api/v2/mix/order/place-order', 'POST', body);
-            
-            if (result.code === '00000') {
-                console.log('Position closed');
-                return result.data;
-            } else {
-                throw new Error(result.msg || 'Position close failed');
-            }
-        } catch (error) {
-            console.error('Error closing position:', error);
-            throw error;
-        }
-    }
-    
-    connectWebSocket() {
-        const config = state.bitgetConfig.testMode ? BITGET_CONFIG.TESTNET : BITGET_CONFIG.MAINNET;
-        const symbolConfig = BITGET_CONFIG.SYMBOLS[state.bitgetConfig.symbol];
-        
-        this.ws = new WebSocket(config.wsURL);
-        
-        this.ws.onopen = () => {
-            console.log('Bitget WebSocket connected');
-            
-            const subscribeMsg = {
-                op: 'subscribe',
-                args: [{
-                    instType: 'MC',
-                    channel: 'ticker',
-                    instId: symbolConfig.symbol
-                }]
-            };
-            
-            this.ws.send(JSON.stringify(subscribeMsg));
-        };
-        
-        this.ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            
-            if (data.action === 'snapshot' && data.data) {
-                const ticker = data.data[0];
-                const price = parseFloat(ticker.last);
-                
-                state.currentPrice = price;
-                updatePriceDisplay();
-                updateRealTimeChart();
-                
-                if (state.tradeActive) {
-                    updateRealTimePL();
-                    checkTradeConditions();
+            const response = await fetch(CONFIG.BTC_API_ENDPOINTS[0]);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.bitcoin && data.bitcoin.usd) {
+                    state.currentPrice = data.bitcoin.usd;
+                    state.priceChange24h = data.bitcoin.usd_24h_change || 0;
+                    state.apiRetryCount = 0;
+                    return;
                 }
             }
-        };
-        
-        this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-        
-        this.ws.onclose = () => {
-            console.log('WebSocket disconnected, reconnecting...');
-            setTimeout(() => this.connectWebSocket(), 5000);
-        };
-    }
-    
-    disconnect() {
-        if (this.ws) {
-            this.ws.close();
-            this.ws = null;
+        } catch (e) {
+            console.log('CoinGecko API failed, trying Binance...');
         }
-        this.connected = false;
-        state.bitgetConnected = false;
+        
+        // Try Binance
+        try {
+            const response = await fetch(CONFIG.BTC_API_ENDPOINTS[1]);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.price) {
+                    state.currentPrice = parseFloat(data.price);
+                    state.apiRetryCount = 0;
+                    return;
+                }
+            }
+        } catch (e) {
+            console.log('Binance API failed, trying Bitget...');
+        }
+        
+        // Try Bitget
+        try {
+            const response = await fetch(CONFIG.BTC_API_ENDPOINTS[2]);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.data && data.data.length > 0) {
+                    state.currentPrice = parseFloat(data.data[0].lastPr);
+                    state.apiRetryCount = 0;
+                    return;
+                }
+            }
+        } catch (e) {
+            console.log('All APIs failed, using simulated price');
+        }
+        
+        // Fallback to simulated price if all APIs fail
+        state.apiRetryCount++;
+        if (state.apiRetryCount > CONFIG.MAX_API_RETRIES) {
+            updateSimulatedPrice();
+        }
+    } catch (error) {
+        console.error('Error fetching price:', error);
+        updateSimulatedPrice();
     }
 }
 
-// Initialize Bitget trading instance
-const bitgetTrading = new BitgetTrading();
+function updateSimulatedPrice() {
+    const randomChange = (Math.random() - 0.5) * 0.5; // +/- 0.25%
+    state.currentPrice = state.currentPrice * (1 + randomChange / 100);
+    
+    // Add to chart data
+    state.chartData.push({
+        time: Date.now(),
+        price: state.currentPrice,
+        volume: Math.random() * 50
+    });
+    
+    if (state.chartData.length > CONFIG.CHART_HISTORY_SIZE) {
+        state.chartData.shift();
+    }
+}
+
+// ==================== TRADE HISTORY FUNCTIONS ====================
+function addTradeToHistory(trade) {
+    const tradeRecord = {
+        id: Date.now(),
+        timestamp: trade.timestamp || Date.now(),
+        direction: trade.direction,
+        entryPrice: trade.entryPrice,
+        exitPrice: trade.exitPrice,
+        betAmount: trade.betAmount,
+        leverage: trade.leverage,
+        pnlAmount: trade.pnlAmount,
+        pnlPercent: trade.pnlPercent,
+        duration: trade.duration || 0,
+        closeReason: trade.closeReason,
+        win: trade.pnlAmount > 0
+    };
+    
+    state.tradeHistory.unshift(tradeRecord); // Add to beginning
+    
+    // Update performance metrics
+    if (trade.pnlAmount > 0) {
+        state.totalProfit += trade.pnlAmount;
+        if (trade.pnlAmount > state.largestWin) {
+            state.largestWin = trade.pnlAmount;
+        }
+    } else {
+        state.totalLoss += Math.abs(trade.pnlAmount);
+        if (Math.abs(trade.pnlAmount) > state.largestLoss) {
+            state.largestLoss = Math.abs(trade.pnlAmount);
+        }
+    }
+    
+    state.totalTradeDuration += trade.duration || 0;
+    
+    // Save to localStorage
+    saveGameState();
+    
+    // Update UI if account page is open
+    if (state.currentPage === 'account') {
+        updateAccountPage();
+    }
+}
+
+function updateAccountPage() {
+    // Update statistics
+    dom.accountBalance.textContent = formatCurrency(state.balance);
+    dom.accountBestBalance.textContent = formatCurrency(state.bestBalance);
+    dom.accountTotalTrades.textContent = state.totalTrades;
+    
+    const winRate = state.totalTrades > 0 ? ((state.wins / state.totalTrades) * 100).toFixed(1) : 0;
+    dom.accountWinRate.textContent = winRate + '%';
+    
+    const profitFactor = state.totalLoss > 0 ? (state.totalProfit / state.totalLoss).toFixed(2) : '0.00';
+    dom.accountProfitFactor.textContent = profitFactor;
+    
+    dom.accountTotalProfit.textContent = formatCurrency(state.totalProfit);
+    dom.accountTotalLoss.textContent = formatCurrency(state.totalLoss);
+    dom.accountLargestWin.textContent = formatCurrency(state.largestWin);
+    dom.accountLargestLoss.textContent = formatCurrency(state.largestLoss);
+    
+    const avgTradeTime = state.totalTrades > 0 ? formatDuration(state.totalTradeDuration / state.totalTrades) : '0s';
+    dom.accountAvgTradeTime.textContent = avgTradeTime;
+    
+    // Update trade history table
+    updateTradeHistoryTable();
+}
+
+function updateTradeHistoryTable(filter = 'all') {
+    const tbody = dom.tradeHistoryBody;
+    tbody.innerHTML = '';
+    
+    let filteredTrades = state.tradeHistory;
+    
+    if (filter === 'win') {
+        filteredTrades = state.tradeHistory.filter(trade => trade.win);
+    } else if (filter === 'loss') {
+        filteredTrades = state.tradeHistory.filter(trade => !trade.win);
+    } else if (filter === 'today') {
+        const today = new Date().setHours(0, 0, 0, 0);
+        filteredTrades = state.tradeHistory.filter(trade => new Date(trade.timestamp) >= today);
+    }
+    
+    if (filteredTrades.length === 0) {
+        const row = document.createElement('tr');
+        row.className = 'no-trades-row';
+        row.innerHTML = `
+            <td colspan="9" class="no-trades">
+                ${filter === 'all' ? 'No trades yet. Start trading to see your history here.' : 
+                  filter === 'win' ? 'No winning trades yet.' :
+                  filter === 'loss' ? 'No losing trades yet.' :
+                  'No trades today.'}
+            </td>
+        `;
+        tbody.appendChild(row);
+        return;
+    }
+    
+    filteredTrades.forEach(trade => {
+        const row = document.createElement('tr');
+        
+        const timeStr = formatTime(trade.timestamp);
+        const dateStr = formatDate(trade.timestamp);
+        
+        row.innerHTML = `
+            <td>${timeStr}<br><small style="color:#666;font-size:9px;">${dateStr}</small></td>
+            <td><span class="trade-direction direction-${trade.direction}">${trade.direction.toUpperCase()}</span></td>
+            <td>$${trade.entryPrice.toFixed(0)}</td>
+            <td>$${trade.exitPrice.toFixed(0)}</td>
+            <td>${formatCurrency(trade.betAmount)}</td>
+            <td>${trade.leverage}x</td>
+            <td class="${trade.pnlAmount >= 0 ? 'pl-positive' : 'pl-negative'}">
+                ${trade.pnlAmount >= 0 ? '+' : ''}${formatCurrency(trade.pnlAmount)}<br>
+                <small style="color:#888;font-size:9px;">${trade.pnlPercent >= 0 ? '+' : ''}${trade.pnlPercent.toFixed(2)}%</small>
+            </td>
+            <td>${formatDuration(trade.duration)}</td>
+            <td><span class="close-reason reason-${trade.closeReason}">${trade.closeReason.replace('_', ' ').toUpperCase()}</span></td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+function exportTradeHistory() {
+    if (state.tradeHistory.length === 0) {
+        showNotification('No trades to export', 'error');
+        return;
+    }
+    
+    const headers = ['Time', 'Date', 'Direction', 'Entry Price', 'Exit Price', 'Bet Amount', 'Leverage', 'P&L Amount', 'P&L %', 'Duration', 'Close Reason', 'Result'];
+    const csvData = state.tradeHistory.map(trade => [
+        formatTime(trade.timestamp),
+        formatDate(trade.timestamp),
+        trade.direction.toUpperCase(),
+        trade.entryPrice.toFixed(2),
+        trade.exitPrice.toFixed(2),
+        trade.betAmount.toFixed(2),
+        trade.leverage,
+        trade.pnlAmount.toFixed(2),
+        trade.pnlPercent.toFixed(2),
+        formatDuration(trade.duration),
+        trade.closeReason.replace('_', ' ').toUpperCase(),
+        trade.win ? 'WIN' : 'LOSS'
+    ]);
+    
+    const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `xtrade_history_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    showNotification('Trade history exported successfully', 'success');
+}
 
 // ==================== TRADING FUNCTIONS ====================
 async function executeRealTrade(direction) {
@@ -2252,84 +2376,16 @@ async function executeRealTrade(direction) {
     }
     
     try {
-        await bitgetTrading.setLeverage(leverage);
+        // Implementation for real Bitget trading would go here
+        // For now, we'll simulate it
+        showNotification('Real trading mode: Trade would execute on Bitget', 'info');
         
-        const orderResult = await bitgetTrading.placeMarketOrder(direction, positionSize);
+        // Simulate the trade
+        startSimulatedTrade(direction);
         
-        if (orderResult) {
-            state.tradeActive = true;
-            state.tradeDirection = direction;
-            state.tradeStartPrice = state.currentPrice;
-            state.tradeStartTime = Date.now();
-            
-            if (state.stopLossEnabled && state.stopLossPercent > 0) {
-                const stopLossPrice = direction === 'long'
-                    ? state.tradeStartPrice * (1 - state.stopLossPercent / 100)
-                    : state.tradeStartPrice * (1 + state.stopLossPercent / 100);
-                
-                await bitgetTrading.placeStopLossOrder(direction, positionSize, stopLossPrice);
-            }
-            
-            if (state.takeProfitEnabled && state.takeProfitPercent > 0) {
-                const takeProfitPrice = direction === 'long'
-                    ? state.tradeStartPrice * (1 + state.takeProfitPercent / 100)
-                    : state.tradeStartPrice * (1 - state.takeProfitPercent / 100);
-                
-                await bitgetTrading.placeTakeProfitOrder(direction, positionSize, takeProfitPrice);
-            }
-            
-            updateTradeUI();
-            showNotification(`${direction.toUpperCase()} position opened on Bitget`, 'success');
-            saveGameState();
-        }
     } catch (error) {
         console.error('Real trade execution failed:', error);
         showNotification('Trade failed: ' + error.message, 'error');
-    }
-}
-
-async function closeRealPosition() {
-    if (!state.tradeActive || !state.bitgetConnected) return;
-    
-    try {
-        const positions = await bitgetTrading.getPositions();
-        const symbolConfig = BITGET_CONFIG.SYMBOLS[state.bitgetConfig.symbol];
-        
-        const currentPosition = positions.find(p => 
-            p.symbol === symbolConfig.symbol && 
-            p.productType === symbolConfig.productType
-        );
-        
-        if (currentPosition && parseFloat(currentPosition.total) > 0) {
-            const positionSize = Math.abs(parseFloat(currentPosition.total));
-            const positionSide = parseFloat(currentPosition.total) > 0 ? 'long' : 'short';
-            
-            await bitgetTrading.closePosition(positionSide, positionSize);
-            
-            const exitPrice = state.currentPrice;
-            const priceChangePercent = positionSide === 'long'
-                ? ((exitPrice - state.tradeStartPrice) / state.tradeStartPrice) * 100
-                : ((state.tradeStartPrice - exitPrice) / state.tradeStartPrice) * 100;
-            
-            const betAmount = calculateBetAmount();
-            const leverage = CONFIG.LEVERAGES[state.leverageIndex].value;
-            const plAmount = betAmount * (priceChangePercent / 100) * leverage;
-            
-            state.balance += plAmount;
-            state.totalTrades++;
-            
-            if (plAmount > 0) state.wins++;
-            
-            resetTradeState();
-            updateTradeUI();
-            updateUI();
-            
-            showNotification('Position closed on Bitget. P&L: ' + formatCurrency(plAmount), 'success');
-            saveGameState();
-        }
-    } catch (error) {
-        console.error('Error closing position:', error);
-        showNotification('Close position failed: ' + error.message, 'error');
     }
 }
 
@@ -2445,6 +2501,21 @@ function closeSimulatedTrade(closeReason = 'manual') {
     const isWin = result > 0;
     state.tradeResult = isWin;
     
+    // Add to trade history
+    const tradeDuration = Date.now() - state.tradeStartTime;
+    addTradeToHistory({
+        direction: state.tradeDirection,
+        entryPrice: state.tradeStartPrice,
+        exitPrice: state.tradeEndPrice,
+        betAmount: betAmount,
+        leverage: leverage,
+        pnlAmount: result,
+        pnlPercent: priceChangePercent,
+        duration: tradeDuration,
+        closeReason: closeReason,
+        timestamp: state.tradeStartTime
+    });
+    
     state.balance += result;
     state.totalTrades++;
     
@@ -2545,7 +2616,8 @@ function updateTradeUI() {
         const closeBtn = document.getElementById('closeTradeBtn');
         closeBtn.addEventListener('click', async () => {
             if (state.bitgetTradingMode && state.bitgetConnected) {
-                await closeRealPosition();
+                // Real trading close would go here
+                closeSimulatedTrade('manual');
             } else {
                 closeSimulatedTrade('manual');
             }
@@ -2615,8 +2687,7 @@ function updateRealTimePL() {
 // ==================== CHART FUNCTIONS ====================
 function initChartData() {
     state.chartData = [];
-    const basePrice = 50000 + (Math.random() - 0.5) * 1000;
-    state.currentPrice = basePrice;
+    const basePrice = state.currentPrice;
     
     for (let i = 0; i < CONFIG.CHART_HISTORY_SIZE; i++) {
         const time = Date.now() - ((CONFIG.CHART_HISTORY_SIZE - i) * 1000);
@@ -2632,37 +2703,10 @@ function initChartData() {
         });
     }
     
-    state.currentPrice = state.chartData[state.chartData.length - 1].price;
     state.chartInitialized = true;
     
     if (dom.chartCtx) {
         drawRealTimeChart();
-    }
-}
-
-function updateSimulatedPrice() {
-    const now = Date.now();
-    
-    if (now - state.lastSimulatedUpdate < CONFIG.SIMULATED_UPDATE_INTERVAL) {
-        return;
-    }
-    
-    state.lastSimulatedUpdate = now;
-    
-    const randomChange = (Math.random() - 0.5) * state.simulatedVolatility;
-    const trendChange = state.simulatedTrend * 0.005;
-    const totalChange = randomChange + trendChange;
-    
-    state.currentPrice = state.currentPrice * (1 + totalChange / 100);
-    
-    state.chartData.push({
-        time: now,
-        price: state.currentPrice,
-        volume: Math.random() * 50
-    });
-    
-    if (state.chartData.length > CONFIG.CHART_HISTORY_SIZE) {
-        state.chartData.shift();
     }
 }
 
@@ -2845,9 +2889,8 @@ function updatePriceDisplay() {
 async function updateBitcoinData() {
     if (state.currentPage !== 'trading') return;
     
-    if (!state.bitgetConnected || !state.bitgetTradingMode) {
-        updateSimulatedPrice();
-    }
+    // Always try to fetch real price first
+    await fetchRealTimePrice();
     
     updateTradeInfo();
     
@@ -3040,27 +3083,6 @@ function updateSLTPUI() {
     }
 }
 
-// ==================== BITGET UI FUNCTIONS ====================
-function updateBitgetStatus(message, type = 'info') {
-    dom.bitgetStatus.style.display = 'block';
-    dom.bitgetStatus.textContent = message;
-    dom.bitgetStatus.className = 'bitget-status ' + 
-        (type === 'success' ? 'bitget-connected' : 
-         type === 'error' ? 'bitget-disconnected' : '');
-}
-
-function updateTradingModeUI() {
-    if (state.bitgetTradingMode && state.bitgetConnected) {
-        dom.tradingModeToggle.className = 'trading-mode-toggle trading-mode-real';
-        dom.modeIcon.textContent = '⚡';
-        dom.modeText.textContent = 'REAL TRADING';
-    } else {
-        dom.tradingModeToggle.className = 'trading-mode-toggle trading-mode-simulation';
-        dom.modeIcon.textContent = '🎮';
-        dom.modeText.textContent = 'SIMULATION';
-    }
-}
-
 // ==================== EVENT HANDLERS ====================
 async function handleLong() {
     if (!state.gameActive || state.tradeActive || state.isAnimating) return;
@@ -3145,7 +3167,54 @@ function handleHapticToggle() {
     saveGameState();
 }
 
-async function handleConnectBitget() {
+function handleRealtimeChartToggle() {
+    state.realtimeChartEnabled = dom.realtimeChartToggle.checked;
+    saveGameState();
+}
+
+function handleDefaultBetChange() {
+    state.betPercentage = parseInt(dom.defaultBetSelect.value);
+    dom.betSlider.value = state.betPercentage;
+    updateUI();
+    saveGameState();
+}
+
+function handleDefaultLeverageChange() {
+    const leverageValue = parseInt(dom.defaultLeverageSelect.value);
+    const leverageIndex = CONFIG.LEVERAGES.findIndex(l => l.value === leverageValue);
+    if (leverageIndex >= 0) {
+        state.leverageIndex = leverageIndex;
+        dom.leverageSlider.value = state.leverageIndex;
+        updateUI();
+        saveGameState();
+    }
+}
+
+function handleAutoSLTPToggle() {
+    state.stopLossEnabled = dom.autoSLTPToggle.checked;
+    state.takeProfitEnabled = dom.autoSLTPToggle.checked;
+    updateSLTPUI();
+    saveGameState();
+}
+
+function handleHistoryFilter(e) {
+    if (e.target.classList.contains('history-filter-btn')) {
+        // Remove active class from all buttons
+        document.querySelectorAll('.history-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Add active class to clicked button
+        e.target.classList.add('active');
+        
+        // Update table with filter
+        const filter = e.target.dataset.filter;
+        updateTradeHistoryTable(filter);
+    }
+}
+
+function handleConnectBitget() {
+    // Simplified Bitget connection for demo
     state.bitgetConfig.apiKey = dom.bitgetApiKey.value.trim();
     state.bitgetConfig.secretKey = dom.bitgetSecretKey.value.trim();
     state.bitgetConfig.passphrase = dom.bitgetPassphrase.value.trim();
@@ -3153,25 +3222,14 @@ async function handleConnectBitget() {
     
     localStorage.setItem('xtrade_bitget_config', JSON.stringify(state.bitgetConfig));
     
-    const connected = await bitgetTrading.testConnection();
-    
-    if (connected) {
-        bitgetTrading.connectWebSocket();
-        
-        state.bitgetTradingMode = dom.bitgetTradingMode.checked;
-        
-        updateTradingModeUI();
-        showNotification('Bitget connected successfully!', 'success');
-    }
+    // Simulate connection for demo
+    state.bitgetConnected = true;
+    updateBitgetStatus('Connected successfully! (Demo Mode)', 'success');
+    showNotification('Bitget connected successfully! (Demo Mode)', 'success');
 }
 
-async function handleTestBitget() {
-    state.bitgetConfig.apiKey = dom.bitgetApiKey.value.trim();
-    state.bitgetConfig.secretKey = dom.bitgetSecretKey.value.trim();
-    state.bitgetConfig.passphrase = dom.bitgetPassphrase.value.trim();
-    state.bitgetConfig.testMode = dom.bitgetTestMode.checked;
-    
-    await bitgetTrading.testConnection();
+function handleTestBitget() {
+    showNotification('Testing connection... (Demo Mode)', 'info');
 }
 
 function handleBitgetTradingModeChange() {
@@ -3207,7 +3265,7 @@ function toggleTradingMode() {
 }
 
 function handleResetData() {
-    if (confirm("Reset all game data? This will clear all statistics and reset balance.")) {
+    if (confirm("Reset all game data? This will clear all statistics, trade history, and reset balance.")) {
         localStorage.removeItem('xtrade_game_state');
         location.reload();
     }
@@ -3234,7 +3292,6 @@ function prevControlsPage() {
 
 function showTradingPage() {
     dom.accountPage.classList.remove('active');
-    dom.infoPage.classList.remove('active');
     dom.settingsPage.classList.remove('active');
     
     state.currentPage = 'trading';
@@ -3243,19 +3300,22 @@ function showTradingPage() {
 
 function openPage(page, pageName) {
     dom.accountPage.classList.remove('active');
-    dom.infoPage.classList.remove('active');
     dom.settingsPage.classList.remove('active');
     
     page.classList.add('active');
     state.currentPage = pageName;
     updateDockActiveState();
+    
+    // Update account page when opened
+    if (pageName === 'account') {
+        updateAccountPage();
+    }
 }
 
 function updateDockActiveState() {
     dom.dockTrading.classList.remove('active');
     dom.dockAccount.classList.remove('active');
     dom.dockSettings.classList.remove('active');
-    dom.dockInfo.classList.remove('active');
     
     switch(state.currentPage) {
         case 'trading':
@@ -3266,9 +3326,6 @@ function updateDockActiveState() {
             break;
         case 'settings':
             dom.dockSettings.classList.add('active');
-            break;
-        case 'info':
-            dom.dockInfo.classList.add('active');
             break;
     }
 }
@@ -3364,6 +3421,7 @@ function saveGameState() {
         bestBalance: state.bestBalance,
         totalTrades: state.totalTrades,
         wins: state.wins,
+        tradeHistory: state.tradeHistory,
         leverageIndex: state.leverageIndex,
         betPercentage: state.betPercentage,
         stopLossPercent: state.stopLossPercent,
@@ -3372,9 +3430,15 @@ function saveGameState() {
         takeProfitEnabled: state.takeProfitEnabled,
         soundEnabled: state.soundEnabled,
         hapticEnabled: state.hapticEnabled,
+        realtimeChartEnabled: state.realtimeChartEnabled,
         username: state.username,
         bitgetTradingMode: state.bitgetTradingMode,
-        currentControlsPage: state.currentControlsPage
+        currentControlsPage: state.currentControlsPage,
+        totalProfit: state.totalProfit,
+        totalLoss: state.totalLoss,
+        largestWin: state.largestWin,
+        largestLoss: state.largestLoss,
+        totalTradeDuration: state.totalTradeDuration
     };
     localStorage.setItem('xtrade_game_state', JSON.stringify(gameState));
 }
@@ -3390,6 +3454,7 @@ function loadGameState() {
                 bestBalance: Math.max(gameState.bestBalance || CONFIG.INITIAL_BALANCE, CONFIG.MIN_BALANCE),
                 totalTrades: gameState.totalTrades || 0,
                 wins: gameState.wins || 0,
+                tradeHistory: gameState.tradeHistory || [],
                 leverageIndex: gameState.leverageIndex || 0,
                 betPercentage: gameState.betPercentage || 5,
                 stopLossPercent: gameState.stopLossPercent || 2,
@@ -3398,9 +3463,15 @@ function loadGameState() {
                 takeProfitEnabled: gameState.takeProfitEnabled !== undefined ? gameState.takeProfitEnabled : true,
                 soundEnabled: gameState.soundEnabled !== undefined ? gameState.soundEnabled : true,
                 hapticEnabled: gameState.hapticEnabled !== undefined ? gameState.hapticEnabled : true,
+                realtimeChartEnabled: gameState.realtimeChartEnabled !== undefined ? gameState.realtimeChartEnabled : true,
                 username: gameState.username || "Trader",
                 bitgetTradingMode: gameState.bitgetTradingMode || false,
-                currentControlsPage: gameState.currentControlsPage || 0
+                currentControlsPage: gameState.currentControlsPage || 0,
+                totalProfit: gameState.totalProfit || 0,
+                totalLoss: gameState.totalLoss || 0,
+                largestWin: gameState.largestWin || 0,
+                largestLoss: gameState.largestLoss || 0,
+                totalTradeDuration: gameState.totalTradeDuration || 0
             });
             
             dom.leverageSlider.value = state.leverageIndex;
@@ -3409,7 +3480,11 @@ function loadGameState() {
             dom.takeProfitSlider.value = state.takeProfitPercent;
             dom.soundToggle.checked = state.soundEnabled;
             dom.hapticToggle.checked = state.hapticEnabled;
+            dom.realtimeChartToggle.checked = state.realtimeChartEnabled;
             dom.bitgetTradingMode.checked = state.bitgetTradingMode;
+            dom.defaultBetSelect.value = state.betPercentage.toString();
+            dom.defaultLeverageSelect.value = CONFIG.LEVERAGES[state.leverageIndex].value.toString();
+            dom.autoSLTPToggle.checked = state.stopLossEnabled && state.takeProfitEnabled;
             
             goToControlsPage(state.currentControlsPage);
             
@@ -3466,7 +3541,7 @@ function createLeverageDots() {
 
 function startChartAnimation() {
     function animateChart() {
-        if (state.currentPage === 'trading' && state.chartReady && state.chartInitialized) {
+        if (state.currentPage === 'trading' && state.chartReady && state.chartInitialized && state.realtimeChartEnabled) {
             drawRealTimeChart();
         }
         state.chartAnimationId = requestAnimationFrame(animateChart);
@@ -3491,16 +3566,26 @@ function setupEventListeners() {
     dom.dockTrading.addEventListener('click', () => showTradingPage());
     dom.dockAccount.addEventListener('click', () => openPage(dom.accountPage, 'account'));
     dom.dockSettings.addEventListener('click', () => openPage(dom.settingsPage, 'settings'));
-    dom.dockInfo.addEventListener('click', () => openPage(dom.infoPage, 'info'));
     
     dom.soundToggle.addEventListener('change', handleSoundToggle);
     dom.hapticToggle.addEventListener('change', handleHapticToggle);
+    dom.realtimeChartToggle.addEventListener('change', handleRealtimeChartToggle);
+    dom.defaultBetSelect.addEventListener('change', handleDefaultBetChange);
+    dom.defaultLeverageSelect.addEventListener('change', handleDefaultLeverageChange);
+    dom.autoSLTPToggle.addEventListener('change', handleAutoSLTPToggle);
     dom.resetDataBtn.addEventListener('click', handleResetData);
     
     dom.connectBitgetBtn.addEventListener('click', handleConnectBitget);
     dom.testBitgetBtn.addEventListener('click', handleTestBitget);
     dom.bitgetTradingMode.addEventListener('change', handleBitgetTradingModeChange);
     dom.tradingModeToggle.addEventListener('click', toggleTradingMode);
+    
+    dom.exportHistoryBtn.addEventListener('click', exportTradeHistory);
+    
+    // History filter buttons
+    document.querySelectorAll('.history-filter-btn').forEach(btn => {
+        btn.addEventListener('click', handleHistoryFilter);
+    });
     
     window.addEventListener('resize', () => {
         setupCanvas();
@@ -3530,13 +3615,17 @@ function initGame() {
     dom.chartWrapper.classList.remove('loading');
     dom.priceIndicator.textContent = 'BTC Loading...';
     
+    // Start price updates
     setInterval(updateBitcoinData, CONFIG.UPDATE_INTERVAL);
+    
+    // Start chart animation
     startChartAnimation();
     
-    setTimeout(() => {
+    // Initial price fetch
+    fetchRealTimePrice().then(() => {
         drawRealTimeChart();
         dom.priceIndicator.textContent = 'BTC $' + formatPriceDecimal(state.currentPrice);
-    }, 100);
+    });
 }
 
 // Add animation styles
