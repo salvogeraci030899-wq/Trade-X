@@ -294,7 +294,7 @@
             display: flex;
             gap: 6px;
             z-index: 100;
-            pointer-events: none;
+            pointer-events: auto;
         }
         
         .page-dot {
@@ -517,7 +517,9 @@
             transition: all 0.3s ease;
             min-height: 40px;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 4px;
             justify-content: center;
             align-items: center;
             color: #888888;
@@ -1306,7 +1308,7 @@
         .trading-mode-toggle {
             position: absolute;
             top: 10px;
-            left: 10px;
+            right: 10px;
             background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(20px);
             padding: 6px 12px;
@@ -3309,6 +3311,26 @@ function handleHistoryFilter(e) {
         const filter = e.target.dataset.filter;
         updateTradeHistoryTable(filter);
     }
+}
+
+function updateBitgetStatus(message, type) {
+    const el = dom.bitgetStatus;
+    if (!el) return;
+    el.style.display = 'block';
+    el.textContent = message;
+    el.className = 'bitget-status ' + (type === 'success' ? 'bitget-connected' : 'bitget-disconnected');
+}
+
+function updateTradingModeUI() {
+    const real = state.bitgetTradingMode && state.bitgetConnected;
+    const toggle = dom.tradingModeToggle;
+    if (!toggle) return;
+    toggle.classList.toggle('trading-mode-real', real);
+    toggle.classList.toggle('trading-mode-simulation', !real);
+    const icon = document.getElementById('modeIcon');
+    const text = document.getElementById('modeText');
+    if (icon) icon.textContent = real ? '⚡' : '🎮';
+    if (text) text.textContent = real ? 'REAL' : 'SIMULATION';
 }
 
 function handleConnectBitget() {
