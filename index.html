@@ -79,6 +79,38 @@ canvas{width:100%;height:100%;display:block}
 .modal p{color:var(--mute);font-size:14px;margin-bottom:4px}
 .modal .go{margin-top:18px;width:100%;padding:14px;border-radius:12px;background:var(--accent);color:#1a1200;font-weight:800;font-size:16px}
 .how{font-size:12px;color:var(--mute);line-height:1.5;text-align:center}
+.lvl{display:flex;align-items:center;gap:10px}
+.lvl .badge{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap}
+.xpbar{flex:1;height:6px;border-radius:9px;background:#1b2230;overflow:hidden}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,#f7b731,#ff8a3d);width:0;transition:width .4s}
+.xpt{font-size:10px;color:var(--mute);white-space:nowrap}
+.iconbtn{background:#1b2230;border:1px solid var(--line);border-radius:99px;width:32px;height:28px;font-size:14px}
+.right{display:flex;gap:8px;align-items:center}
+.tabs{display:flex;gap:6px}
+.tab{flex:1;padding:10px 0;border-radius:12px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:13px;color:var(--mute)}
+.tab.on{color:var(--text);border-color:var(--accent);background:rgba(247,183,49,.1)}
+.view{display:none;flex-direction:column;gap:12px}.view.on{display:flex}
+.ind{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.ind div{background:#1b2230;border-radius:10px;padding:8px 4px;text-align:center}
+.ind b{display:block;font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums}
+.chip small{display:block;font-size:10px;font-weight:700;opacity:.8;margin-top:1px}
+.need{font-size:12px;color:var(--accent);text-align:center;margin-top:8px}
+.mis{background:#1b2230;border-radius:12px;padding:12px;margin-top:8px}
+.mis .row{display:flex;justify-content:space-between;font-size:14px;font-weight:700;gap:8px}
+.mis .rw{font-size:11px;color:var(--accent);font-weight:700;white-space:nowrap}
+.mis .bar{margin:8px 0 4px}.mis .bar i{background:var(--up)}
+.mis.done{opacity:.6}
+.mis small{font-size:11px;color:var(--mute)}
+.ul{display:flex;justify-content:space-between;font-size:13px;padding:8px 10px;border-radius:9px;background:#1b2230;margin-top:6px}
+.ul.lock{color:var(--mute)}
+.rec{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.rec div{background:#1b2230;border-radius:10px;padding:10px;text-align:center}
+.rec b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.run{display:flex;justify-content:space-between;font-size:13px;padding:9px 10px;border-radius:9px;background:#1b2230;margin-top:6px;font-variant-numeric:tabular-nums}
+.run.me{border:1px solid var(--accent)}
+.xl{margin-top:10px;font-size:13px;text-align:left;display:flex;flex-direction:column;gap:6px}
+.xl div{background:#1b2230;border-radius:9px;padding:8px 10px}
+
 </style>
 </head>
 <body>
@@ -88,8 +120,22 @@ canvas{width:100%;height:100%;display:block}
       <div class="bal-label">Saldo (virtuale)</div>
       <div class="bal" id="bal">$1,000</div>
     </div>
-    <div class="src" id="src">…</div>
+    <div class="right">
+      <button class="iconbtn" id="snd" title="Suoni">🔊</button>
+      <div class="src" id="src">…</div>
+    </div>
   </div>
+  <div class="lvl">
+    <div class="badge" id="lvB">Lv 1</div>
+    <div class="xpbar"><i id="xpI"></i></div>
+    <div class="xpt" id="xpT"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-v="play">🎯 Gioca</button>
+    <button class="tab" data-v="mis">📅 Missioni</button>
+    <button class="tab" data-v="top">🏆 Classifica</button>
+  </div>
+<div class="view on" id="v-play">
 
   <div class="card">
     <div class="price-row">
@@ -100,12 +146,20 @@ canvas{width:100%;height:100%;display:block}
       <canvas id="cv"></canvas>
       <div class="round-badge" id="badge"><span id="bDir"></span><span id="bPl"></span></div>
     </div>
+    <div class="ind">
+      <div><span class="lbl">Trend 30s</span><b id="iTr">—</b></div>
+      <div><span class="lbl">Slancio 5s</span><b id="iMo">—</b></div>
+      <div><span class="lbl">Volatilità</span><b id="iVo">—</b></div>
+    </div>
   </div>
 
   <div class="card">
     <div id="setup">
-      <div class="lbl">Durata</div>
-      <div class="chips" id="durs"></div>
+      <div class="lbl">Modalità</div>
+      <div class="chips" id="tiers"></div>
+      <div class="need" id="need"></div>
+      <div class="lbl" style="margin-top:12px">Durata</div>
+      <div class="chips" id="durs" style="flex-wrap:wrap"></div>
       <div class="lbl" style="margin-top:12px">Puntata</div>
       <div class="stake-row">
         <button class="chip" id="minus">−</button>
@@ -137,8 +191,23 @@ canvas{width:100%;height:100%;display:block}
     <div class="hist" id="hist"></div>
   </div>
 
-  <div class="how">Vincita: +90% della puntata. Ogni vittoria di fila aggiunge +10% di bonus (max +50%). Parità = puntata restituita. Soldi finti, nessun rischio reale.</div>
-  <button class="reset" id="reset">Azzera tutto</button>
+  <div class="how">Modalità Classica: +90% se indovini. Sfida ed Estrema pagano di più ma il prezzo deve superare un margine. Ogni vittoria di fila aggiunge +10% di bonus (max +50%). Soldi finti, nessun rischio reale.</div>
+</div>
+
+<div class="view" id="v-mis">
+  <div class="card"><div class="lbl">Missioni di oggi</div><div id="missions"></div></div>
+  <div class="card"><div class="lbl">Livelli e sblocchi</div><div id="unlocks"></div></div>
+</div>
+
+<div class="view" id="v-top">
+  <div class="card">
+    <div class="lbl">Record personali · <span id="myName"></span></div>
+    <div class="rec" id="records"></div>
+    <button class="chip" id="rename" style="width:100%;margin-top:10px">✏️ Cambia nome</button>
+  </div>
+  <div class="card"><div class="lbl">Le tue migliori sessioni</div><div id="runs"></div></div>
+</div>
+<button class="reset" id="reset">Azzera tutto</button>
 </div>
 
 <div class="overlay" id="ov">
@@ -146,6 +215,7 @@ canvas{width:100%;height:100%;display:block}
     <h2 id="mT"></h2>
     <div class="amt" id="mA"></div>
     <p id="mP1"></p><p id="mP2"></p>
+    <div class="xl" id="mX"></div>
     <button class="go" id="mGo">Continua</button>
   </div>
 </div>
@@ -153,33 +223,95 @@ canvas{width:100%;height:100%;display:block}
 <script>
 "use strict";
 // ================= CONFIG =================
-const DURATIONS = [5, 15, 30, 60];
+const DURATIONS = [{s:5,lvl:1},{s:15,lvl:1},{s:30,lvl:2},{s:60,lvl:4},{s:120,lvl:6},{s:300,lvl:8}];
+const TIERS = [
+  {name:"Classica", k:0,   pay:0.9, lvl:1},
+  {name:"Sfida",    k:0.5, pay:2.0, lvl:3},
+  {name:"Estrema",  k:1.0, pay:4.5, lvl:5}
+];
+const TITLES = ["Novizio","Apprendista","Trader","Analista","Veterano","Esperto","Maestro","Stratega","Fuoriclasse","Leggenda"];
 const START_BALANCE = 1000;
-const PAYOUT = 0.9;          // +90%
-const STREAK_BONUS = 0.1;    // +10% per vittoria consecutiva
-const STREAK_BONUS_MAX = 0.5;
-const MAX_POINTS = 240;      // 240 campioni * 250ms = 60s di grafico
+const STREAK_BONUS = 0.1, STREAK_BONUS_MAX = 0.5;
+const MAX_POINTS = 1600;     // ~6,5 minuti a 250ms
 const SAMPLE_MS = 250;
-const SAVE_KEY = "tradex_predict_v2";
+const SAVE_KEY = "tradex_predict_v3";
+const MISSION_POOL = [
+  {id:"play8",  txt:"Gioca 8 partite",                 key:"played",  target:8,  xp:40, cash:50},
+  {id:"play15", txt:"Gioca 15 partite",                key:"played",  target:15, xp:80, cash:100},
+  {id:"win4",   txt:"Vinci 4 partite",                 key:"wins",    target:4,  xp:50, cash:75},
+  {id:"str3",   txt:"Serie di 3 vittorie di fila",     key:"streakMax",target:3, xp:60, cash:100},
+  {id:"prof300",txt:"Incassa $300 di vincite",         key:"profit",  target:300,xp:60, cash:100},
+  {id:"chall2", txt:"Vinci 2 partite in Sfida/Estrema",key:"chall",   target:2,  xp:70, cash:150, lvl:3},
+  {id:"long1",  txt:"Vinci una partita da 30s o più",  key:"longWin", target:1,  xp:40, cash:60,  lvl:2}
+];
 
 // ================= STATO =================
 const $ = id => document.getElementById(id);
 let S = load();
 let price = 0, openPrice = 0, lastTick = 0;
 let points = [];
-let round = null;        // {dir, entry, stake, end, dur, streak}
-let sel = { dur: 15, stake: 50 };
-let mode = "connecting"; // ws | rest | sim | connecting
+let round = null;
+let sel = { dur: 15, stake: 50, tier: 0 };
+let mode = "connecting";
 
+function defaults(){
+  return {balance:START_BALANCE, wins:0, losses:0, streak:0, best:0, hist:[], xp:0, bigWin:0, peak:START_BALANCE,
+    bankr:0, rounds:0, sound:true, name:"Trader", daily:null, run:{peak:START_BALANCE, rounds:0, wins:0}, runs:[]};
+}
 function load(){
-  const d = {balance:START_BALANCE, wins:0, losses:0, streak:0, best:0, hist:[]};
+  const d = defaults();
   try{ const r = JSON.parse(localStorage.getItem(SAVE_KEY)); if(r && typeof r.balance==="number") return Object.assign(d,r); }catch(e){}
   return d;
 }
 function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
 
+// ================= LIVELLI =================
+const needFor = l => 100 + (l-1)*50;
+function lvlInfo(xp){ let l = 1, rem = xp; while(rem >= needFor(l)){ rem -= needFor(l); l++; } return {l, cur:rem, need:needFor(l)}; }
+const level = () => lvlInfo(S.xp).l;
+const title = l => l <= TITLES.length ? TITLES[l-1] : "Leggenda " + (l - TITLES.length + 1);
+function unlocksAt(l){
+  const o = [];
+  DURATIONS.forEach(d => { if(d.lvl === l) o.push("scadenza " + fmtDur(d.s)); });
+  TIERS.forEach(t => { if(t.lvl === l && l > 1) o.push("modalità " + t.name); });
+  return o;
+}
+function addXp(n, lines){
+  const before = level(); S.xp += n; const after = level();
+  for(let l = before+1; l <= after; l++){
+    const u = unlocksAt(l);
+    lines.push(`⭐ Livello ${l} · ${title(l)}` + (u.length ? ` — sbloccato: ${u.join(", ")}` : ""));
+    sfx("level");
+  }
+}
+
+// ================= SUONI =================
+let AC = null;
+function audio(){
+  if(!S.sound) return null;
+  try{ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if(AC.state === "suspended") AC.resume(); return AC; }catch(e){ return null; }
+}
+function tone(f, d, type, v, delay){
+  const a = audio(); if(!a) return;
+  const t = a.currentTime + (delay||0), o = a.createOscillator(), g = a.createGain();
+  o.type = type || "sine"; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v || .12, t+.01); g.gain.exponentialRampToValueAtTime(.0001, t+d);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+d+.03);
+}
+function buzz(p){ if(S.sound && navigator.vibrate){ try{ navigator.vibrate(p); }catch(e){} } }
+function sfx(n){
+  if(n==="click"){ tone(520,.06,"triangle",.1); buzz(10); }
+  else if(n==="tick"){ tone(880,.07,"square",.05); }
+  else if(n==="start"){ tone(440,.08,"triangle",.12); tone(660,.12,"triangle",.12,.08); buzz(20); }
+  else if(n==="win"){ [523,659,784,1047].forEach((f,i)=>tone(f,.18,"triangle",.14,i*.09)); buzz([40,30,80]); }
+  else if(n==="lose"){ tone(300,.2,"sawtooth",.1); tone(200,.35,"sawtooth",.1,.15); buzz(200); }
+  else if(n==="tie"){ tone(440,.2,"sine",.1); }
+  else if(n==="level"){ [392,523,659,784,1047].forEach((f,i)=>tone(f,.2,"triangle",.14,.5+i*.08)); buzz([60,40,60,40,120]); }
+  else if(n==="mission"){ tone(784,.12,"triangle",.12,.4); tone(1175,.2,"triangle",.12,.5); }
+}
+
 // ================= FEED PREZZO =================
-let ws = null, restFails = 0;
+let ws = null, restFails = 0, simDrift = 0;
 function setPrice(p, src){
   if(!isFinite(p) || p <= 0) return;
   if(!openPrice) openPrice = p;
@@ -209,9 +341,11 @@ async function pollRest(){
   }
   restFails++; return false;
 }
+const gauss = () => (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random()-3) / 0.707;
 function simStep(){
   if(!price){ price = 60000 + Math.random()*20000; openPrice = price; }
-  price *= 1 + (Math.random()-0.5) * 0.0004;
+  simDrift = simDrift*0.995 + gauss()*0.0000008;
+  price *= 1 + simDrift + gauss()*0.00004;
   lastTick = Date.now();
 }
 function feedWatchdog(){
@@ -221,6 +355,16 @@ function feedWatchdog(){
   startWS();
   if(stale) pollRest().then(ok => { if(!ok && restFails >= 2 && Date.now()-lastTick > 3000) mode = "sim"; });
 }
+
+// ================= INDICATORI =================
+function stepVol(){ // dev. standard dei rendimenti per campione (frazione)
+  const n = Math.min(points.length-1, 120); if(n < 20) return 0.00005;
+  let sum = 0, sq = 0;
+  for(let i = points.length-n; i < points.length; i++){ const r = Math.log(points[i].p/points[i-1].p); sum += r; sq += r*r; }
+  const m = sum/n; return Math.sqrt(Math.max(0, sq/n - m*m)) || 0.00001;
+}
+const pctBack = sec => { const i = Math.max(0, points.length-1-sec*4); return (price/points[i].p - 1)*100; };
+function marginFor(tier, dur){ return TIERS[tier].k * stepVol() * Math.sqrt(dur*4) * price; }
 
 // ================= LOOP =================
 function sample(){
@@ -233,65 +377,130 @@ function sample(){
 }
 
 // ================= ROUND =================
-function payoutMult(streak){ return PAYOUT * (1 + Math.min(STREAK_BONUS_MAX, streak*STREAK_BONUS)); }
+const payoutMult = (tier, streak) => TIERS[tier].pay * (1 + Math.min(STREAK_BONUS_MAX, streak*STREAK_BONUS));
 function startRound(dir){
   if(round || !price || sel.stake > S.balance || sel.stake <= 0) return;
   S.balance -= sel.stake;
   const now = Date.now();
-  round = {dir, entry: price, stake: sel.stake, end: now + sel.dur*1000, dur: sel.dur, streak: S.streak};
-  save(); sync();
+  round = {dir, entry: price, stake: sel.stake, end: now + sel.dur*1000, dur: sel.dur, tier: sel.tier,
+           margin: marginFor(sel.tier, sel.dur), streak: S.streak, lastSec: -1};
+  sfx("start"); save(); sync();
+}
+function newDaily(){
+  const date = new Date().toISOString().slice(0,10);
+  if(S.daily && S.daily.date === date) return;
+  const lv = level(), pool = MISSION_POOL.filter(m => !m.lvl || m.lvl <= lv);
+  let seed = 0; for(const c of date) seed = (seed*31 + c.charCodeAt(0)) >>> 0;
+  const ids = [];
+  for(let i = 0; ids.length < 3 && i < 40; i++){ const m = pool[(seed + i*7) % pool.length]; if(!ids.includes(m.id)) ids.push(m.id); }
+  S.daily = {date, ids, stats:{played:0,wins:0,streakMax:0,profit:0,chall:0,longWin:0}, claimed:{}};
 }
 function settle(){
   const r = round; round = null;
-  const exit = price, diff = exit - r.entry;
-  let res, profit;
-  if(Math.abs(diff) < 0.005){ res = "tie"; profit = 0; S.balance += r.stake; }
-  else if((diff > 0) === (r.dir === "up")){
-    res = "win"; profit = r.stake * payoutMult(r.streak);
-    S.balance += r.stake + profit; S.wins++; S.streak++; S.best = Math.max(S.best, S.streak);
-  } else { res = "loss"; profit = -r.stake; S.losses++; S.streak = 0; }
-  S.hist.unshift({res, dir:r.dir, stake:r.stake, profit, dur:r.dur});
+  const exit = price, diff = exit - r.entry, signed = r.dir === "up" ? diff : -diff;
+  let res, profit = 0;
+  if(r.tier === 0 && Math.abs(diff) < 0.005) res = "tie";
+  else res = signed > r.margin ? "win" : "loss";
+  const lines = [];
+  newDaily(); const st = S.daily.stats;
+  st.played++; S.rounds++; S.run.rounds++;
+  let xp = 10 + r.tier*5 + (r.dur >= 60 ? 10 : 0);
+  if(res === "tie"){ S.balance += r.stake; xp = 5; }
+  else if(res === "win"){
+    profit = r.stake * payoutMult(r.tier, r.streak);
+    S.balance += r.stake + profit; S.wins++; S.run.wins++; S.streak++; S.best = Math.max(S.best, S.streak);
+    S.bigWin = Math.max(S.bigWin, profit);
+    st.wins++; st.profit += profit; st.streakMax = Math.max(st.streakMax, S.streak);
+    if(r.tier > 0) st.chall++; if(r.dur >= 30) st.longWin++;
+    xp += 15 + Math.min(10, S.streak*2);
+  } else { profit = -r.stake; S.losses++; S.streak = 0; }
+  S.peak = Math.max(S.peak, S.balance); S.run.peak = Math.max(S.run.peak, S.balance);
+  S.hist.unshift({res, dir:r.dir, stake:r.stake, profit, dur:r.dur, tier:r.tier});
   S.hist = S.hist.slice(0, 30);
-  save(); sync(); showResult(res, profit, r, exit);
+  addXp(xp, lines);
+  // missioni
+  for(const id of S.daily.ids){
+    const m = MISSION_POOL.find(x => x.id === id);
+    if(m && !S.daily.claimed[id] && st[m.key] >= m.target){
+      S.daily.claimed[id] = true; S.balance += m.cash;
+      lines.push(`📅 Missione completata: ${m.txt} · +${fmt(m.cash)} e +${m.xp} XP`);
+      addXp(m.xp, lines); sfx("mission");
+    }
+  }
+  save(); sync(); showResult(res, profit, r, exit, lines, xp);
 }
-function showResult(res, profit, r, exit){
+function showResult(res, profit, r, exit, lines, xp){
+  sfx(res === "win" ? "win" : res === "loss" ? "lose" : "tie");
   $("mT").textContent = res==="win" ? "🎉 Hai vinto!" : res==="loss" ? "💥 Hai perso" : "🤝 Parità";
   $("mT").className = res==="win" ? "up" : res==="loss" ? "down" : "";
   $("mA").textContent = res==="tie" ? "Puntata restituita" : (profit>0?"+":"−")+fmt(Math.abs(profit));
   $("mA").className = "amt " + (res==="win"?"up":res==="loss"?"down":"");
   $("mP1").textContent = "Ingresso " + fmtP(r.entry) + " → Uscita " + fmtP(exit);
-  $("mP2").textContent = res==="win" && S.streak>1 ? "🔥 Serie: " + S.streak + " vittorie" : "Previsione: " + (r.dir==="up"?"SU ▲":"GIÙ ▼");
-  $("mGo").textContent = S.balance < 1 ? "Ricomincia con $1,000" : "Continua";
+  const need = r.margin > 0 ? ` · margine richiesto $${r.margin.toFixed(2)}` : "";
+  $("mP2").textContent = (res==="win" && S.streak>1 ? "🔥 Serie: " + S.streak + " · " : "") + (r.dir==="up"?"SU ▲":"GIÙ ▼") + need;
+  $("mX").innerHTML = [`<div>+${xp} XP</div>`].concat(lines.map(l => `<div>${l}</div>`)).join("");
+  const broke = S.balance < 1;
+  $("mGo").textContent = broke ? "Ricomincia (perdi parte dell'XP)" : "Continua";
   $("ov").classList.add("on");
+}
+function endRun(){
+  S.runs.push({peak: Math.round(S.run.peak), rounds: S.run.rounds, wins: S.run.wins, date: new Date().toISOString().slice(0,10)});
+  S.runs.sort((a,b) => b.peak - a.peak); S.runs = S.runs.slice(0, 10);
+  S.run = {peak: START_BALANCE, rounds: 0, wins: 0};
 }
 $("mGo").onclick = () => {
   $("ov").classList.remove("on");
-  if(S.balance < 1){ S.balance = START_BALANCE; S.streak = 0; save(); sel.stake = 50; sync(); }
+  if(S.balance < 1){
+    const li = lvlInfo(S.xp); S.xp -= Math.floor(li.cur * 0.3);   // la bancarotta costa il 30% dell'XP del livello
+    S.bankr++; endRun(); S.balance = START_BALANCE; S.streak = 0; sel.stake = 50; save(); sync();
+  }
 };
 
 // ================= UI =================
 const fmt = n => "$" + Math.round(n).toLocaleString("en-US");
 const fmtP = n => "$" + n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
-const srcText = () => mode==="sim" ? "● PREZZO SIMULATO" : mode==="connecting" ? "Connessione…" : "● LIVE BTC/USD";
+const fmtDur = s => s >= 60 ? (s/60) + "m" : s + "s";
+const srcText = () => mode==="sim" ? "● SIMULATO" : mode==="connecting" ? "Connessione…" : "● LIVE BTC";
 const step = s => s>=500 ? 100 : s>=100 ? 50 : 10;
 
 function buildControls(){
-  $("durs").innerHTML = DURATIONS.map(d => `<button class="chip" data-d="${d}">${d}s</button>`).join("");
-  $("durs").onclick = e => { const d = e.target.dataset.d; if(d && !round){ sel.dur = +d; sync(); } };
+  $("durs").onclick = e => { const b = e.target.closest("[data-d]"); if(b && !b.disabled && !round){ sel.dur = +b.dataset.d; sfx("click"); sync(); } };
+  $("tiers").onclick = e => { const b = e.target.closest("[data-t]"); if(b && !b.disabled && !round){ sel.tier = +b.dataset.t; sfx("click"); sync(); } };
   $("quick").innerHTML = [["10%",.1],["25%",.25],["50%",.5],["MAX",1]].map(([l,f]) => `<button class="chip" data-f="${f}">${l}</button>`).join("");
-  $("quick").onclick = e => { const f = e.target.dataset.f; if(f && !round){ sel.stake = Math.max(1, Math.floor(S.balance*f)); sync(); } };
-  $("minus").onclick = () => { if(!round){ sel.stake = Math.max(1, sel.stake - step(sel.stake-1)); sync(); } };
-  $("plus").onclick  = () => { if(!round){ sel.stake = Math.min(Math.floor(S.balance), sel.stake + step(sel.stake)); sync(); } };
+  $("quick").onclick = e => { const f = e.target.dataset.f; if(f && !round){ sel.stake = Math.max(1, Math.floor(S.balance*f)); sfx("click"); sync(); } };
+  $("minus").onclick = () => { if(!round){ sel.stake = Math.max(1, sel.stake - step(sel.stake-1)); sfx("click"); sync(); } };
+  $("plus").onclick  = () => { if(!round){ sel.stake = Math.min(Math.floor(S.balance), sel.stake + step(sel.stake)); sfx("click"); sync(); } };
   $("up").onclick = () => startRound("up");
   $("down").onclick = () => startRound("down");
-  $("reset").onclick = () => { if(confirm("Azzerare saldo e statistiche?")){ round=null; S={balance:START_BALANCE,wins:0,losses:0,streak:0,best:0,hist:[]}; sel.stake=50; save(); sync(); } };
+  $("snd").onclick = () => { S.sound = !S.sound; save(); sync(); sfx("click"); };
+  $("rename").onclick = () => { const n = prompt("Il tuo nome:", S.name); if(n && n.trim()){ S.name = n.trim().slice(0,16); save(); sync(); } };
+  $("reset").onclick = () => { if(confirm("Azzerare tutto (saldo, livello, missioni, record)?")){ round=null; S=defaults(); sel={dur:15,stake:50,tier:0}; save(); sync(); } };
+  document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === "v-" + t.dataset.v));
+    sfx("click"); if(t.dataset.v === "play") draw();
+  });
 }
 function sync(){
+  newDaily();
+  const lv = level();
+  if(!DURATIONS.find(d => d.s === sel.dur && d.lvl <= lv)) sel.dur = 15;
+  if(TIERS[sel.tier].lvl > lv) sel.tier = 0;
   if(sel.stake > S.balance) sel.stake = Math.max(1, Math.floor(S.balance));
   $("bal").textContent = fmt(S.balance);
   $("stake").textContent = fmt(sel.stake);
-  document.querySelectorAll("#durs .chip").forEach(b => { b.classList.toggle("on", +b.dataset.d === sel.dur); b.disabled = !!round; });
-  const win = sel.stake * payoutMult(S.streak);
+  $("snd").textContent = S.sound ? "🔊" : "🔇";
+  const li = lvlInfo(S.xp);
+  $("lvB").textContent = `Lv ${li.l} · ${title(li.l)}`;
+  $("xpI").style.width = (li.cur/li.need*100) + "%";
+  $("xpT").textContent = `${li.cur}/${li.need} XP`;
+  $("durs").innerHTML = DURATIONS.map(d => d.lvl <= lv
+    ? `<button class="chip ${d.s===sel.dur?"on":""}" data-d="${d.s}" ${round?"disabled":""} style="flex:1 0 28%">${fmtDur(d.s)}</button>`
+    : `<button class="chip" disabled style="flex:1 0 28%">🔒 Lv ${d.lvl}</button>`).join("");
+  $("tiers").innerHTML = TIERS.map((t,i) => t.lvl <= lv
+    ? `<button class="chip ${i===sel.tier?"on":""}" data-t="${i}" ${round?"disabled":""}>${t.name}<small>+${Math.round(t.pay*100)}%</small></button>`
+    : `<button class="chip" disabled>🔒 Lv ${t.lvl}<small>${t.name}</small></button>`).join("");
+  const win = sel.stake * payoutMult(sel.tier, S.streak);
   $("upWin").textContent = $("downWin").textContent = "vinci +" + fmt(win);
   $("up").disabled = $("down").disabled = !(!round && price > 0 && S.balance >= 1);
   $("setup").style.display = round ? "none" : "block";
@@ -299,14 +508,41 @@ function sync(){
   $("badge").classList.toggle("on", !!round);
   $("hint").textContent = S.streak > 0
     ? `🔥 Serie di ${S.streak}: bonus +${Math.round(Math.min(STREAK_BONUS_MAX,S.streak*STREAK_BONUS)*100)}% sulla vincita`
-    : "Prevedi se il Bitcoin sarà più alto o più basso alla scadenza.";
+    : "Leggi gli indicatori e prevedi dove sarà il prezzo alla scadenza.";
   $("sW").textContent = S.wins; $("sL").textContent = S.losses; $("sS").textContent = S.streak; $("sB").textContent = S.best;
   $("hist").innerHTML = S.hist.length ? S.hist.slice(0,10).map(h =>
-    `<div class="h"><span>${h.dir==="up"?"▲":"▼"} ${h.dur}s · ${fmt(h.stake)}</span><span class="${h.res==="win"?"w":h.res==="loss"?"l":"t"}">${h.res==="tie"?"=":(h.profit>0?"+":"−")+fmt(Math.abs(h.profit))}</span></div>`
+    `<div class="h"><span>${h.dir==="up"?"▲":"▼"} ${fmtDur(h.dur)} · ${TIERS[h.tier||0].name} · ${fmt(h.stake)}</span><span class="${h.res==="win"?"w":h.res==="loss"?"l":"t"}">${h.res==="tie"?"=":(h.profit>0?"+":"−")+fmt(Math.abs(h.profit))}</span></div>`
   ).join("") : `<div class="hint">Nessuna partita ancora</div>`;
   const s = $("src");
   s.className = "src " + (mode==="sim" ? "sim" : mode==="connecting" ? "" : "live");
   s.textContent = srcText();
+  renderMissions(); renderTop(); updateNeed();
+}
+function updateNeed(){
+  if(sel.tier === 0 || !price){ $("need").textContent = sel.tier === 0 ? "" : "…"; return; }
+  const m = marginFor(sel.tier, sel.dur);
+  $("need").textContent = `Per vincere il prezzo deve muoversi di almeno $${m.toFixed(2)} nella tua direzione`;
+}
+function renderMissions(){
+  const d = S.daily; if(!d) return;
+  $("missions").innerHTML = d.ids.map(id => {
+    const m = MISSION_POOL.find(x => x.id === id), v = Math.min(m.target, Math.floor(d.stats[m.key])), done = !!d.claimed[id];
+    return `<div class="mis ${done?"done":""}"><div class="row"><span>${done?"✅ ":""}${m.txt}</span><span class="rw">+${fmt(m.cash)} · +${m.xp} XP</span></div>
+      <div class="bar"><i style="width:${v/m.target*100}%"></i></div><small>${v}/${m.target}</small></div>`;
+  }).join("") + `<div class="hint">Le missioni si rinnovano ogni giorno.</div>`;
+  const lv = level(), rows = [];
+  for(let l = 2; l <= 8; l++){ const u = unlocksAt(l); if(u.length) rows.push(`<div class="ul ${l>lv?"lock":""}"><span>${l>lv?"🔒":"✅"} Livello ${l}</span><span>${u.join(", ")}</span></div>`); }
+  $("unlocks").innerHTML = rows.join("");
+}
+function renderTop(){
+  $("myName").textContent = S.name;
+  $("records").innerHTML = [
+    ["Saldo massimo", fmt(S.peak)], ["Serie record", S.best], ["Vincita top", fmt(S.bigWin)],
+    ["Partite", S.rounds], ["% vittorie", (S.wins+S.losses ? Math.round(S.wins/(S.wins+S.losses)*100) : 0) + "%"], ["Bancarotte", S.bankr]
+  ].map(([l,v]) => `<div><span class="lbl">${l}</span><b>${v}</b></div>`).join("");
+  const cur = {peak: Math.round(S.run.peak), rounds: S.run.rounds, wins: S.run.wins, date: "in corso", me: true};
+  const all = S.runs.concat([cur]).sort((a,b) => b.peak - a.peak).slice(0, 10);
+  $("runs").innerHTML = all.map((r,i) => `<div class="run ${r.me?"me":""}"><span>${i+1}. ${fmt(r.peak)}</span><span>${r.wins}/${r.rounds} vinte · ${r.date}</span></div>`).join("");
 }
 
 let lastSrc = "";
@@ -317,20 +553,27 @@ function render(){
   const ch = (price/openPrice - 1) * 100;
   $("chg").textContent = (ch>=0?"+":"") + ch.toFixed(3) + "%";
   $("chg").className = "chg " + (ch>=0?"up":"down");
+  const tr = pctBack(30), mo = pctBack(5), sd = stepVol()*10000;
+  $("iTr").textContent = (tr>=0?"▲ +":"▼ ") + tr.toFixed(3) + "%"; $("iTr").className = tr>=0?"up":"down";
+  $("iMo").textContent = (mo>=0?"▲ +":"▼ ") + mo.toFixed(3) + "%"; $("iMo").className = mo>=0?"up":"down";
+  $("iVo").textContent = sd < 0.3 ? "Bassa" : sd < 0.6 ? "Media" : "Alta";
+  $("iVo").className = sd < 0.3 ? "" : sd < 0.6 ? "" : "down";
   if(round){
-    const left = Math.max(0, round.end - Date.now());
-    $("count").textContent = Math.ceil(left/1000);
+    const left = Math.max(0, round.end - Date.now()), sec = Math.ceil(left/1000);
+    $("count").textContent = sec >= 60 ? Math.floor(sec/60) + ":" + String(sec%60).padStart(2,"0") : sec;
+    if(sec <= 3 && sec > 0 && sec !== round.lastSec){ round.lastSec = sec; sfx("tick"); }
     $("barI").style.width = (left/(round.dur*1000)*100) + "%";
-    const d = price - round.entry;
-    const tie = Math.abs(d) < 0.005, winning = !tie && (d>0) === (round.dir==="up");
-    $("liveLbl").textContent = `Previsione ${round.dir==="up"?"SU ▲":"GIÙ ▼"} · puntata ${fmt(round.stake)} · ingresso ${fmtP(round.entry)}`;
-    $("status").textContent = tie ? "In parità…" : winning ? "✅ Stai vincendo" : "❌ Stai perdendo";
+    const d = price - round.entry, signed = round.dir==="up" ? d : -d;
+    const winning = round.tier === 0 ? signed > 0.005 : signed > round.margin;
+    const tie = round.tier === 0 && Math.abs(d) <= 0.005;
+    $("liveLbl").textContent = `${TIERS[round.tier].name} · ${round.dir==="up"?"SU ▲":"GIÙ ▼"} · puntata ${fmt(round.stake)} · ingresso ${fmtP(round.entry)}`;
+    $("status").textContent = tie ? "In parità…" : winning ? "✅ Stai vincendo" : (round.tier>0 && signed>0 ? "⏳ Serve ancora $" + (round.margin-signed).toFixed(2) : "❌ Stai perdendo");
     $("status").className = "status " + (tie ? "" : winning ? "up" : "down");
     $("bDir").textContent = round.dir==="up" ? "▲ SU" : "▼ GIÙ";
     $("bDir").className = round.dir==="up" ? "up" : "down";
     $("bPl").textContent = (d>=0?"+":"") + d.toFixed(2) + " USD";
     $("bPl").className = d>=0 ? "up" : "down";
-  }
+  } else if(sel.tier > 0 && Math.floor(Date.now()/1000) % 2 === 0) updateNeed();
   draw();
 }
 
@@ -343,29 +586,35 @@ function draw(){
   if(cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
   cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,w,h);
   if(points.length < 2) return;
+  const V = round ? Math.min(MAX_POINTS, Math.max(240, round.dur*4 + 60)) : 240;   // finestra visibile
+  const pts = points.slice(-V);
   let min = Infinity, max = -Infinity;
-  for(const q of points){ if(q.p<min)min=q.p; if(q.p>max)max=q.p; }
-  if(round){ min = Math.min(min, round.entry); max = Math.max(max, round.entry); }
+  for(const q of pts){ if(q.p<min)min=q.p; if(q.p>max)max=q.p; }
+  let tgt = null;
+  if(round){
+    min = Math.min(min, round.entry); max = Math.max(max, round.entry);
+    if(round.margin > 0){ tgt = round.entry + (round.dir==="up" ? 1 : -1)*round.margin; min = Math.min(min,tgt); max = Math.max(max,tgt); }
+  }
   let pad = (max-min)*0.15; if(pad < price*0.00005) pad = price*0.00005;
   min -= pad; max += pad;
   const W = w - 62;
-  const x0 = W - (points.length-1)/(MAX_POINTS-1)*W;
-  const x = i => x0 + i/(MAX_POINTS-1)*W;
+  const x0 = W - (pts.length-1)/(V-1)*W;
+  const x = i => x0 + i/(V-1)*W;
   const y = p => h - 8 - (p-min)/(max-min)*(h-16);
   cx.strokeStyle = "rgba(255,255,255,.05)"; cx.lineWidth = 1; cx.fillStyle = "#7d889e"; cx.font = "10px sans-serif";
   for(let k=0;k<=3;k++){ const v = min + (max-min)*k/3, yy = y(v); cx.beginPath(); cx.moveTo(0,yy); cx.lineTo(W,yy); cx.stroke(); cx.fillText(v.toFixed(0), W+6, yy+3); }
-  const up = points[points.length-1].p >= points[0].p, col = up ? "#19d38a" : "#ff4d6a";
-  cx.beginPath(); points.forEach((q,i)=> i?cx.lineTo(x(i),y(q.p)):cx.moveTo(x(i),y(q.p)));
+  const up = pts[pts.length-1].p >= pts[0].p, col = up ? "#19d38a" : "#ff4d6a";
+  cx.beginPath(); pts.forEach((q,i)=> i?cx.lineTo(x(i),y(q.p)):cx.moveTo(x(i),y(q.p)));
   cx.strokeStyle = col; cx.lineWidth = 2; cx.lineJoin = "round"; cx.stroke();
   const g = cx.createLinearGradient(0,0,0,h); g.addColorStop(0, up?"rgba(25,211,138,.22)":"rgba(255,77,106,.22)"); g.addColorStop(1,"rgba(0,0,0,0)");
-  cx.lineTo(x(points.length-1),h); cx.lineTo(x(0),h); cx.closePath(); cx.fillStyle = g; cx.fill();
+  cx.lineTo(x(pts.length-1),h); cx.lineTo(x(0),h); cx.closePath(); cx.fillStyle = g; cx.fill();
   if(round){
-    const ye = y(round.entry);
-    cx.setLineDash([5,4]); cx.strokeStyle = "#f7b731"; cx.lineWidth = 1.5;
-    cx.beginPath(); cx.moveTo(0,ye); cx.lineTo(W,ye); cx.stroke(); cx.setLineDash([]);
-    cx.fillStyle = "#f7b731"; cx.fillText("INGRESSO", 6, ye-5);
+    const line = (v, c, label) => { const yy = y(v); cx.setLineDash([5,4]); cx.strokeStyle = c; cx.lineWidth = 1.5;
+      cx.beginPath(); cx.moveTo(0,yy); cx.lineTo(W,yy); cx.stroke(); cx.setLineDash([]); cx.fillStyle = c; cx.fillText(label, 6, yy-5); };
+    line(round.entry, "#f7b731", "INGRESSO");
+    if(tgt !== null) line(tgt, round.dir==="up" ? "#19d38a" : "#ff4d6a", "OBIETTIVO");
   }
-  const lx = x(points.length-1), ly = y(price);
+  const lx = x(pts.length-1), ly = y(price);
   cx.beginPath(); cx.arc(lx,ly,4,0,7); cx.fillStyle = col; cx.fill();
   cx.fillRect(W+2, ly-8, 58, 16);
   cx.fillStyle = "#06120c"; cx.font = "bold 10px sans-serif"; cx.fillText(price.toFixed(0), W+6, ly+3.5);
